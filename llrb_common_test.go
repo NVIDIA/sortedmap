@@ -32,6 +32,11 @@ func TestLLRBTreeInsertGetDeleteByIndexLarge(t *testing.T) {
 	metaTestInsertGetDeleteByIndexLarge(t, llrb)
 }
 
+func TestLLRBTreeInsertGetDeleteByIndexHuge(t *testing.T) {
+	llrb := NewLLRBTree(CompareInt)
+	metaTestInsertGetDeleteByIndexHuge(t, llrb)
+}
+
 func TestLLRBTreeInsertGetDeleteByKeyTrivial(t *testing.T) {
 	llrb := NewLLRBTree(CompareInt)
 	metaTestInsertGetDeleteByKeyTrivial(t, llrb)
@@ -45,4 +50,9 @@ func TestLLRBTreeInsertGetDeleteByKeySmall(t *testing.T) {
 func TestLLRBTreeInsertGetDeleteByKeyLarge(t *testing.T) {
 	llrb := NewLLRBTree(CompareInt)
 	metaTestInsertGetDeleteByKeyLarge(t, llrb)
+}
+
+func TestLLRBTreeInsertGetDeleteByKeyHuge(t *testing.T) {
+	llrb := NewLLRBTree(CompareInt)
+	metaTestInsertGetDeleteByKeyHuge(t, llrb)
 }

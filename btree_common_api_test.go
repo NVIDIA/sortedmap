@@ -132,6 +132,18 @@ func TestBPlusTreeInsertGetDeleteByIndexLarge(t *testing.T) {
 	metaTestInsertGetDeleteByIndexLarge(t, context.tree)
 }
 
+func TestBPlusTreeInsertGetDeleteByIndexHuge(t *testing.T) {
+	context := &commonContextStruct{t: t}
+	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
+	metaTestInsertGetDeleteByIndexHuge(t, context.tree)
+	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
+	metaTestInsertGetDeleteByIndexHuge(t, context.tree)
+	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxTypical, CompareInt, context)
+	metaTestInsertGetDeleteByIndexHuge(t, context.tree)
+	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxLarge, CompareInt, context)
+	metaTestInsertGetDeleteByIndexHuge(t, context.tree)
+}
+
 func TestBPlusTreeInsertGetDeleteByKeyTrivial(t *testing.T) {
 	context := &commonContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
@@ -166,4 +178,16 @@ func TestBPlusTreeInsertGetDeleteByKeyLarge(t *testing.T) {
 	metaTestInsertGetDeleteByKeyLarge(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxLarge, CompareInt, context)
 	metaTestInsertGetDeleteByKeyLarge(t, context.tree)
+}
+
+func TestBPlusTreeInsertGetDeleteByKeyHuge(t *testing.T) {
+	context := &commonContextStruct{t: t}
+	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
+	metaTestInsertGetDeleteByKeyHuge(t, context.tree)
+	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
+	metaTestInsertGetDeleteByKeyHuge(t, context.tree)
+	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxTypical, CompareInt, context)
+	metaTestInsertGetDeleteByKeyHuge(t, context.tree)
+	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxLarge, CompareInt, context)
+	metaTestInsertGetDeleteByKeyHuge(t, context.tree)
 }

@@ -2,12 +2,17 @@ package sortedmap
 
 // Meta Test library for packages implementing SortedMap APIs
 
-// Random (non-repeating) sequence generated via https://www.random.org/sequences/
+// Random (non-repeating) sequence statically  generated via https://www.random.org/sequences/
+// Random (non-repeating) sequence dynamically generated via Knuth Shuffle
 
 import (
+	"crypto/rand"
+	"math/big"
 	"strconv"
 	"testing"
 )
+
+const testHugeNumKeys = 5000
 
 func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	var (
@@ -773,6 +778,29 @@ func metaTestDeleteByKeySimple(t *testing.T, tree SortedMap) {
 	}
 }
 
+func testKnuthShuffledIntSlice(t *testing.T, n int) (intSlice []int) {
+	intSlice = make([]int, n)
+	for i := 0; i < n; i++ {
+		intSlice[i] = i
+	}
+	for swapFrom := int64(n - 1); swapFrom > int64(0); swapFrom-- {
+		swapFromPlusOneBigIntPtr := big.NewInt(int64(swapFrom + 1))
+
+		swapToBigIntPtr, err := rand.Int(rand.Reader, swapFromPlusOneBigIntPtr)
+		if nil != err {
+			t.Fatalf("rand.Int(rand.Reade, swapFromPlusOneBigIntPtr) returned error == \"%v\"", err)
+		}
+
+		swapTo := swapToBigIntPtr.Int64()
+
+		if swapFrom != swapTo {
+			intSlice[swapFrom], intSlice[swapTo] = intSlice[swapTo], intSlice[swapFrom]
+		}
+	}
+
+	return
+}
+
 func testInsertGetDeleteByIndex(t *testing.T, tree SortedMap, keysToInsert []int, indicesToGet []int, indicesToDeleteNotNormalized []int) {
 	var (
 		elementIndexInner         int
@@ -1070,6 +1098,14 @@ func metaTestInsertGetDeleteByIndexLarge(t *testing.T, tree SortedMap) {
 	testInsertGetDeleteByIndex(t, tree, keysToInsert, indicesToGet, indicesToDeleteNotNormalized)
 }
 
+func metaTestInsertGetDeleteByIndexHuge(t *testing.T, tree SortedMap) {
+	keysToInsert := testKnuthShuffledIntSlice(t, testHugeNumKeys)
+	indicesToGet := testKnuthShuffledIntSlice(t, testHugeNumKeys)
+	indicesToDeleteNotNormalized := testKnuthShuffledIntSlice(t, testHugeNumKeys)
+
+	testInsertGetDeleteByIndex(t, tree, keysToInsert, indicesToGet, indicesToDeleteNotNormalized)
+}
+
 func testInsertGetDeleteByKey(t *testing.T, tree SortedMap, keysToInsert []int, keysToGet []int, keysToDelete []int) {
 	var (
 		err           error
@@ -1336,6 +1372,14 @@ func metaTestInsertGetDeleteByKeyLarge(t *testing.T, tree SortedMap) {
 		326, 612, 788, 616, 798, 492, 943, 58, 178, 142, 624, 33, 824, 17, 452, 337, 968, 205, 544, 847,
 		361, 347, 119, 280, 374, 461, 291, 949, 937, 896, 393, 447, 504, 716, 719, 658, 555, 869, 523, 55,
 	}
+
+	testInsertGetDeleteByKey(t, tree, keysToInsert, keysToGet, keysToDelete)
+}
+
+func metaTestInsertGetDeleteByKeyHuge(t *testing.T, tree SortedMap) {
+	keysToInsert := testKnuthShuffledIntSlice(t, testHugeNumKeys)
+	keysToGet := testKnuthShuffledIntSlice(t, testHugeNumKeys)
+	keysToDelete := testKnuthShuffledIntSlice(t, testHugeNumKeys)
 
 	testInsertGetDeleteByKey(t, tree, keysToInsert, keysToGet, keysToDelete)
 }
