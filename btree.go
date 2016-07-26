@@ -7,23 +7,23 @@ import (
 )
 
 type btreeNodeStruct struct {
-	objectNumber uint64 //              if != 0, log* fields identify on-disk copy of this btreeNodeStruct
+	objectNumber uint64 //                  if != 0, log* fields identify on-disk copy of this btreeNodeStruct
 	objectOffset uint64
 	objectLength uint64
-	items        uint64 //              number of item's (Keys & Values) at all leaf btreeNodeStructs at or below this btreeNodeStruct
+	items        uint64 //                  number of item's (Keys & Values) at all leaf btreeNodeStructs at or below this btreeNodeStruct
 	loaded       bool
 	dirty        bool
 	root         bool
 	leaf         bool
 	tree         *btreeTreeStruct
-	parentNode   *btreeNodeStruct //    if root == true,  Value == nil
-	kvLLRB       LLRBTree         //    if leaf == true,  Key == item's' Key, Value == item's Value
+	parentNode   *btreeNodeStruct //        if root == true,  Value == nil
+	kvLLRB       LLRBTree         //        if leaf == true,  Key == item's' Key, Value == item's Value
 	//                                      if leaf == false, Key == minimum item's Key, Value = ptr to child btreeNodeStruct
 	nonLeafLeftChild   *btreeNodeStruct //                    Value == ptr to btreeNodeStruct to the left of kvLLRB's 0th element
 	rootPrefixSumChild *btreeNodeStruct //                    Value == ptr to root of binary tree of child btreeNodeStruct's sorted by prefixSumItems
 	prefixSumItems     uint64           //  if root == false, sort key for prefix sum binary tree of child btreeNodeStruct's
 	prefixSumKVIndex   int              //                    if node == parentNode.nonLeafLeftChild, value will be -1
-	//                                                   if node != parentNode.nonLeafLeftChild, value will be index into parentNode.kvLLRB where Value == node
+	//                                                        if node != parentNode.nonLeafLeftChild, value will be index into parentNode.kvLLRB where Value == node
 	prefixSumParent     *btreeNodeStruct //                   nil if this is also the rootPrefixSumChild
 	prefixSumLeftChild  *btreeNodeStruct //                   nil if no left  child btreeNodeStruct
 	prefixSumRightChild *btreeNodeStruct //                   nil if no right child btreeNodeStruct
