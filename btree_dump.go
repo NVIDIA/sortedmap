@@ -3,8 +3,13 @@ package sortedmap
 import "fmt"
 
 func (tree *btreeTreeStruct) Dump() (err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	fmt.Printf("Root Node @ %p\n", tree.root)
+
 	err = tree.dumpNode(tree.root, "")
+
 	return
 }
 

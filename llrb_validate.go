@@ -3,7 +3,11 @@ package sortedmap
 import "fmt"
 
 func (tree *llrbTreeStruct) Validate() (err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	err = tree.root.validate()
+
 	return
 }
 

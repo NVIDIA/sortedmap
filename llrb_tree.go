@@ -11,8 +11,12 @@ package sortedmap
 // same coloring scheme and will simplify the algorithms even more (with only a negligible
 // performance impact). The implementation herein utilizes this 2-3 Tree basis.
 
-const RED bool = true
-const BLACK bool = false
+import "sync"
+
+const (
+	RED   = true
+	BLACK = false
+)
 
 type llrbNodeStruct struct {
 	Key
@@ -24,6 +28,7 @@ type llrbNodeStruct struct {
 }
 
 type llrbTreeStruct struct {
+	sync.Mutex
 	Compare
 	root *llrbNodeStruct
 }
@@ -31,6 +36,9 @@ type llrbTreeStruct struct {
 // API functions (see api.go)
 
 func (tree *llrbTreeStruct) BisectLeft(key Key) (index int, found bool, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	node := tree.root
 
 	if nil == node {
@@ -108,6 +116,9 @@ func (tree *llrbTreeStruct) BisectLeft(key Key) (index int, found bool, err erro
 }
 
 func (tree *llrbTreeStruct) BisectRight(key Key) (index int, found bool, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	node := tree.root
 
 	if nil == node {
@@ -185,6 +196,9 @@ func (tree *llrbTreeStruct) BisectRight(key Key) (index int, found bool, err err
 }
 
 func (tree *llrbTreeStruct) DeleteByIndex(index int) (ok bool, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	if (index < 0) || (nil == tree.root) || (index >= tree.root.len) {
 		ok = false
 		err = nil
@@ -211,6 +225,9 @@ func (tree *llrbTreeStruct) DeleteByIndex(index int) (ok bool, err error) {
 }
 
 func (tree *llrbTreeStruct) DeleteByKey(key Key) (ok bool, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	ok, err = tree.preDeleteByKeyAdjustLen(tree.root, key)
 	if nil != err {
 		return
@@ -232,6 +249,9 @@ func (tree *llrbTreeStruct) DeleteByKey(key Key) (ok bool, err error) {
 }
 
 func (tree *llrbTreeStruct) GetByIndex(index int) (key Key, value Value, ok bool, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	err = nil
 
 	node := tree.root
@@ -278,6 +298,9 @@ func (tree *llrbTreeStruct) GetByIndex(index int) (key Key, value Value, ok bool
 }
 
 func (tree *llrbTreeStruct) GetByKey(key Key) (value Value, ok bool, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	node := tree.root
 
 	for nil != node {
@@ -311,6 +334,9 @@ func (tree *llrbTreeStruct) GetByKey(key Key) (value Value, ok bool, err error) 
 }
 
 func (tree *llrbTreeStruct) Len() (numberOfItems int, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	err = nil
 
 	if nil == tree.root {
@@ -323,6 +349,9 @@ func (tree *llrbTreeStruct) Len() (numberOfItems int, err error) {
 }
 
 func (tree *llrbTreeStruct) PatchByIndex(index int, value Value) (ok bool, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	err = nil
 
 	node := tree.root
@@ -366,6 +395,9 @@ func (tree *llrbTreeStruct) PatchByIndex(index int, value Value) (ok bool, err e
 }
 
 func (tree *llrbTreeStruct) PatchByKey(key Key, value Value) (ok bool, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	node := tree.root
 
 	for nil != node {
@@ -398,6 +430,9 @@ func (tree *llrbTreeStruct) PatchByKey(key Key, value Value) (ok bool, err error
 }
 
 func (tree *llrbTreeStruct) Put(key Key, value Value) (ok bool, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	updatedRoot, ok, err := tree.insert(tree.root, key, value)
 	if nil != err {
 		return
@@ -480,7 +515,7 @@ func (tree *llrbTreeStruct) insert(oldNexusNode *llrbNodeStruct, key Key, value 
 }
 
 func (tree *llrbTreeStruct) postInsertAdjustLen(node *llrbNodeStruct, key Key) (err error) {
-	node.len += 1
+	node.len++
 
 	compareResult, compareErr := tree.Compare(key, node.Key)
 	if nil != compareErr {
@@ -503,7 +538,7 @@ func (tree *llrbTreeStruct) postInsertAdjustLen(node *llrbNodeStruct, key Key) (
 }
 
 func (tree *llrbTreeStruct) preDeleteByIndexAdjustLen(node *llrbNodeStruct, index int) (key Key) {
-	node.len -= 1
+	node.len--
 
 	nodesOnLeft := 0
 	if nil != node.left {
@@ -543,7 +578,7 @@ func (tree *llrbTreeStruct) preDeleteByKeyAdjustLen(node *llrbNodeStruct, key Ke
 			return
 		}
 		if ok {
-			node.len -= 1
+			node.len--
 		}
 	case compareResult > 0: // key > node.Key
 		ok, err = tree.preDeleteByKeyAdjustLen(node.right, key)
@@ -551,10 +586,10 @@ func (tree *llrbTreeStruct) preDeleteByKeyAdjustLen(node *llrbNodeStruct, key Ke
 			return
 		}
 		if ok {
-			node.len -= 1
+			node.len--
 		}
 	default: // compareResult == 0 (key == node.Key)
-		node.len -= 1
+		node.len--
 		ok = true
 	}
 
@@ -639,7 +674,7 @@ func (tree *llrbTreeStruct) deleteMin(oldNexusNode *llrbNodeStruct) (newNexusNod
 
 	newNexusNode.left, minKey, minValue = tree.deleteMin(newNexusNode.left)
 
-	newNexusNode.len -= 1
+	newNexusNode.len--
 
 	newNexusNode = tree.fixUp(newNexusNode)
 

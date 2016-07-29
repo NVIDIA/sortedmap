@@ -6,6 +6,9 @@ import (
 )
 
 func (tree *llrbTreeStruct) Dump() (err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	err = nil
 
 	dumpInFlatForm(tree.root)

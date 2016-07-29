@@ -2,6 +2,7 @@ package sortedmap
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/swiftstack/cstruct"
 )
@@ -55,6 +56,7 @@ type onDiskNodeStruct struct {
 }
 
 type btreeTreeStruct struct {
+	sync.Mutex
 	minKeysPerNode uint64 // only applies to non-Root nodes
 	//                       "order" according to Bayer & McCreight (1972) & Comer (1979)
 	maxKeysPerNode uint64 // "order" according to Knuth (1998)
@@ -66,6 +68,9 @@ type btreeTreeStruct struct {
 // API functions (see api.go)
 
 func (tree *btreeTreeStruct) BisectLeft(key Key) (index int, found bool, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	node := tree.root
 	indexDelta := uint64(0)
 
@@ -171,6 +176,9 @@ func (tree *btreeTreeStruct) BisectLeft(key Key) (index int, found bool, err err
 }
 
 func (tree *btreeTreeStruct) BisectRight(key Key) (index int, found bool, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	node := tree.root
 	indexDelta := uint64(0)
 
@@ -276,6 +284,9 @@ func (tree *btreeTreeStruct) BisectRight(key Key) (index int, found bool, err er
 }
 
 func (tree *btreeTreeStruct) DeleteByIndex(index int) (ok bool, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	node := tree.root
 
 	parentIndexStack := []int{} // when not at the root,
@@ -337,6 +348,9 @@ func (tree *btreeTreeStruct) DeleteByIndex(index int) (ok bool, err error) {
 }
 
 func (tree *btreeTreeStruct) DeleteByKey(key Key) (ok bool, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	node := tree.root
 
 	parentIndexStack := []int{} // when not at the root,
@@ -404,6 +418,9 @@ func (tree *btreeTreeStruct) DeleteByKey(key Key) (ok bool, err error) {
 }
 
 func (tree *btreeTreeStruct) GetByIndex(index int) (key Key, value Value, ok bool, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	node := tree.root
 
 	if (0 > index) || (uint64(index) >= node.items) {
@@ -457,6 +474,9 @@ func (tree *btreeTreeStruct) GetByIndex(index int) (key Key, value Value, ok boo
 }
 
 func (tree *btreeTreeStruct) GetByKey(key Key) (value Value, ok bool, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	node := tree.root
 
 	for {
@@ -507,6 +527,9 @@ func (tree *btreeTreeStruct) GetByKey(key Key) (value Value, ok bool, err error)
 }
 
 func (tree *btreeTreeStruct) Len() (numberOfItems int, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	if !tree.root.loaded {
 		err = tree.loadNode(tree.root)
 		if nil != err {
@@ -522,6 +545,9 @@ func (tree *btreeTreeStruct) Len() (numberOfItems int, err error) {
 }
 
 func (tree *btreeTreeStruct) PatchByIndex(index int, value Value) (ok bool, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	node := tree.root
 
 	if (0 > index) || (uint64(index) >= node.items) {
@@ -571,6 +597,9 @@ func (tree *btreeTreeStruct) PatchByIndex(index int, value Value) (ok bool, err 
 }
 
 func (tree *btreeTreeStruct) PatchByKey(key Key, value Value) (ok bool, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	node := tree.root
 
 	for {
@@ -621,6 +650,9 @@ func (tree *btreeTreeStruct) PatchByKey(key Key, value Value) (ok bool, err erro
 }
 
 func (tree *btreeTreeStruct) Put(key Key, value Value) (ok bool, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	node := tree.root
 
 	for {
@@ -686,6 +718,9 @@ func (tree *btreeTreeStruct) Put(key Key, value Value) (ok bool, err error) {
 }
 
 func (tree *btreeTreeStruct) Flush(andPurge bool) (rootObjectNumber uint64, rootObjectOffset uint64, rootObjectLength uint64, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	err = tree.flushNode(tree.root, andPurge)
 	if nil != err {
 		return
@@ -701,6 +736,9 @@ func (tree *btreeTreeStruct) Flush(andPurge bool) (rootObjectNumber uint64, root
 }
 
 func (tree *btreeTreeStruct) Purge() (err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
 	err = tree.purgeNode(tree.root)
 	return
 }
