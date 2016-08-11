@@ -56,3 +56,8 @@ func TestLLRBTreeInsertGetDeleteByKeyHuge(t *testing.T) {
 	llrb := NewLLRBTree(CompareInt)
 	metaTestInsertGetDeleteByKeyHuge(t, llrb)
 }
+
+func TestLLRBTreeBisect(t *testing.T) {
+	llrb := NewLLRBTree(CompareInt)
+	metaTestBisect(t, llrb)
+}

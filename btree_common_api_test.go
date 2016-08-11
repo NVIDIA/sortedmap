@@ -191,3 +191,15 @@ func TestBPlusTreeInsertGetDeleteByKeyHuge(t *testing.T) {
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxLarge, CompareInt, context)
 	metaTestInsertGetDeleteByKeyHuge(t, context.tree)
 }
+
+func TestBPlusTreeBisect(t *testing.T) {
+	context := &commonContextStruct{t: t}
+	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
+	metaTestBisect(t, context.tree)
+	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
+	metaTestBisect(t, context.tree)
+	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxTypical, CompareInt, context)
+	metaTestBisect(t, context.tree)
+	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxLarge, CompareInt, context)
+	metaTestBisect(t, context.tree)
+}

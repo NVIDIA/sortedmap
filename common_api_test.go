@@ -6,13 +6,23 @@ package sortedmap
 // Random (non-repeating) sequence dynamically generated via Knuth Shuffle
 
 import (
-	"crypto/rand"
+	cryptoRand "crypto/rand"
 	"math/big"
+	mathRand "math/rand"
 	"strconv"
 	"testing"
 )
 
-const testHugeNumKeys = 5000
+const (
+	testHugeNumKeys = 5000
+
+	pseudoRandom     = false
+	pseudoRandomSeed = int64(0)
+)
+
+var (
+	randSource *mathRand.Rand // A source for pseudo-random numbers (if selected)
+)
 
 func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	var (
@@ -779,19 +789,32 @@ func metaTestDeleteByKeySimple(t *testing.T, tree SortedMap) {
 }
 
 func testKnuthShuffledIntSlice(t *testing.T, n int) (intSlice []int) {
+	var (
+		swapFrom int64
+		swapTo   int64
+	)
 	intSlice = make([]int, n)
 	for i := 0; i < n; i++ {
 		intSlice[i] = i
 	}
-	for swapFrom := int64(n - 1); swapFrom > int64(0); swapFrom-- {
-		swapFromPlusOneBigIntPtr := big.NewInt(int64(swapFrom + 1))
+	for swapFrom = int64(n - 1); swapFrom > int64(0); swapFrom-- {
+		if pseudoRandom {
+			// TODO
+			if nil == randSource {
+				randSource = mathRand.New(mathRand.NewSource(pseudoRandomSeed))
+			}
 
-		swapToBigIntPtr, err := rand.Int(rand.Reader, swapFromPlusOneBigIntPtr)
-		if nil != err {
-			t.Fatalf("rand.Int(rand.Reade, swapFromPlusOneBigIntPtr) returned error == \"%v\"", err)
+			swapTo = randSource.Int63n(swapFrom + 1)
+		} else {
+			swapFromPlusOneBigIntPtr := big.NewInt(int64(swapFrom + 1))
+
+			swapToBigIntPtr, err := cryptoRand.Int(cryptoRand.Reader, swapFromPlusOneBigIntPtr)
+			if nil != err {
+				t.Fatalf("cryptoRand.Int(cryptoRand.Reader, swapFromPlusOneBigIntPtr) returned error == \"%v\"", err)
+			}
+
+			swapTo = swapToBigIntPtr.Int64()
 		}
-
-		swapTo := swapToBigIntPtr.Int64()
 
 		if swapFrom != swapTo {
 			intSlice[swapFrom], intSlice[swapTo] = intSlice[swapTo], intSlice[swapFrom]
@@ -1382,4 +1405,135 @@ func metaTestInsertGetDeleteByKeyHuge(t *testing.T, tree SortedMap) {
 	keysToDelete := testKnuthShuffledIntSlice(t, testHugeNumKeys)
 
 	testInsertGetDeleteByKey(t, tree, keysToInsert, keysToGet, keysToDelete)
+}
+
+func metaTestBisect(t *testing.T, tree SortedMap) {
+	var (
+		bisectIndex int
+		bisectKey   int
+		err         error
+		found       bool
+		key         int
+		keyAsKey    Key
+		keyExpected int
+		ok          bool
+		treeLen     int
+		value       string
+	)
+
+	// Insert testHugeNumKeys keys using ascending odd ints starting at int(1)
+	keyIndices := testKnuthShuffledIntSlice(t, testHugeNumKeys)
+
+	for _, keyIndex := range keyIndices {
+		key = (2 * keyIndex) + 1
+		value = strconv.Itoa(key)
+		ok, err = tree.Put(key, value)
+		if nil != err {
+			t.Fatal(err)
+		}
+		if !ok {
+			t.Fatalf("Put(%v, \"%v\").ok should have been true", key, value)
+		}
+	}
+
+	// Verify tree now contains precisely these keys
+	treeLen, err = tree.Len()
+	if nil != err {
+		t.Fatal(err)
+	}
+	if testHugeNumKeys != treeLen {
+		t.Fatalf("Len() returned %v... expected %v", treeLen, testHugeNumKeys)
+	}
+
+	for keyIndex := int(0); keyIndex < testHugeNumKeys; keyIndex++ {
+		keyExpected = (2 * keyIndex) + 1
+		keyAsKey, _, ok, err = tree.GetByIndex(keyIndex)
+		if nil != err {
+			t.Fatal(err)
+		}
+		if !ok {
+			t.Fatalf("GetByIndex(%v).ok should have been true", keyIndex)
+		}
+		key = keyAsKey.(int)
+		if key != keyExpected {
+			t.Fatalf("GetByIndex(%v).key returned %v... expected %v", keyIndex, key, keyExpected)
+		}
+	}
+
+	// Verify Bisect{Left|Right}() on each of these keys returns correct index & found == true
+	for keyIndex := int(0); keyIndex < testHugeNumKeys; keyIndex++ {
+		bisectKey = (2 * keyIndex) + 1
+
+		bisectIndex, found, err = tree.BisectLeft(bisectKey)
+		if nil != err {
+			t.Fatal(err)
+		}
+		if !found {
+			t.Fatalf("BisectLeft(%v).found should have been true", bisectKey)
+		}
+		if bisectIndex != keyIndex {
+			t.Fatalf("BisectLeft(%v).index returned %v... expected %v", bisectKey, bisectIndex, keyIndex)
+		}
+
+		bisectIndex, found, err = tree.BisectRight(bisectKey)
+		if nil != err {
+			t.Fatal(err)
+		}
+		if !found {
+			t.Fatalf("BisectRight(%v).found should have been true", bisectKey)
+		}
+		if bisectIndex != keyIndex {
+			t.Fatalf("BisectRight(%v).index returned %v... expected %v", bisectKey, bisectIndex, keyIndex)
+		}
+	}
+
+	// Verify Bisect{Left|Right}(0) returns correct index & found == false
+	bisectIndex, found, err = tree.BisectLeft(0)
+	if nil != err {
+		t.Fatal(err)
+	}
+	if found {
+		t.Fatalf("BisectLeft(0).found should have been false")
+	}
+	if bisectIndex != int(-1) {
+		t.Fatalf("BisectLeft(0).index returned %v... expected -1", bisectIndex)
+	}
+
+	bisectIndex, found, err = tree.BisectRight(0)
+	if nil != err {
+		t.Fatal(err)
+	}
+	if found {
+		t.Fatalf("BisectRight(0).found should have been false")
+	}
+	if bisectIndex != 0 {
+		t.Fatalf("BisectRight(0).index returned %v... expected 0", bisectIndex)
+	}
+
+	// Verify Bisect{Left|Right}() on each of these keys plus 1 (the following even ints) returns correct index & found == false
+	for keyIndex := int(0); keyIndex < testHugeNumKeys; keyIndex++ {
+		bisectKey = (2 * keyIndex) + 1 + 1
+
+		bisectIndex, found, err = tree.BisectLeft(bisectKey)
+		if nil != err {
+			t.Fatal(err)
+		}
+		if found {
+			t.Fatalf("BisectLeft(%v).found should have been false", bisectKey)
+		}
+		if bisectIndex != keyIndex {
+			t.Fatalf("BisectLeft(%v).index returned %v... expected %v", bisectKey, bisectIndex, keyIndex)
+		}
+
+		bisectIndex, found, err = tree.BisectRight(bisectKey)
+		if nil != err {
+			t.Fatal(err)
+		}
+		if found {
+			t.Fatalf("BisectRight(%v).found should have been false", bisectKey)
+		}
+		if bisectIndex != (keyIndex + 1) {
+			t.Fatalf("BisectRight(%v).index returned %v... expected %v", bisectKey, bisectIndex, keyIndex)
+		}
+	}
 }

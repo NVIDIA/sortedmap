@@ -164,6 +164,10 @@ func (tree *btreeTreeStruct) BisectLeft(key Key) (index int, found bool, err err
 								childNode = childNode.prefixSumLeftChild
 							}
 						}
+
+						if nil != childNode.prefixSumLeftChild {
+							indexDelta += childNode.prefixSumLeftChild.prefixSumItems
+						}
 					}
 
 					node = childNode
@@ -271,6 +275,10 @@ func (tree *btreeTreeStruct) BisectRight(key Key) (index int, found bool, err er
 							} else {
 								childNode = childNode.prefixSumLeftChild
 							}
+						}
+
+						if nil != childNode.prefixSumLeftChild {
+							indexDelta += childNode.prefixSumLeftChild.prefixSumItems
 						}
 					}
 
