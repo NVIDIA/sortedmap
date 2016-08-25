@@ -94,87 +94,87 @@ func (tree *btreeTreeStruct) BisectLeft(key Key) (index int, found bool, err err
 			err = nil
 
 			return
-		} else {
-			minKey, _, ok, nonShadowingErr := node.kvLLRB.GetByIndex(0)
+		}
+
+		minKey, _, ok, nonShadowingErr := node.kvLLRB.GetByIndex(0)
+		if nil != nonShadowingErr {
+			err = nonShadowingErr
+			return
+		}
+		if ok {
+			compareResult, nonShadowingErr := tree.Compare(key, minKey)
 			if nil != nonShadowingErr {
 				err = nonShadowingErr
 				return
 			}
-			if ok {
-				compareResult, nonShadowingErr := tree.Compare(key, minKey)
+			if 0 > compareResult {
+				node = node.nonLeafLeftChild
+			} else {
+				nextIndex, _, nonShadowingErr := node.kvLLRB.BisectLeft(key)
 				if nil != nonShadowingErr {
 					err = nonShadowingErr
 					return
 				}
-				if 0 > compareResult {
-					node = node.nonLeafLeftChild
-				} else {
-					nextIndex, _, nonShadowingErr := node.kvLLRB.BisectLeft(key)
-					if nil != nonShadowingErr {
-						err = nonShadowingErr
-						return
-					}
 
-					_, childNodeAsValue, _, nonShadowingErr := node.kvLLRB.GetByIndex(nextIndex)
-					if nil != nonShadowingErr {
-						err = nonShadowingErr
-						return
-					}
-
-					childNode := childNodeAsValue.(*btreeNodeStruct)
-
-					if childNode == node.rootPrefixSumChild {
-						if nil != childNode.prefixSumLeftChild {
-							indexDelta += childNode.prefixSumLeftChild.prefixSumItems
-						}
-					} else {
-						llrbLen, nonShadowingErr := node.kvLLRB.Len()
-						if nil != nonShadowingErr {
-							err = nonShadowingErr
-							return
-						}
-
-						rightChildBoolStack := make([]bool, 0, (1 + llrbLen)) // actually only needed log-base-2 of node.kvLLRB.Len() (rounded up)... the height of Prefix Sum tree
-
-						for {
-							parentNode := childNode.prefixSumParent
-							if parentNode.prefixSumLeftChild == childNode {
-								rightChildBoolStack = append(rightChildBoolStack, false)
-							} else { // parentNode.prefixSumRightChild == childNode
-								rightChildBoolStack = append(rightChildBoolStack, true)
-							}
-
-							childNode = parentNode
-
-							if nil == parentNode.prefixSumParent {
-								break
-							}
-						}
-
-						for i := (len(rightChildBoolStack) - 1); i >= 0; i-- {
-							if rightChildBoolStack[i] {
-								if nil != childNode.prefixSumLeftChild {
-									indexDelta += childNode.prefixSumLeftChild.prefixSumItems
-								}
-
-								indexDelta += childNode.items
-
-								childNode = childNode.prefixSumRightChild
-							} else {
-								childNode = childNode.prefixSumLeftChild
-							}
-						}
-
-						if nil != childNode.prefixSumLeftChild {
-							indexDelta += childNode.prefixSumLeftChild.prefixSumItems
-						}
-					}
-
-					node = childNode
+				_, childNodeAsValue, _, nonShadowingErr := node.kvLLRB.GetByIndex(nextIndex)
+				if nil != nonShadowingErr {
+					err = nonShadowingErr
+					return
 				}
-			} else {
-				node = node.nonLeafLeftChild
+
+				childNode := childNodeAsValue.(*btreeNodeStruct)
+
+				if childNode == node.rootPrefixSumChild {
+					if nil != childNode.prefixSumLeftChild {
+						indexDelta += childNode.prefixSumLeftChild.prefixSumItems
+					}
+				} else {
+					llrbLen, nonShadowingErr := node.kvLLRB.Len()
+					if nil != nonShadowingErr {
+						err = nonShadowingErr
+						return
+					}
+
+					rightChildBoolStack := make([]bool, 0, (1 + llrbLen)) // actually only needed log-base-2 of node.kvLLRB.Len() (rounded up)... the height of Prefix Sum tree
+
+					for {
+						parentNode := childNode.prefixSumParent
+						if parentNode.prefixSumLeftChild == childNode {
+							rightChildBoolStack = append(rightChildBoolStack, false)
+						} else { // parentNode.prefixSumRightChild == childNode
+							rightChildBoolStack = append(rightChildBoolStack, true)
+						}
+
+						childNode = parentNode
+
+						if nil == parentNode.prefixSumParent {
+							break
+						}
+					}
+
+					for i := (len(rightChildBoolStack) - 1); i >= 0; i-- {
+						if rightChildBoolStack[i] {
+							if nil != childNode.prefixSumLeftChild {
+								indexDelta += childNode.prefixSumLeftChild.prefixSumItems
+							}
+
+							indexDelta += childNode.items
+
+							childNode = childNode.prefixSumRightChild
+						} else {
+							childNode = childNode.prefixSumLeftChild
+						}
+					}
+
+					if nil != childNode.prefixSumLeftChild {
+						indexDelta += childNode.prefixSumLeftChild.prefixSumItems
+					}
+				}
+
+				node = childNode
 			}
+		} else {
+			node = node.nonLeafLeftChild
 		}
 	}
 }
@@ -206,87 +206,87 @@ func (tree *btreeTreeStruct) BisectRight(key Key) (index int, found bool, err er
 			err = nil
 
 			return
-		} else {
-			minKey, _, ok, nonShadowingErr := node.kvLLRB.GetByIndex(0)
+		}
+
+		minKey, _, ok, nonShadowingErr := node.kvLLRB.GetByIndex(0)
+		if nil != nonShadowingErr {
+			err = nonShadowingErr
+			return
+		}
+		if ok {
+			compareResult, nonShadowingErr := tree.Compare(key, minKey)
 			if nil != nonShadowingErr {
 				err = nonShadowingErr
 				return
 			}
-			if ok {
-				compareResult, nonShadowingErr := tree.Compare(key, minKey)
+			if 0 > compareResult {
+				node = node.nonLeafLeftChild
+			} else {
+				nextIndex, _, nonShadowingErr := node.kvLLRB.BisectLeft(key)
 				if nil != nonShadowingErr {
 					err = nonShadowingErr
 					return
 				}
-				if 0 > compareResult {
-					node = node.nonLeafLeftChild
-				} else {
-					nextIndex, _, nonShadowingErr := node.kvLLRB.BisectLeft(key)
-					if nil != nonShadowingErr {
-						err = nonShadowingErr
-						return
-					}
 
-					_, childNodeAsValue, _, nonShadowingErr := node.kvLLRB.GetByIndex(nextIndex)
-					if nil != nonShadowingErr {
-						err = nonShadowingErr
-						return
-					}
-
-					childNode := childNodeAsValue.(*btreeNodeStruct)
-
-					if childNode == node.rootPrefixSumChild {
-						if nil != childNode.prefixSumLeftChild {
-							indexDelta += childNode.prefixSumLeftChild.prefixSumItems
-						}
-					} else {
-						llrbLen, nonShadowingErr := node.kvLLRB.Len()
-						if nil != nonShadowingErr {
-							err = nonShadowingErr
-							return
-						}
-
-						rightChildBoolStack := make([]bool, 0, (1 + llrbLen)) // actually only needed log-base-2 of this quantity (rounded up)... the height of Prefix Sum tree
-
-						for {
-							parentNode := childNode.prefixSumParent
-							if parentNode.prefixSumLeftChild == childNode {
-								rightChildBoolStack = append(rightChildBoolStack, false)
-							} else { // parentNode.prefixSumRightChild == childNode
-								rightChildBoolStack = append(rightChildBoolStack, true)
-							}
-
-							childNode = parentNode
-
-							if nil == parentNode.prefixSumParent {
-								break
-							}
-						}
-
-						for i := (len(rightChildBoolStack) - 1); i >= 0; i-- {
-							if rightChildBoolStack[i] {
-								if nil != childNode.prefixSumLeftChild {
-									indexDelta += childNode.prefixSumLeftChild.prefixSumItems
-								}
-
-								indexDelta += childNode.items
-
-								childNode = childNode.prefixSumRightChild
-							} else {
-								childNode = childNode.prefixSumLeftChild
-							}
-						}
-
-						if nil != childNode.prefixSumLeftChild {
-							indexDelta += childNode.prefixSumLeftChild.prefixSumItems
-						}
-					}
-
-					node = childNode
+				_, childNodeAsValue, _, nonShadowingErr := node.kvLLRB.GetByIndex(nextIndex)
+				if nil != nonShadowingErr {
+					err = nonShadowingErr
+					return
 				}
-			} else {
-				node = node.nonLeafLeftChild
+
+				childNode := childNodeAsValue.(*btreeNodeStruct)
+
+				if childNode == node.rootPrefixSumChild {
+					if nil != childNode.prefixSumLeftChild {
+						indexDelta += childNode.prefixSumLeftChild.prefixSumItems
+					}
+				} else {
+					llrbLen, nonShadowingErr := node.kvLLRB.Len()
+					if nil != nonShadowingErr {
+						err = nonShadowingErr
+						return
+					}
+
+					rightChildBoolStack := make([]bool, 0, (1 + llrbLen)) // actually only needed log-base-2 of this quantity (rounded up)... the height of Prefix Sum tree
+
+					for {
+						parentNode := childNode.prefixSumParent
+						if parentNode.prefixSumLeftChild == childNode {
+							rightChildBoolStack = append(rightChildBoolStack, false)
+						} else { // parentNode.prefixSumRightChild == childNode
+							rightChildBoolStack = append(rightChildBoolStack, true)
+						}
+
+						childNode = parentNode
+
+						if nil == parentNode.prefixSumParent {
+							break
+						}
+					}
+
+					for i := (len(rightChildBoolStack) - 1); i >= 0; i-- {
+						if rightChildBoolStack[i] {
+							if nil != childNode.prefixSumLeftChild {
+								indexDelta += childNode.prefixSumLeftChild.prefixSumItems
+							}
+
+							indexDelta += childNode.items
+
+							childNode = childNode.prefixSumRightChild
+						} else {
+							childNode = childNode.prefixSumLeftChild
+						}
+					}
+
+					if nil != childNode.prefixSumLeftChild {
+						indexDelta += childNode.prefixSumLeftChild.prefixSumItems
+					}
+				}
+
+				node = childNode
 			}
+		} else {
+			node = node.nonLeafLeftChild
 		}
 	}
 }
@@ -328,28 +328,28 @@ func (tree *btreeTreeStruct) DeleteByIndex(index int) (ok bool, err error) {
 			ok = true
 			err = nil
 			return
-		} else {
-			node = node.rootPrefixSumChild
+		}
 
-			var leftChildPrefixSumItems uint64
+		node = node.rootPrefixSumChild
 
-			for {
-				if nil == node.prefixSumLeftChild {
-					leftChildPrefixSumItems = 0
-				} else {
-					leftChildPrefixSumItems = node.prefixSumLeftChild.prefixSumItems
-				}
+		var leftChildPrefixSumItems uint64
 
-				if netIndex < leftChildPrefixSumItems {
-					node = node.prefixSumLeftChild
-				} else if netIndex < (leftChildPrefixSumItems + node.items) {
-					netIndex -= leftChildPrefixSumItems
-					parentIndexStack = append(parentIndexStack, node.prefixSumKVIndex)
-					break
-				} else {
-					netIndex -= (leftChildPrefixSumItems + node.items)
-					node = node.prefixSumRightChild
-				}
+		for {
+			if nil == node.prefixSumLeftChild {
+				leftChildPrefixSumItems = 0
+			} else {
+				leftChildPrefixSumItems = node.prefixSumLeftChild.prefixSumItems
+			}
+
+			if netIndex < leftChildPrefixSumItems {
+				node = node.prefixSumLeftChild
+			} else if netIndex < (leftChildPrefixSumItems + node.items) {
+				netIndex -= leftChildPrefixSumItems
+				parentIndexStack = append(parentIndexStack, node.prefixSumKVIndex)
+				break
+			} else {
+				netIndex -= (leftChildPrefixSumItems + node.items)
+				node = node.prefixSumRightChild
 			}
 		}
 	}
@@ -385,42 +385,42 @@ func (tree *btreeTreeStruct) DeleteByKey(key Key) (ok bool, err error) {
 			}
 			err = nil
 			return
-		} else {
-			minKey, _, nonShadowingOK, nonShadowingErr := node.kvLLRB.GetByIndex(0)
+		}
+
+		minKey, _, nonShadowingOK, nonShadowingErr := node.kvLLRB.GetByIndex(0)
+		if nil != nonShadowingErr {
+			err = nonShadowingErr
+			return
+		}
+		if nonShadowingOK {
+			compareResult, nonShadowingErr := tree.Compare(key, minKey)
 			if nil != nonShadowingErr {
 				err = nonShadowingErr
 				return
 			}
-			if nonShadowingOK {
-				compareResult, nonShadowingErr := tree.Compare(key, minKey)
+			if 0 > compareResult {
+				parentIndexStack = append(parentIndexStack, -1)
+
+				node = node.nonLeafLeftChild
+			} else {
+				kvIndex, _, nonShadowingErr := node.kvLLRB.BisectLeft(key)
 				if nil != nonShadowingErr {
 					err = nonShadowingErr
 					return
 				}
-				if 0 > compareResult {
-					parentIndexStack = append(parentIndexStack, -1)
 
-					node = node.nonLeafLeftChild
-				} else {
-					kvIndex, _, nonShadowingErr := node.kvLLRB.BisectLeft(key)
-					if nil != nonShadowingErr {
-						err = nonShadowingErr
-						return
-					}
+				parentIndexStack = append(parentIndexStack, kvIndex)
 
-					parentIndexStack = append(parentIndexStack, kvIndex)
-
-					_, childNodeAsValue, _, nonShadowingErr := node.kvLLRB.GetByIndex(kvIndex)
-					if nil != nonShadowingErr {
-						err = nonShadowingErr
-						return
-					}
-
-					node = childNodeAsValue.(*btreeNodeStruct)
+				_, childNodeAsValue, _, nonShadowingErr := node.kvLLRB.GetByIndex(kvIndex)
+				if nil != nonShadowingErr {
+					err = nonShadowingErr
+					return
 				}
-			} else {
-				node = node.nonLeafLeftChild
+
+				node = childNodeAsValue.(*btreeNodeStruct)
 			}
+		} else {
+			node = node.nonLeafLeftChild
 		}
 	}
 }
@@ -455,27 +455,27 @@ func (tree *btreeTreeStruct) GetByIndex(index int) (key Key, value Value, ok boo
 			ok = true
 			err = nil
 			return
-		} else {
-			node = node.rootPrefixSumChild
+		}
 
-			var leftChildPrefixSumItems uint64
+		node = node.rootPrefixSumChild
 
-			for {
-				if nil == node.prefixSumLeftChild {
-					leftChildPrefixSumItems = 0
-				} else {
-					leftChildPrefixSumItems = node.prefixSumLeftChild.prefixSumItems
-				}
+		var leftChildPrefixSumItems uint64
 
-				if netIndex < leftChildPrefixSumItems {
-					node = node.prefixSumLeftChild
-				} else if netIndex < (leftChildPrefixSumItems + node.items) {
-					netIndex -= leftChildPrefixSumItems
-					break
-				} else {
-					netIndex -= (leftChildPrefixSumItems + node.items)
-					node = node.prefixSumRightChild
-				}
+		for {
+			if nil == node.prefixSumLeftChild {
+				leftChildPrefixSumItems = 0
+			} else {
+				leftChildPrefixSumItems = node.prefixSumLeftChild.prefixSumItems
+			}
+
+			if netIndex < leftChildPrefixSumItems {
+				node = node.prefixSumLeftChild
+			} else if netIndex < (leftChildPrefixSumItems + node.items) {
+				netIndex -= leftChildPrefixSumItems
+				break
+			} else {
+				netIndex -= (leftChildPrefixSumItems + node.items)
+				node = node.prefixSumRightChild
 			}
 		}
 	}
@@ -498,38 +498,38 @@ func (tree *btreeTreeStruct) GetByKey(key Key) (value Value, ok bool, err error)
 		if node.leaf {
 			value, ok, err = node.kvLLRB.GetByKey(key)
 			return
-		} else {
-			minKey, _, nonShadowingOK, nonShadowingErr := node.kvLLRB.GetByIndex(0)
+		}
+
+		minKey, _, nonShadowingOK, nonShadowingErr := node.kvLLRB.GetByIndex(0)
+		if nil != nonShadowingErr {
+			err = nonShadowingErr
+			return
+		}
+		if nonShadowingOK {
+			compareResult, nonShadowingErr := tree.Compare(key, minKey)
 			if nil != nonShadowingErr {
 				err = nonShadowingErr
 				return
 			}
-			if nonShadowingOK {
-				compareResult, nonShadowingErr := tree.Compare(key, minKey)
+			if 0 > compareResult {
+				node = node.nonLeafLeftChild
+			} else {
+				nextIndex, _, nonShadowingErr := node.kvLLRB.BisectLeft(key)
 				if nil != nonShadowingErr {
 					err = nonShadowingErr
 					return
 				}
-				if 0 > compareResult {
-					node = node.nonLeafLeftChild
-				} else {
-					nextIndex, _, nonShadowingErr := node.kvLLRB.BisectLeft(key)
-					if nil != nonShadowingErr {
-						err = nonShadowingErr
-						return
-					}
 
-					_, childNodeAsValue, _, nonShadowingErr := node.kvLLRB.GetByIndex(nextIndex)
-					if nil != nonShadowingErr {
-						err = nonShadowingErr
-						return
-					}
-
-					node = childNodeAsValue.(*btreeNodeStruct)
+				_, childNodeAsValue, _, nonShadowingErr := node.kvLLRB.GetByIndex(nextIndex)
+				if nil != nonShadowingErr {
+					err = nonShadowingErr
+					return
 				}
-			} else {
-				node = node.nonLeafLeftChild
+
+				node = childNodeAsValue.(*btreeNodeStruct)
 			}
+		} else {
+			node = node.nonLeafLeftChild
 		}
 	}
 }
@@ -578,27 +578,27 @@ func (tree *btreeTreeStruct) PatchByIndex(index int, value Value) (ok bool, err 
 			_, err = node.kvLLRB.PatchByIndex(int(netIndex), value)
 			ok = true
 			return
-		} else {
-			node = node.rootPrefixSumChild
+		}
 
-			var leftChildPrefixSumItems uint64
+		node = node.rootPrefixSumChild
 
-			for {
-				if nil == node.prefixSumLeftChild {
-					leftChildPrefixSumItems = 0
-				} else {
-					leftChildPrefixSumItems = node.prefixSumLeftChild.prefixSumItems
-				}
+		var leftChildPrefixSumItems uint64
 
-				if netIndex < leftChildPrefixSumItems {
-					node = node.prefixSumLeftChild
-				} else if netIndex < (leftChildPrefixSumItems + node.items) {
-					netIndex -= leftChildPrefixSumItems
-					break
-				} else {
-					netIndex -= (leftChildPrefixSumItems + node.items)
-					node = node.prefixSumRightChild
-				}
+		for {
+			if nil == node.prefixSumLeftChild {
+				leftChildPrefixSumItems = 0
+			} else {
+				leftChildPrefixSumItems = node.prefixSumLeftChild.prefixSumItems
+			}
+
+			if netIndex < leftChildPrefixSumItems {
+				node = node.prefixSumLeftChild
+			} else if netIndex < (leftChildPrefixSumItems + node.items) {
+				netIndex -= leftChildPrefixSumItems
+				break
+			} else {
+				netIndex -= (leftChildPrefixSumItems + node.items)
+				node = node.prefixSumRightChild
 			}
 		}
 	}
@@ -621,38 +621,38 @@ func (tree *btreeTreeStruct) PatchByKey(key Key, value Value) (ok bool, err erro
 		if node.leaf {
 			ok, err = node.kvLLRB.PatchByKey(key, value)
 			return
-		} else {
-			minKey, _, nonShadowingOK, nonShadowingErr := node.kvLLRB.GetByIndex(0)
-			if nil != nonShadowingErr {
+		}
+
+		minKey, _, nonShadowingOK, nonShadowingErr := node.kvLLRB.GetByIndex(0)
+		if nil != nonShadowingErr {
+			err = nonShadowingErr
+			return
+		}
+		if nonShadowingOK {
+			compareResult, nonShadowingOK := tree.Compare(key, minKey)
+			if nil != nonShadowingOK {
 				err = nonShadowingErr
 				return
 			}
-			if nonShadowingOK {
-				compareResult, nonShadowingOK := tree.Compare(key, minKey)
+			if 0 > compareResult {
+				node = node.nonLeafLeftChild
+			} else {
+				nextIndex, _, nonShadowingErr := node.kvLLRB.BisectLeft(key)
 				if nil != nonShadowingOK {
 					err = nonShadowingErr
 					return
 				}
-				if 0 > compareResult {
-					node = node.nonLeafLeftChild
-				} else {
-					nextIndex, _, nonShadowingErr := node.kvLLRB.BisectLeft(key)
-					if nil != nonShadowingOK {
-						err = nonShadowingErr
-						return
-					}
 
-					_, childNodeAsValue, _, nonShadowingErr := node.kvLLRB.GetByIndex(nextIndex)
-					if nil != nonShadowingOK {
-						err = nonShadowingErr
-						return
-					}
-
-					node = childNodeAsValue.(*btreeNodeStruct)
+				_, childNodeAsValue, _, nonShadowingErr := node.kvLLRB.GetByIndex(nextIndex)
+				if nil != nonShadowingOK {
+					err = nonShadowingErr
+					return
 				}
-			} else {
-				node = node.nonLeafLeftChild
+
+				node = childNodeAsValue.(*btreeNodeStruct)
 			}
+		} else {
+			node = node.nonLeafLeftChild
 		}
 	}
 }
@@ -689,40 +689,56 @@ func (tree *btreeTreeStruct) Put(key Key, value Value) (ok bool, err error) {
 			err = nil
 
 			return
-		} else {
-			minKey, _, nonShadowingOK, nonShadowingErr := node.kvLLRB.GetByIndex(0)
+		}
+
+		minKey, _, nonShadowingOK, nonShadowingErr := node.kvLLRB.GetByIndex(0)
+		if nil != nonShadowingErr {
+			err = nonShadowingErr
+			return
+		}
+		if nonShadowingOK {
+			compareResult, nonShadowingErr := tree.Compare(key, minKey)
 			if nil != nonShadowingErr {
 				err = nonShadowingErr
 				return
 			}
-			if nonShadowingOK {
-				compareResult, nonShadowingErr := tree.Compare(key, minKey)
+			if 0 > compareResult {
+				node = node.nonLeafLeftChild
+			} else {
+				nextIndex, _, nonShadowingErr := node.kvLLRB.BisectLeft(key)
 				if nil != nonShadowingErr {
 					err = nonShadowingErr
 					return
 				}
-				if 0 > compareResult {
-					node = node.nonLeafLeftChild
-				} else {
-					nextIndex, _, nonShadowingErr := node.kvLLRB.BisectLeft(key)
-					if nil != nonShadowingErr {
-						err = nonShadowingErr
-						return
-					}
 
-					_, childNodeAsValue, _, nonShadowingErr := node.kvLLRB.GetByIndex(nextIndex)
-					if nil != nonShadowingErr {
-						err = nonShadowingErr
-						return
-					}
-
-					node = childNodeAsValue.(*btreeNodeStruct)
+				_, childNodeAsValue, _, nonShadowingErr := node.kvLLRB.GetByIndex(nextIndex)
+				if nil != nonShadowingErr {
+					err = nonShadowingErr
+					return
 				}
-			} else {
-				node = node.nonLeafLeftChild
+
+				node = childNodeAsValue.(*btreeNodeStruct)
 			}
+		} else {
+			node = node.nonLeafLeftChild
 		}
 	}
+}
+
+func (tree *btreeTreeStruct) FetchLayoutReport() (layoutReport LayoutReport, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
+	err = tree.flushNode(tree.root, false)
+	if nil != err {
+		return
+	}
+
+	layoutReport = make(map[uint64]uint64)
+
+	err = tree.updateLayoutReport(layoutReport, tree.root)
+
+	return
 }
 
 func (tree *btreeTreeStruct) Flush(andPurge bool) (rootObjectNumber uint64, rootObjectOffset uint64, rootObjectLength uint64, err error) {
@@ -1795,6 +1811,58 @@ func (tree *btreeTreeStruct) postNode(node *btreeNodeStruct) (err error) {
 	node.dirty = false
 
 	err = nil
+
+	return
+}
+
+func (tree *btreeTreeStruct) updateLayoutReport(layoutReport LayoutReport, node *btreeNodeStruct) (err error) {
+	if !node.loaded {
+		err = tree.loadNode(node)
+		if nil != err {
+			return
+		}
+	}
+
+	prevObjectBytes, ok := layoutReport[node.objectNumber]
+	if !ok {
+		prevObjectBytes = 0
+	}
+	layoutReport[node.objectNumber] = prevObjectBytes + node.objectLength
+
+	if !node.leaf {
+		if nil == node.nonLeafLeftChild {
+			err = fmt.Errorf("Logic error: non-Leaf node found to not have a nonLeafLeftChild")
+			return
+		}
+
+		err = tree.updateLayoutReport(layoutReport, node.nonLeafLeftChild)
+		if nil != err {
+			return
+		}
+
+		llrbLen, nonShadowingErr := node.kvLLRB.Len()
+		if nil != nonShadowingErr {
+			err = nonShadowingErr
+			return
+		}
+
+		for i := 0; i < llrbLen; i++ {
+			_, childNodeAsValue, ok, nonShadowingErr := node.kvLLRB.GetByIndex(i)
+			if nil != nonShadowingErr {
+				err = nonShadowingErr
+				return
+			}
+			if !ok {
+				err = fmt.Errorf("Logic error: childNode lookup by index not found")
+				return
+			}
+			childNode := childNodeAsValue.(*btreeNodeStruct)
+			err = tree.updateLayoutReport(layoutReport, childNode)
+			if nil != err {
+				return
+			}
+		}
+	}
 
 	return
 }

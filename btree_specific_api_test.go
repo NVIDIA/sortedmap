@@ -131,6 +131,12 @@ func TestBPlusTreeSpecific(t *testing.T) {
 	var (
 		btreeLen                   int
 		err                        error
+		layoutReportExpected       LayoutReport
+		layoutReportReturned       LayoutReport
+		logSegmentBytesExpected    uint64
+		logSegmentBytesReturned    uint64
+		logSegmentChunk            *logSegmentChunkStruct
+		logSegmentNumber           uint64
 		ok                         bool
 		rootLogSegmentNumber       uint64
 		rootLogOffset              uint64
@@ -206,6 +212,25 @@ func TestBPlusTreeSpecific(t *testing.T) {
 	valueAsValueStructExpected = valueStruct{u32: 3, s8: uint32To8ReplicaByteArray(3)}
 	if valueAsValueStructReturned != valueAsValueStructExpected {
 		t.Fatalf("btreeNew.GetByKey(uint32(3)).value should have been valueAsValueStructExpected")
+	}
+
+	layoutReportExpected = make(map[uint64]uint64)
+	for logSegmentNumber, logSegmentChunk = range persistentContext.logSegmentChunkMap {
+		logSegmentBytesExpected = uint64(len(logSegmentChunk.chunkByteSlice))
+		layoutReportExpected[logSegmentNumber] = logSegmentBytesExpected // Note: assumes no chunks are stale
+	}
+	layoutReportReturned, err = btreeNew.FetchLayoutReport()
+	if nil != err {
+		t.Fatalf("btreeNew.FetchLayoutReport() should not have failed")
+	}
+	if len(layoutReportExpected) != len(layoutReportReturned) {
+		t.Fatalf("btreeNew.FetchLayoutReport() returned unexpected LayoutReport")
+	}
+	for logSegmentNumber, logSegmentBytesReturned = range layoutReportReturned {
+		logSegmentBytesExpected, ok = layoutReportExpected[logSegmentNumber]
+		if (!ok) || (logSegmentBytesExpected != logSegmentBytesReturned) {
+			t.Fatalf("btreeNew.FetchLayoutReport() returned unexpected LayoutReport")
+		}
 	}
 
 	btreeNew.Purge()

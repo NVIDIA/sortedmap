@@ -2,9 +2,13 @@ package sortedmap
 
 import "fmt"
 
+// LayoutReport is a map where key is an objectNumber and value is objectBytes used in that objectNumber
+type LayoutReport map[uint64]uint64
+
 // BPlusTree interface declares the available methods available for a B+Tree
 type BPlusTree interface {
 	SortedMap
+	FetchLayoutReport() (layoutReport LayoutReport, err error)
 	Flush(andPurge bool) (rootObjectNumber uint64, rootObjectOffset uint64, rootObjectLength uint64, err error)
 	Purge() (err error)
 }
@@ -19,7 +23,7 @@ type BPlusTreeCallbacks interface {
 	UnpackValue(payloadData []byte) (value Value, bytesConsumed uint64, err error)
 }
 
-// New is used to construct an in-memory B+Tree supporting the Tree interface
+// NewBPlusTree is used to construct an in-memory B+Tree supporting the Tree interface
 //
 // Note that if the B+Tree will reside only in memory, callback argument may be nil.
 // That said, there is no advantage to using a B+Tree for an in-memory collection over
