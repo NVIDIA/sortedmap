@@ -13,22 +13,32 @@ const (
 	commonBPlusTreeTestNumKeysMaxLarge   = uint64(1000)
 )
 
-type commonContextStruct struct {
+type commonBPlusTreeContextStruct struct {
 	t    *testing.T
 	tree BPlusTree
 }
 
-func (context *commonContextStruct) GetNode(logSegmentNumber uint64, logOffset uint64, logLength uint64) (nodeByteSlice []byte, err error) {
+func (context *commonBPlusTreeContextStruct) GetNode(logSegmentNumber uint64, logOffset uint64, logLength uint64) (nodeByteSlice []byte, err error) {
 	err = fmt.Errorf("GetNode() not implemented")
 	return
 }
 
-func (context *commonContextStruct) PutNode(nodeByteSlice []byte) (logSegmentNumber uint64, logOffset uint64, err error) {
+func (context *commonBPlusTreeContextStruct) PutNode(nodeByteSlice []byte) (logSegmentNumber uint64, logOffset uint64, err error) {
 	err = fmt.Errorf("PutNode() not implemented")
 	return
 }
 
-func (context *commonContextStruct) PackKey(key Key) (packedKey []byte, err error) {
+func (context *commonBPlusTreeContextStruct) DumpKey(key Key) (keyAsString string, err error) {
+	keyAsInt, ok := key.(int)
+	if !ok {
+		context.t.Fatalf("DumpKey() argument not an int")
+	}
+	keyAsString = fmt.Sprintf("%v", keyAsInt)
+	err = nil
+	return
+}
+
+func (context *commonBPlusTreeContextStruct) PackKey(key Key) (packedKey []byte, err error) {
 	keyAsInt, ok := key.(int)
 	if !ok {
 		context.t.Fatalf("PackKey() argument not an int")
@@ -40,12 +50,21 @@ func (context *commonContextStruct) PackKey(key Key) (packedKey []byte, err erro
 	return
 }
 
-func (context *commonContextStruct) UnpackKey(payloadData []byte) (key Key, bytesConsumed uint64, err error) {
+func (context *commonBPlusTreeContextStruct) UnpackKey(payloadData []byte) (key Key, bytesConsumed uint64, err error) {
 	context.t.Fatalf("UnpackKey() not implemented")
 	return
 }
 
-func (context *commonContextStruct) PackValue(value Value) (packedValue []byte, err error) {
+func (context *commonBPlusTreeContextStruct) DumpValue(value Value) (valueAsString string, err error) {
+	valueAsString, ok := value.(string)
+	if !ok {
+		context.t.Fatalf("PackValue() argument not a string")
+	}
+	err = nil
+	return
+}
+
+func (context *commonBPlusTreeContextStruct) PackValue(value Value) (packedValue []byte, err error) {
 	valueAsString, ok := value.(string)
 	if !ok {
 		context.t.Fatalf("PackValue() argument not a string")
@@ -55,13 +74,13 @@ func (context *commonContextStruct) PackValue(value Value) (packedValue []byte, 
 	return
 }
 
-func (context *commonContextStruct) UnpackValue(payloadData []byte) (value Value, bytesConsumed uint64, err error) {
+func (context *commonBPlusTreeContextStruct) UnpackValue(payloadData []byte) (value Value, bytesConsumed uint64, err error) {
 	context.t.Fatalf("UnpackValue() not implemented")
 	return
 }
 
 func TestBPlusTreeAllButDeleteSimple(t *testing.T) {
-	context := &commonContextStruct{t: t}
+	context := &commonBPlusTreeContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestAllButDeleteSimple(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -73,7 +92,7 @@ func TestBPlusTreeAllButDeleteSimple(t *testing.T) {
 }
 
 func TestBPlusTreeDeleteByIndexSimple(t *testing.T) {
-	context := &commonContextStruct{t: t}
+	context := &commonBPlusTreeContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestDeleteByIndexSimple(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -85,7 +104,7 @@ func TestBPlusTreeDeleteByIndexSimple(t *testing.T) {
 }
 
 func TestBPlusTreeDeleteByKeySimple(t *testing.T) {
-	context := &commonContextStruct{t: t}
+	context := &commonBPlusTreeContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestDeleteByKeySimple(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -97,7 +116,7 @@ func TestBPlusTreeDeleteByKeySimple(t *testing.T) {
 }
 
 func TestBPlusTreeInsertGetDeleteByIndexTrivial(t *testing.T) {
-	context := &commonContextStruct{t: t}
+	context := &commonBPlusTreeContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestInsertGetDeleteByIndexTrivial(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -109,7 +128,7 @@ func TestBPlusTreeInsertGetDeleteByIndexTrivial(t *testing.T) {
 }
 
 func TestBPlusTreeInsertGetDeleteByIndexSmall(t *testing.T) {
-	context := &commonContextStruct{t: t}
+	context := &commonBPlusTreeContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestInsertGetDeleteByIndexSmall(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -121,7 +140,7 @@ func TestBPlusTreeInsertGetDeleteByIndexSmall(t *testing.T) {
 }
 
 func TestBPlusTreeInsertGetDeleteByIndexLarge(t *testing.T) {
-	context := &commonContextStruct{t: t}
+	context := &commonBPlusTreeContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestInsertGetDeleteByIndexLarge(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -133,7 +152,7 @@ func TestBPlusTreeInsertGetDeleteByIndexLarge(t *testing.T) {
 }
 
 func TestBPlusTreeInsertGetDeleteByIndexHuge(t *testing.T) {
-	context := &commonContextStruct{t: t}
+	context := &commonBPlusTreeContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestInsertGetDeleteByIndexHuge(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -145,7 +164,7 @@ func TestBPlusTreeInsertGetDeleteByIndexHuge(t *testing.T) {
 }
 
 func TestBPlusTreeInsertGetDeleteByKeyTrivial(t *testing.T) {
-	context := &commonContextStruct{t: t}
+	context := &commonBPlusTreeContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestInsertGetDeleteByKeyTrivial(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -157,7 +176,7 @@ func TestBPlusTreeInsertGetDeleteByKeyTrivial(t *testing.T) {
 }
 
 func TestBPlusTreeInsertGetDeleteByKeySmall(t *testing.T) {
-	context := &commonContextStruct{t: t}
+	context := &commonBPlusTreeContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestInsertGetDeleteByKeySmall(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -169,7 +188,7 @@ func TestBPlusTreeInsertGetDeleteByKeySmall(t *testing.T) {
 }
 
 func TestBPlusTreeInsertGetDeleteByKeyLarge(t *testing.T) {
-	context := &commonContextStruct{t: t}
+	context := &commonBPlusTreeContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestInsertGetDeleteByKeyLarge(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -181,7 +200,7 @@ func TestBPlusTreeInsertGetDeleteByKeyLarge(t *testing.T) {
 }
 
 func TestBPlusTreeInsertGetDeleteByKeyHuge(t *testing.T) {
-	context := &commonContextStruct{t: t}
+	context := &commonBPlusTreeContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestInsertGetDeleteByKeyHuge(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -193,7 +212,7 @@ func TestBPlusTreeInsertGetDeleteByKeyHuge(t *testing.T) {
 }
 
 func TestBPlusTreeBisect(t *testing.T) {
-	context := &commonContextStruct{t: t}
+	context := &commonBPlusTreeContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestBisect(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)

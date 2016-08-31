@@ -30,6 +30,7 @@ type llrbNodeStruct struct {
 type llrbTreeStruct struct {
 	sync.Mutex
 	Compare
+	LLRBTreeCallbacks
 	root *llrbNodeStruct
 }
 

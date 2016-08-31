@@ -11,25 +11,44 @@ func (tree *llrbTreeStruct) Dump() (err error) {
 
 	err = nil
 
-	dumpInFlatForm(tree.root)
-	dumpInTreeForm(tree)
+	err = tree.dumpInFlatForm(tree.root)
+	if nil != err {
+		err = fmt.Errorf("dumpInFlatForm() failed: %v\n", err)
+		fmt.Printf("\n%v\n", err)
+		return
+	}
 
+	err = tree.dumpInTreeForm()
+	if nil != err {
+		err = fmt.Errorf("dumpInTreeForm() failed: %v\n", err)
+		fmt.Printf("\n%v\n", err)
+		return
+	}
+
+	err = nil
 	return
 }
 
-func dumpInFlatForm(node *llrbNodeStruct) {
+func (tree *llrbTreeStruct) dumpInFlatForm(node *llrbNodeStruct) (err error) {
 	if nil == node {
+		err = nil
 		return
 	}
 
 	nodeLeftKey := "nil"
 	if nil != node.left {
-		nodeLeftKey = fmt.Sprintf("%v", node.left.Key)
+		nodeLeftKey, err = tree.DumpKey(node.left.Key)
+		if nil != err {
+			return
+		}
 	}
 
 	nodeRightKey := "nil"
 	if nil != node.right {
-		nodeRightKey = fmt.Sprintf("%v", node.right.Key)
+		nodeRightKey, err = tree.DumpKey(node.right.Key)
+		if nil != err {
+			return
+		}
 	}
 
 	var colorString string
@@ -39,27 +58,59 @@ func dumpInFlatForm(node *llrbNodeStruct) {
 		colorString = "BLACK"
 	}
 
-	fmt.Printf("%v Node Key == %v Node.left.Key == %v Node.right.Key == %v len == %v\n", colorString, node.Key, nodeLeftKey, nodeRightKey, node.len)
+	nodeThisKey, err := tree.DumpKey(node.Key)
+	if nil != err {
+		return
+	}
 
-	dumpInFlatForm(node.left)
-	dumpInFlatForm(node.right)
+	fmt.Printf("%v Node Key == %v Node.left.Key == %v Node.right.Key == %v len == %v\n", colorString, nodeThisKey, nodeLeftKey, nodeRightKey, node.len)
+
+	err = tree.dumpInFlatForm(node.left)
+	if nil != err {
+		return
+	}
+
+	err = tree.dumpInFlatForm(node.right)
+	if nil != err {
+		return
+	}
+
+	err = nil
+	return
 }
 
-func dumpInTreeForm(tree *llrbTreeStruct) {
+func (tree *llrbTreeStruct) dumpInTreeForm() (err error) {
 	if nil == tree.root {
+		err = nil
 		return
 	}
 
 	if nil != tree.root.right {
-		dumpInTreeFormNode(tree.root.right, true, "")
+		err = tree.dumpInTreeFormNode(tree.root.right, true, "")
+		if nil != err {
+			return
+		}
 	}
-	fmt.Println(tree.root.Key)
+
+	rootKey, err := tree.DumpKey(tree.root.Key)
+	if nil != err {
+		return
+	}
+
+	fmt.Printf("%v\n", rootKey)
+
 	if nil != tree.root.left {
-		dumpInTreeFormNode(tree.root.left, false, "")
+		err = tree.dumpInTreeFormNode(tree.root.left, false, "")
+		if nil != err {
+			return
+		}
 	}
+
+	err = nil
+	return
 }
 
-func dumpInTreeFormNode(node *llrbNodeStruct, isRight bool, indent string) {
+func (tree *llrbTreeStruct) dumpInTreeFormNode(node *llrbNodeStruct, isRight bool, indent string) (err error) {
 	var indentAppendage string
 	var nextIndent string
 
@@ -70,15 +121,26 @@ func dumpInTreeFormNode(node *llrbNodeStruct, isRight bool, indent string) {
 			indentAppendage = " |      "
 		}
 		nextIndent = strings.Join([]string{indent, indentAppendage}, "")
-		dumpInTreeFormNode(node.right, true, nextIndent)
+		err = tree.dumpInTreeFormNode(node.right, true, nextIndent)
+		if nil != err {
+			return
+		}
 	}
+
 	fmt.Printf("%v", indent)
 	if isRight {
 		fmt.Printf(" /")
 	} else {
 		fmt.Printf(" \\")
 	}
-	fmt.Println("-----", node.Key)
+
+	nodeKey, err := tree.DumpKey(node.Key)
+	if nil != err {
+		return
+	}
+
+	fmt.Printf("----- %v\n", nodeKey)
+
 	if nil != node.left {
 		if isRight {
 			indentAppendage = " |      "
@@ -86,6 +148,12 @@ func dumpInTreeFormNode(node *llrbNodeStruct, isRight bool, indent string) {
 			indentAppendage = "        "
 		}
 		nextIndent = strings.Join([]string{indent, indentAppendage}, "")
-		dumpInTreeFormNode(node.left, false, nextIndent)
+		err = tree.dumpInTreeFormNode(node.left, false, nextIndent)
+		if nil != err {
+			return
+		}
 	}
+
+	err = nil
+	return
 }

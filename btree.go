@@ -783,23 +783,23 @@ func (tree *btreeTreeStruct) insertHere(insertNode *btreeNodeStruct, key Key, va
 
 	if tree.maxKeysPerNode < uint64(llrbLen) {
 		newRightSiblingNode := &btreeNodeStruct{
-			objectNumber:        0, //                   To be filled in once node is posted
-			objectOffset:        0, //                   To be filled in once node is posted
-			objectLength:        0, //                   To be filled in once node is posted
+			objectNumber:        0, //                                               To be filled in once node is posted
+			objectOffset:        0, //                                               To be filled in once node is posted
+			objectLength:        0, //                                               To be filled in once node is posted
 			items:               0,
-			loaded:              true, //                Special case in that objectNumber == 0 means it has no onDisk copy
+			loaded:              true, //                                            Special case in that objectNumber == 0 means it has no onDisk copy
 			dirty:               true,
-			root:                false, //               Note: insertNode.root will also (at least eventually) be false
+			root:                false, //                                           Note: insertNode.root will also (at least eventually) be false
 			leaf:                insertNode.leaf,
 			tree:                tree,
 			parentNode:          insertNode.parentNode,
-			kvLLRB:              NewLLRBTree(tree.Compare),
+			kvLLRB:              NewLLRBTree(tree.Compare, tree.BPlusTreeCallbacks),
 			nonLeafLeftChild:    nil,
 			rootPrefixSumChild:  nil,
-			prefixSumItems:      0,   //                 Not applicable to root node
-			prefixSumParent:     nil, //                 Not applicable to root node
-			prefixSumLeftChild:  nil, //                 Not applicable to root node
-			prefixSumRightChild: nil, //                 Not applicable to root node
+			prefixSumItems:      0,   //                                             Not applicable to root node
+			prefixSumParent:     nil, //                                             Not applicable to root node
+			prefixSumLeftChild:  nil, //                                             Not applicable to root node
+			prefixSumRightChild: nil, //                                             Not applicable to root node
 		}
 
 		var splitKey Key
@@ -857,23 +857,23 @@ func (tree *btreeTreeStruct) insertHere(insertNode *btreeNodeStruct, key Key, va
 			insertNode.root = false
 
 			tree.root = &btreeNodeStruct{
-				objectNumber:        0, //                                         To be filled in once new root node is posted
-				objectOffset:        0, //                                         To be filled in once new root node is posted
-				objectLength:        0, //                                         To be filled in once new root node is posted
+				objectNumber:        0, //                                               To be filled in once new root node is posted
+				objectOffset:        0, //                                               To be filled in once new root node is posted
+				objectLength:        0, //                                               To be filled in once new root node is posted
 				items:               insertNode.items + newRightSiblingNode.items,
-				loaded:              true, //                                      Special case in that objectNumber == 0 means it has no onDisk copy
+				loaded:              true, //                                            Special case in that objectNumber == 0 means it has no onDisk copy
 				dirty:               true,
 				root:                true,
 				leaf:                false,
 				tree:                tree,
 				parentNode:          nil,
-				kvLLRB:              NewLLRBTree(tree.Compare),
+				kvLLRB:              NewLLRBTree(tree.Compare, tree.BPlusTreeCallbacks),
 				nonLeafLeftChild:    insertNode,
 				rootPrefixSumChild:  nil,
-				prefixSumItems:      0,   //                                       Not applicable to root node
-				prefixSumParent:     nil, //                                       Not applicable to root node
-				prefixSumLeftChild:  nil, //                                       Not applicable to root node
-				prefixSumRightChild: nil, //                                       Not applicable to root node
+				prefixSumItems:      0,   //                                             Not applicable to root node
+				prefixSumParent:     nil, //                                             Not applicable to root node
+				prefixSumLeftChild:  nil, //                                             Not applicable to root node
+				prefixSumRightChild: nil, //                                             Not applicable to root node
 			}
 
 			insertNode.parentNode = tree.root
@@ -1485,7 +1485,7 @@ func (tree *btreeTreeStruct) loadNode(node *btreeNodeStruct) (err error) {
 		return
 	}
 
-	node.kvLLRB = NewLLRBTree(node.tree.Compare)
+	node.kvLLRB = NewLLRBTree(node.tree.Compare, node.tree.BPlusTreeCallbacks)
 
 	var onDiskNode onDiskNodeStruct
 

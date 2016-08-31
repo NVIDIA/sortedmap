@@ -75,19 +75,19 @@ func (tree *btreeTreeStruct) dumpNode(node *btreeNodeStruct, indent string) (err
 			err = getByIndexErr
 			return
 		}
-		packedKey, packedKeyErr := tree.PackKey(key)
-		if nil != packedKeyErr {
-			err = packedKeyErr
+		keyAsString, nonShadowingErr := tree.DumpKey(key)
+		if nil != nonShadowingErr {
+			err = nonShadowingErr
 			return
 		}
-		fmt.Printf("%v  .kvLLRB[%v].Key       = %v\n", indent, i, packedKey)
+		fmt.Printf("%v  .kvLLRB[%v].Key       = %v\n", indent, i, keyAsString)
 		if node.leaf {
-			packedValue, packedValueErr := tree.PackValue(value)
-			if nil != packedValueErr {
-				err = packedValueErr
+			valueAsString, nonShadowingErr := tree.DumpValue(value)
+			if nil != nonShadowingErr {
+				err = nonShadowingErr
 				return
 			}
-			fmt.Printf("%v  .kvLLRB[%v].Value     = %v\n", indent, i, packedValue)
+			fmt.Printf("%v  .kvLLRB[%v].Value     = %v\n", indent, i, valueAsString)
 		} else {
 			childNode := value.(*btreeNodeStruct)
 			fmt.Printf("%v  .kvLLRB[%v].Value     = %p\n", indent, i, childNode)

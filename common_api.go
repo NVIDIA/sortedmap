@@ -130,3 +130,9 @@ type SortedMap interface {
 	Put(key Key, value Value) (ok bool, err error)
 	Validate() (err error)
 }
+
+// DumpCallbacks specifies the interface to a set of callbacks provided by the client
+type DumpCallbacks interface {
+	DumpKey(key Key) (keyAsString string, err error)
+	DumpValue(value Value) (valueAsString string, err error)
+}

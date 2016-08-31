@@ -799,7 +799,6 @@ func testKnuthShuffledIntSlice(t *testing.T, n int) (intSlice []int) {
 	}
 	for swapFrom = int64(n - 1); swapFrom > int64(0); swapFrom-- {
 		if pseudoRandom {
-			// TODO
 			if nil == randSource {
 				randSource = mathRand.New(mathRand.NewSource(pseudoRandomSeed))
 			}

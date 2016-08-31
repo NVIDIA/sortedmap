@@ -4,7 +4,12 @@ type LLRBTree interface {
 	SortedMap
 }
 
-func NewLLRBTree(compare Compare) (tree LLRBTree) {
-	tree = &llrbTreeStruct{Compare: compare, root: nil}
+// LLRBTreeCallbacks specifies the interface to a set of callbacks provided by the client
+type LLRBTreeCallbacks interface {
+	DumpCallbacks
+}
+
+func NewLLRBTree(compare Compare, callbacks LLRBTreeCallbacks) (tree LLRBTree) {
+	tree = &llrbTreeStruct{Compare: compare, LLRBTreeCallbacks: callbacks, root: nil}
 	return
 }

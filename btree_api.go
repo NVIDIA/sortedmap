@@ -15,6 +15,7 @@ type BPlusTree interface {
 
 // BPlusTreeCallbacks specifies the interface to a set of callbacks provided by the client
 type BPlusTreeCallbacks interface {
+	DumpCallbacks
 	GetNode(objectNumber uint64, objectOffset uint64, objectLength uint64) (nodeByteSlice []byte, err error)
 	PutNode(nodeByteSlice []byte) (objectNumber uint64, objectOffset uint64, err error)
 	PackKey(key Key) (packedKey []byte, err error)
@@ -36,23 +37,23 @@ func NewBPlusTree(maxKeysPerNode uint64, compare Compare, callbacks BPlusTreeCal
 	}
 
 	rootNode := &btreeNodeStruct{
-		objectNumber:        0, //              To be filled in once root node is posted
-		objectOffset:        0, //              To be filled in once root node is posted
-		objectLength:        0, //              To be filled in once root node is posted
+		objectNumber:        0, //                            To be filled in once root node is posted
+		objectOffset:        0, //                            To be filled in once root node is posted
+		objectLength:        0, //                            To be filled in once root node is posted
 		items:               0,
-		loaded:              true, //           Special case in that objectNumber == 0 means it has no onDisk copy
+		loaded:              true, //                         Special case in that objectNumber == 0 means it has no onDisk copy
 		dirty:               true,
 		root:                true,
 		leaf:                true,
-		tree:                nil, //            To be set just below
+		tree:                nil, //                          To be set just below
 		parentNode:          nil,
-		kvLLRB:              NewLLRBTree(compare),
+		kvLLRB:              NewLLRBTree(compare, callbacks),
 		nonLeafLeftChild:    nil,
 		rootPrefixSumChild:  nil,
-		prefixSumItems:      0,   //            Not applicable to root node
-		prefixSumParent:     nil, //            Not applicable to root node
-		prefixSumLeftChild:  nil, //            Not applicable to root node
-		prefixSumRightChild: nil, //            Not applicable to root node
+		prefixSumItems:      0,   //                          Not applicable to root node
+		prefixSumParent:     nil, //                          Not applicable to root node
+		prefixSumLeftChild:  nil, //                          Not applicable to root node
+		prefixSumRightChild: nil, //                          Not applicable to root node
 	}
 
 	treePtr := &btreeTreeStruct{
