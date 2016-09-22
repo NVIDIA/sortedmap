@@ -1617,54 +1617,54 @@ func metaBenchmark(b *testing.B, tree SortedMap) {
 
 	keysToInsertForByIndexAPIs, err = testKnuthShuffledIntSlice(testHugeNumKeys)
 	if nil != err {
-		fmt.Printf("Knuth Shuffle failed: %v\n", err)
-		return
+		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
+		panic(err)
 	}
 	indicesToGet, err = testKnuthShuffledIntSlice(testHugeNumKeys)
 	if nil != err {
-		fmt.Printf("Knuth Shuffle failed: %v\n", err)
-		return
+		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
+		panic(err)
 	}
 	indicesToPatch, err = testKnuthShuffledIntSlice(testHugeNumKeys)
 	if nil != err {
-		fmt.Printf("Knuth Shuffle failed: %v\n", err)
-		return
+		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
+		panic(err)
 	}
 	indicesToDeleteByIndexNotNormalized, err = testKnuthShuffledIntSlice(testHugeNumKeys)
 	if nil != err {
-		fmt.Printf("Knuth Shuffle failed: %v\n", err)
-		return
+		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
+		panic(err)
 	}
 	indicesToDeleteByIndexNormalized = testFetchIndicesToDeleteNormalized(indicesToDeleteByIndexNotNormalized)
 	keysToInsertForByKeyAPIs, err = testKnuthShuffledIntSlice(testHugeNumKeys)
 	if nil != err {
-		fmt.Printf("Knuth Shuffle failed: %v\n", err)
-		return
+		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
+		panic(err)
 	}
 	keysToGet, err = testKnuthShuffledIntSlice(testHugeNumKeys)
 	if nil != err {
-		fmt.Printf("Knuth Shuffle failed: %v\n", err)
-		return
+		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
+		panic(err)
 	}
 	keysToBisectLeft, err = testKnuthShuffledIntSlice(testHugeNumKeys)
 	if nil != err {
-		fmt.Printf("Knuth Shuffle failed: %v\n", err)
-		return
+		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
+		panic(err)
 	}
 	keysToBisectRight, err = testKnuthShuffledIntSlice(testHugeNumKeys)
 	if nil != err {
-		fmt.Printf("Knuth Shuffle failed: %v\n", err)
-		return
+		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
+		panic(err)
 	}
 	keysToPatch, err = testKnuthShuffledIntSlice(testHugeNumKeys)
 	if nil != err {
-		fmt.Printf("Knuth Shuffle failed: %v\n", err)
-		return
+		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
+		panic(err)
 	}
 	keysToDelete, err = testKnuthShuffledIntSlice(testHugeNumKeys)
 	if nil != err {
-		fmt.Printf("Knuth Shuffle failed: %v\n", err)
-		return
+		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
+		panic(err)
 	}
 
 	b.ResetTimer()
@@ -1674,24 +1674,24 @@ func metaBenchmark(b *testing.B, tree SortedMap) {
 			valueAsString = strconv.Itoa(keyToInsert)
 			ok, err = tree.Put(keyToInsert, valueAsString)
 			if nil != err {
-				fmt.Printf("Put() returned unexpected error: %v\n", err)
-				return
+				err = fmt.Errorf("Put() returned unexpected error: %v", err)
+				panic(err)
 			}
 			if !ok {
-				fmt.Println("Put().ok should have been true")
-				return
+				err = fmt.Errorf("Put().ok should have been true")
+				panic(err)
 			}
 		}
 
 		for _, indexToGet = range indicesToGet {
 			_, _, ok, err = tree.GetByIndex(indexToGet)
 			if nil != err {
-				fmt.Printf("GetByIndex() returned unexpected error: %v\n", err)
-				return
+				err = fmt.Errorf("GetByIndex() returned unexpected error: %v", err)
+				panic(err)
 			}
 			if !ok {
-				fmt.Println("GetByIndex().ok should have been true")
-				return
+				err = fmt.Errorf("GetByIndex().ok should have been true")
+				panic(err)
 			}
 		}
 
@@ -1699,24 +1699,24 @@ func metaBenchmark(b *testing.B, tree SortedMap) {
 			valueAsString = strconv.Itoa(indexToPatch)
 			ok, err = tree.PatchByIndex(indexToPatch, valueAsString)
 			if nil != err {
-				fmt.Printf("PatchByIndex() returned unexpected error: %v\n", err)
-				return
+				err = fmt.Errorf("PatchByIndex() returned unexpected error: %v", err)
+				panic(err)
 			}
 			if !ok {
-				fmt.Println("PatchByIndex().ok should have been true")
-				return
+				err = fmt.Errorf("PatchByIndex().ok should have been true")
+				panic(err)
 			}
 		}
 
 		for _, indexToDelete = range indicesToDeleteByIndexNormalized {
 			ok, err = tree.DeleteByIndex(indexToDelete)
 			if nil != err {
-				fmt.Printf("DeleteByIndex() returned unexpected error: %v\n", err)
-				return
+				err = fmt.Errorf("DeleteByIndex() returned unexpected error: %v", err)
+				panic(err)
 			}
 			if !ok {
-				fmt.Println("DeleteByIndex().ok should have been true")
-				return
+				err = fmt.Errorf("DeleteByIndex().ok should have been true")
+				panic(err)
 			}
 		}
 
@@ -1724,48 +1724,48 @@ func metaBenchmark(b *testing.B, tree SortedMap) {
 			valueAsString = strconv.Itoa(keyToInsert)
 			ok, err = tree.Put(keyToInsert, valueAsString)
 			if nil != err {
-				fmt.Printf("Put() returned unexpected error: %v\n", err)
-				return
+				err = fmt.Errorf("Put() returned unexpected error: %v", err)
+				panic(err)
 			}
 			if !ok {
-				fmt.Println("Put().ok should have been true")
-				return
+				err = fmt.Errorf("Put().ok should have been true")
+				panic(err)
 			}
 		}
 
 		for _, keyToGet = range keysToGet {
 			_, ok, err = tree.GetByKey(keyToGet)
 			if nil != err {
-				fmt.Printf("GetByKey() returned unexpected error: %v\n", err)
-				return
+				err = fmt.Errorf("GetByKey() returned unexpected error: %v", err)
+				panic(err)
 			}
 			if !ok {
-				fmt.Println("GetByKey().ok should have been true")
-				return
+				err = fmt.Errorf("GetByKey().ok should have been true")
+				panic(err)
 			}
 		}
 
 		for _, keyToBisectLeft = range keysToBisectLeft {
 			_, found, err = tree.BisectLeft(keyToBisectLeft)
 			if nil != err {
-				fmt.Printf("BisectLeft() returned unexpected error: %v\n", err)
-				return
+				err = fmt.Errorf("BisectLeft() returned unexpected error: %v", err)
+				panic(err)
 			}
 			if !found {
-				fmt.Println("BisectLeft().found should have been true")
-				return
+				err = fmt.Errorf("BisectLeft().found should have been true")
+				panic(err)
 			}
 		}
 
 		for _, keyToBisectRight = range keysToBisectRight {
 			_, found, err = tree.BisectRight(keyToBisectRight)
 			if nil != err {
-				fmt.Printf("BisectRight() returned unexpected error: %v\n", err)
-				return
+				err = fmt.Errorf("BisectRight() returned unexpected error: %v", err)
+				panic(err)
 			}
 			if !found {
-				fmt.Println("BisectRight().found should have been true")
-				return
+				err = fmt.Errorf("BisectRight().found should have been true")
+				panic(err)
 			}
 		}
 
@@ -1773,24 +1773,24 @@ func metaBenchmark(b *testing.B, tree SortedMap) {
 			valueAsString = strconv.Itoa(keyToPatch)
 			ok, err = tree.PatchByIndex(indexToPatch, valueAsString)
 			if nil != err {
-				fmt.Printf("PatchByIndex() returned unexpected error: %v\n", err)
-				return
+				err = fmt.Errorf("PatchByIndex() returned unexpected error: %v", err)
+				panic(err)
 			}
 			if !ok {
-				fmt.Println("PatchByIndex().ok should have been true")
-				return
+				err = fmt.Errorf("PatchByIndex().ok should have been true")
+				panic(err)
 			}
 		}
 
 		for _, keyToDelete = range keysToDelete {
 			ok, err = tree.DeleteByKey(keyToDelete)
 			if nil != err {
-				fmt.Printf("DeleteByKey() returned unexpected error: %v\n", err)
-				return
+				err = fmt.Errorf("DeleteByKey() returned unexpected error: %v", err)
+				panic(err)
 			}
 			if !ok {
-				fmt.Println("DeleteByKey().ok should have been true")
-				return
+				err = fmt.Errorf("DeleteByKey().ok should have been true")
+				panic(err)
 			}
 		}
 	}
