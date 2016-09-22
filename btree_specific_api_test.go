@@ -13,7 +13,7 @@ type logSegmentChunkStruct struct {
 	chunkByteSlice []byte
 }
 
-type specificBPlusTreeContextStruct struct {
+type specificBPlusTreeTestContextStruct struct {
 	t                             *testing.T
 	lastLogSegmentNumberGenerated uint64
 	lastLogOffsetGenerated        uint64
@@ -25,7 +25,7 @@ type valueStruct struct {
 	s8  [8]byte
 }
 
-func (context *specificBPlusTreeContextStruct) GetNode(logSegmentNumber uint64, logOffset uint64, logLength uint64) (nodeByteSlice []byte, err error) {
+func (context *specificBPlusTreeTestContextStruct) GetNode(logSegmentNumber uint64, logOffset uint64, logLength uint64) (nodeByteSlice []byte, err error) {
 	logSegmentChunk, ok := context.logSegmentChunkMap[logSegmentNumber]
 
 	if !ok {
@@ -49,7 +49,7 @@ func (context *specificBPlusTreeContextStruct) GetNode(logSegmentNumber uint64, 
 	return
 }
 
-func (context *specificBPlusTreeContextStruct) PutNode(nodeByteSlice []byte) (logSegmentNumber uint64, logOffset uint64, err error) {
+func (context *specificBPlusTreeTestContextStruct) PutNode(nodeByteSlice []byte) (logSegmentNumber uint64, logOffset uint64, err error) {
 	context.lastLogSegmentNumberGenerated++
 	logSegmentNumber = context.lastLogSegmentNumberGenerated
 
@@ -68,7 +68,7 @@ func (context *specificBPlusTreeContextStruct) PutNode(nodeByteSlice []byte) (lo
 	return
 }
 
-func (context *specificBPlusTreeContextStruct) DumpKey(key Key) (keyAsString string, err error) {
+func (context *specificBPlusTreeTestContextStruct) DumpKey(key Key) (keyAsString string, err error) {
 	keyAsUint32, ok := key.(uint32)
 	if !ok {
 		context.t.Fatalf("DumpKey() argument not an uint32")
@@ -78,7 +78,7 @@ func (context *specificBPlusTreeContextStruct) DumpKey(key Key) (keyAsString str
 	return
 }
 
-func (context *specificBPlusTreeContextStruct) PackKey(key Key) (packedKey []byte, err error) {
+func (context *specificBPlusTreeTestContextStruct) PackKey(key Key) (packedKey []byte, err error) {
 	keyAsUint32, ok := key.(uint32)
 	if !ok {
 		context.t.Fatalf("PackKey() argument not a uint32")
@@ -89,7 +89,7 @@ func (context *specificBPlusTreeContextStruct) PackKey(key Key) (packedKey []byt
 	return
 }
 
-func (context *specificBPlusTreeContextStruct) UnpackKey(packedKey []byte) (key Key, bytesConsumed uint64, err error) {
+func (context *specificBPlusTreeTestContextStruct) UnpackKey(packedKey []byte) (key Key, bytesConsumed uint64, err error) {
 	if 4 > len(packedKey) {
 		context.t.Fatalf("UnpackKey() called with insufficient packedKey size")
 	}
@@ -100,7 +100,7 @@ func (context *specificBPlusTreeContextStruct) UnpackKey(packedKey []byte) (key 
 	return
 }
 
-func (context *specificBPlusTreeContextStruct) DumpValue(value Value) (valueAsString string, err error) {
+func (context *specificBPlusTreeTestContextStruct) DumpValue(value Value) (valueAsString string, err error) {
 	valueAsValueStruct, ok := value.(valueStruct)
 	if !ok {
 		context.t.Fatalf("PackValue() argument not a valueStruct")
@@ -120,7 +120,7 @@ func (context *specificBPlusTreeContextStruct) DumpValue(value Value) (valueAsSt
 	return
 }
 
-func (context *specificBPlusTreeContextStruct) PackValue(value Value) (packedValue []byte, err error) {
+func (context *specificBPlusTreeTestContextStruct) PackValue(value Value) (packedValue []byte, err error) {
 	valueAsValueStruct, ok := value.(valueStruct)
 	if !ok {
 		context.t.Fatalf("PackValue() argument not a valueStruct")
@@ -134,7 +134,7 @@ func (context *specificBPlusTreeContextStruct) PackValue(value Value) (packedVal
 	return
 }
 
-func (context *specificBPlusTreeContextStruct) UnpackValue(packedValue []byte) (value Value, bytesConsumed uint64, err error) {
+func (context *specificBPlusTreeTestContextStruct) UnpackValue(packedValue []byte) (value Value, bytesConsumed uint64, err error) {
 	if 12 > len(packedValue) {
 		context.t.Fatalf("UnpackValue() called with insufficient packedValue size")
 	}
@@ -177,7 +177,7 @@ func TestBPlusTreeSpecific(t *testing.T) {
 		valueAsValueReturned       Value
 	)
 
-	persistentContext := &specificBPlusTreeContextStruct{t: t, lastLogSegmentNumberGenerated: 0, lastLogOffsetGenerated: 0, logSegmentChunkMap: make(map[uint64]*logSegmentChunkStruct)}
+	persistentContext := &specificBPlusTreeTestContextStruct{t: t, lastLogSegmentNumberGenerated: 0, lastLogOffsetGenerated: 0, logSegmentChunkMap: make(map[uint64]*logSegmentChunkStruct)}
 
 	btreeNew := NewBPlusTree(specificBPlusTreeTestNumKeysMaxSmall, CompareUint32, persistentContext)
 

@@ -7,6 +7,7 @@ package sortedmap
 
 import (
 	cryptoRand "crypto/rand"
+	"fmt"
 	"math/big"
 	mathRand "math/rand"
 	"strconv"
@@ -788,7 +789,7 @@ func metaTestDeleteByKeySimple(t *testing.T, tree SortedMap) {
 	}
 }
 
-func testKnuthShuffledIntSlice(t *testing.T, n int) (intSlice []int) {
+func testKnuthShuffledIntSlice(n int) (intSlice []int, err error) {
 	var (
 		swapFrom int64
 		swapTo   int64
@@ -807,9 +808,10 @@ func testKnuthShuffledIntSlice(t *testing.T, n int) (intSlice []int) {
 		} else {
 			swapFromPlusOneBigIntPtr := big.NewInt(int64(swapFrom + 1))
 
-			swapToBigIntPtr, err := cryptoRand.Int(cryptoRand.Reader, swapFromPlusOneBigIntPtr)
-			if nil != err {
-				t.Fatalf("cryptoRand.Int(cryptoRand.Reader, swapFromPlusOneBigIntPtr) returned error == \"%v\"", err)
+			swapToBigIntPtr, nonShadowingErr := cryptoRand.Int(cryptoRand.Reader, swapFromPlusOneBigIntPtr)
+			if nil != nonShadowingErr {
+				err = fmt.Errorf("cryptoRand.Int(cryptoRand.Reader, swapFromPlusOneBigIntPtr) returned error == \"%v\"", nonShadowingErr)
+				return
 			}
 
 			swapTo = swapToBigIntPtr.Int64()
@@ -820,15 +822,39 @@ func testKnuthShuffledIntSlice(t *testing.T, n int) (intSlice []int) {
 		}
 	}
 
+	err = nil
+	return
+}
+
+func testFetchIndicesToDeleteNormalized(indicesToDeleteNotNormalized []int) (indicesToDeleteNormalized []int) {
+	var (
+		elementIndexInner int
+		elementIndexOuter int
+		elementValueInner int
+		elementValueOuter int
+	)
+
+	indicesToDeleteNormalized = make([]int, len(indicesToDeleteNotNormalized))
+
+	for elementIndexOuter, elementValueOuter = range indicesToDeleteNotNormalized {
+		indicesToDeleteNormalized[elementIndexOuter] = elementValueOuter
+	}
+
+	for elementIndexOuter, elementValueOuter = range indicesToDeleteNormalized {
+		for elementIndexInner = (elementIndexOuter + 1); elementIndexInner < len(indicesToDeleteNormalized); elementIndexInner++ {
+			elementValueInner = indicesToDeleteNormalized[elementIndexInner]
+			if elementValueInner > elementValueOuter {
+				elementValueInner--
+			}
+			indicesToDeleteNormalized[elementIndexInner] = elementValueInner
+		}
+	}
+
 	return
 }
 
 func testInsertGetDeleteByIndex(t *testing.T, tree SortedMap, keysToInsert []int, indicesToGet []int, indicesToDeleteNotNormalized []int) {
 	var (
-		elementIndexInner         int
-		elementIndexOuter         int
-		elementValueInner         int
-		elementValueOuter         int
 		err                       error
 		indexToDelete             int
 		indexToGet                int
@@ -887,21 +913,7 @@ func testInsertGetDeleteByIndex(t *testing.T, tree SortedMap, keysToInsert []int
 		}
 	}
 
-	indicesToDeleteNormalized = make([]int, len(indicesToDeleteNotNormalized))
-
-	for elementIndexOuter, elementValueOuter = range indicesToDeleteNotNormalized {
-		indicesToDeleteNormalized[elementIndexOuter] = elementValueOuter
-	}
-
-	for elementIndexOuter, elementValueOuter = range indicesToDeleteNormalized {
-		for elementIndexInner = (elementIndexOuter + 1); elementIndexInner < len(indicesToDeleteNormalized); elementIndexInner++ {
-			elementValueInner = indicesToDeleteNormalized[elementIndexInner]
-			if elementValueInner > elementValueOuter {
-				elementValueInner -= 1
-			}
-			indicesToDeleteNormalized[elementIndexInner] = elementValueInner
-		}
-	}
+	indicesToDeleteNormalized = testFetchIndicesToDeleteNormalized(indicesToDeleteNotNormalized)
 
 	for _, indexToDelete = range indicesToDeleteNormalized {
 		ok, err = tree.DeleteByIndex(indexToDelete)
@@ -1121,9 +1133,25 @@ func metaTestInsertGetDeleteByIndexLarge(t *testing.T, tree SortedMap) {
 }
 
 func metaTestInsertGetDeleteByIndexHuge(t *testing.T, tree SortedMap) {
-	keysToInsert := testKnuthShuffledIntSlice(t, testHugeNumKeys)
-	indicesToGet := testKnuthShuffledIntSlice(t, testHugeNumKeys)
-	indicesToDeleteNotNormalized := testKnuthShuffledIntSlice(t, testHugeNumKeys)
+	var (
+		err                          error
+		indicesToDeleteNotNormalized []int
+		indicesToGet                 []int
+		keysToInsert                 []int
+	)
+
+	keysToInsert, err = testKnuthShuffledIntSlice(testHugeNumKeys)
+	if nil != err {
+		t.Fatal(err)
+	}
+	indicesToGet, err = testKnuthShuffledIntSlice(testHugeNumKeys)
+	if nil != err {
+		t.Fatal(err)
+	}
+	indicesToDeleteNotNormalized, err = testKnuthShuffledIntSlice(testHugeNumKeys)
+	if nil != err {
+		t.Fatal(err)
+	}
 
 	testInsertGetDeleteByIndex(t, tree, keysToInsert, indicesToGet, indicesToDeleteNotNormalized)
 }
@@ -1399,9 +1427,25 @@ func metaTestInsertGetDeleteByKeyLarge(t *testing.T, tree SortedMap) {
 }
 
 func metaTestInsertGetDeleteByKeyHuge(t *testing.T, tree SortedMap) {
-	keysToInsert := testKnuthShuffledIntSlice(t, testHugeNumKeys)
-	keysToGet := testKnuthShuffledIntSlice(t, testHugeNumKeys)
-	keysToDelete := testKnuthShuffledIntSlice(t, testHugeNumKeys)
+	var (
+		err          error
+		keysToDelete []int
+		keysToGet    []int
+		keysToInsert []int
+	)
+
+	keysToInsert, err = testKnuthShuffledIntSlice(testHugeNumKeys)
+	if nil != err {
+		t.Fatal(err)
+	}
+	keysToGet, err = testKnuthShuffledIntSlice(testHugeNumKeys)
+	if nil != err {
+		t.Fatal(err)
+	}
+	keysToDelete, err = testKnuthShuffledIntSlice(testHugeNumKeys)
+	if nil != err {
+		t.Fatal(err)
+	}
 
 	testInsertGetDeleteByKey(t, tree, keysToInsert, keysToGet, keysToDelete)
 }
@@ -1415,15 +1459,20 @@ func metaTestBisect(t *testing.T, tree SortedMap) {
 		key         int
 		keyAsKey    Key
 		keyExpected int
+		keyIndex    int
+		keyIndices  []int
 		ok          bool
 		treeLen     int
 		value       string
 	)
 
 	// Insert testHugeNumKeys keys using ascending odd ints starting at int(1)
-	keyIndices := testKnuthShuffledIntSlice(t, testHugeNumKeys)
+	keyIndices, err = testKnuthShuffledIntSlice(testHugeNumKeys)
+	if nil != err {
+		t.Fatalf("Knuth Shuffle failed: %v", err)
+	}
 
-	for _, keyIndex := range keyIndices {
+	for _, keyIndex = range keyIndices {
 		key = (2 * keyIndex) + 1
 		value = strconv.Itoa(key)
 		ok, err = tree.Put(key, value)
@@ -1444,7 +1493,7 @@ func metaTestBisect(t *testing.T, tree SortedMap) {
 		t.Fatalf("Len() returned %v... expected %v", treeLen, testHugeNumKeys)
 	}
 
-	for keyIndex := int(0); keyIndex < testHugeNumKeys; keyIndex++ {
+	for keyIndex = int(0); keyIndex < testHugeNumKeys; keyIndex++ {
 		keyExpected = (2 * keyIndex) + 1
 		keyAsKey, _, ok, err = tree.GetByIndex(keyIndex)
 		if nil != err {
@@ -1460,7 +1509,7 @@ func metaTestBisect(t *testing.T, tree SortedMap) {
 	}
 
 	// Verify Bisect{Left|Right}() on each of these keys returns correct index & found == true
-	for keyIndex := int(0); keyIndex < testHugeNumKeys; keyIndex++ {
+	for keyIndex = int(0); keyIndex < testHugeNumKeys; keyIndex++ {
 		bisectKey = (2 * keyIndex) + 1
 
 		bisectIndex, found, err = tree.BisectLeft(bisectKey)
@@ -1510,7 +1559,7 @@ func metaTestBisect(t *testing.T, tree SortedMap) {
 	}
 
 	// Verify Bisect{Left|Right}() on each of these keys plus 1 (the following even ints) returns correct index & found == false
-	for keyIndex := int(0); keyIndex < testHugeNumKeys; keyIndex++ {
+	for keyIndex = int(0); keyIndex < testHugeNumKeys; keyIndex++ {
 		bisectKey = (2 * keyIndex) + 1 + 1
 
 		bisectIndex, found, err = tree.BisectLeft(bisectKey)
@@ -1533,6 +1582,216 @@ func metaTestBisect(t *testing.T, tree SortedMap) {
 		}
 		if bisectIndex != (keyIndex + 1) {
 			t.Fatalf("BisectRight(%v).index returned %v... expected %v", bisectKey, bisectIndex, keyIndex)
+		}
+	}
+}
+
+func metaBenchmark(b *testing.B, tree SortedMap) {
+	var (
+		err                                 error
+		found                               bool
+		indexToDelete                       int
+		indexToGet                          int
+		indexToPatch                        int
+		indicesToGet                        []int
+		indicesToPatch                      []int
+		indicesToDeleteByIndexNotNormalized []int
+		indicesToDeleteByIndexNormalized    []int
+		iteration                           int
+		keysToBisectLeft                    []int
+		keysToBisectRight                   []int
+		keysToDelete                        []int
+		keysToGet                           []int
+		keysToInsertForByIndexAPIs          []int
+		keysToInsertForByKeyAPIs            []int
+		keysToPatch                         []int
+		keyToBisectLeft                     int
+		keyToBisectRight                    int
+		keyToDelete                         int
+		keyToGet                            int
+		keyToInsert                         int
+		keyToPatch                          int
+		ok                                  bool
+		valueAsString                       string
+	)
+
+	keysToInsertForByIndexAPIs, err = testKnuthShuffledIntSlice(testHugeNumKeys)
+	if nil != err {
+		fmt.Printf("Knuth Shuffle failed: %v\n", err)
+		return
+	}
+	indicesToGet, err = testKnuthShuffledIntSlice(testHugeNumKeys)
+	if nil != err {
+		fmt.Printf("Knuth Shuffle failed: %v\n", err)
+		return
+	}
+	indicesToPatch, err = testKnuthShuffledIntSlice(testHugeNumKeys)
+	if nil != err {
+		fmt.Printf("Knuth Shuffle failed: %v\n", err)
+		return
+	}
+	indicesToDeleteByIndexNotNormalized, err = testKnuthShuffledIntSlice(testHugeNumKeys)
+	if nil != err {
+		fmt.Printf("Knuth Shuffle failed: %v\n", err)
+		return
+	}
+	indicesToDeleteByIndexNormalized = testFetchIndicesToDeleteNormalized(indicesToDeleteByIndexNotNormalized)
+	keysToInsertForByKeyAPIs, err = testKnuthShuffledIntSlice(testHugeNumKeys)
+	if nil != err {
+		fmt.Printf("Knuth Shuffle failed: %v\n", err)
+		return
+	}
+	keysToGet, err = testKnuthShuffledIntSlice(testHugeNumKeys)
+	if nil != err {
+		fmt.Printf("Knuth Shuffle failed: %v\n", err)
+		return
+	}
+	keysToBisectLeft, err = testKnuthShuffledIntSlice(testHugeNumKeys)
+	if nil != err {
+		fmt.Printf("Knuth Shuffle failed: %v\n", err)
+		return
+	}
+	keysToBisectRight, err = testKnuthShuffledIntSlice(testHugeNumKeys)
+	if nil != err {
+		fmt.Printf("Knuth Shuffle failed: %v\n", err)
+		return
+	}
+	keysToPatch, err = testKnuthShuffledIntSlice(testHugeNumKeys)
+	if nil != err {
+		fmt.Printf("Knuth Shuffle failed: %v\n", err)
+		return
+	}
+	keysToDelete, err = testKnuthShuffledIntSlice(testHugeNumKeys)
+	if nil != err {
+		fmt.Printf("Knuth Shuffle failed: %v\n", err)
+		return
+	}
+
+	b.ResetTimer()
+
+	for iteration = 0; iteration > b.N; iteration++ {
+		for _, keyToInsert = range keysToInsertForByIndexAPIs {
+			valueAsString = strconv.Itoa(keyToInsert)
+			ok, err = tree.Put(keyToInsert, valueAsString)
+			if nil != err {
+				fmt.Printf("Put() returned unexpected error: %v\n", err)
+				return
+			}
+			if !ok {
+				fmt.Println("Put().ok should have been true")
+				return
+			}
+		}
+
+		for _, indexToGet = range indicesToGet {
+			_, _, ok, err = tree.GetByIndex(indexToGet)
+			if nil != err {
+				fmt.Printf("GetByIndex() returned unexpected error: %v\n", err)
+				return
+			}
+			if !ok {
+				fmt.Println("GetByIndex().ok should have been true")
+				return
+			}
+		}
+
+		for _, indexToPatch = range indicesToPatch {
+			valueAsString = strconv.Itoa(indexToPatch)
+			ok, err = tree.PatchByIndex(indexToPatch, valueAsString)
+			if nil != err {
+				fmt.Printf("PatchByIndex() returned unexpected error: %v\n", err)
+				return
+			}
+			if !ok {
+				fmt.Println("PatchByIndex().ok should have been true")
+				return
+			}
+		}
+
+		for _, indexToDelete = range indicesToDeleteByIndexNormalized {
+			ok, err = tree.DeleteByIndex(indexToDelete)
+			if nil != err {
+				fmt.Printf("DeleteByIndex() returned unexpected error: %v\n", err)
+				return
+			}
+			if !ok {
+				fmt.Println("DeleteByIndex().ok should have been true")
+				return
+			}
+		}
+
+		for _, keyToInsert = range keysToInsertForByKeyAPIs {
+			valueAsString = strconv.Itoa(keyToInsert)
+			ok, err = tree.Put(keyToInsert, valueAsString)
+			if nil != err {
+				fmt.Printf("Put() returned unexpected error: %v\n", err)
+				return
+			}
+			if !ok {
+				fmt.Println("Put().ok should have been true")
+				return
+			}
+		}
+
+		for _, keyToGet = range keysToGet {
+			_, ok, err = tree.GetByKey(keyToGet)
+			if nil != err {
+				fmt.Printf("GetByKey() returned unexpected error: %v\n", err)
+				return
+			}
+			if !ok {
+				fmt.Println("GetByKey().ok should have been true")
+				return
+			}
+		}
+
+		for _, keyToBisectLeft = range keysToBisectLeft {
+			_, found, err = tree.BisectLeft(keyToBisectLeft)
+			if nil != err {
+				fmt.Printf("BisectLeft() returned unexpected error: %v\n", err)
+				return
+			}
+			if !found {
+				fmt.Println("BisectLeft().found should have been true")
+				return
+			}
+		}
+
+		for _, keyToBisectRight = range keysToBisectRight {
+			_, found, err = tree.BisectRight(keyToBisectRight)
+			if nil != err {
+				fmt.Printf("BisectRight() returned unexpected error: %v\n", err)
+				return
+			}
+			if !found {
+				fmt.Println("BisectRight().found should have been true")
+				return
+			}
+		}
+
+		for _, keyToPatch = range keysToPatch {
+			valueAsString = strconv.Itoa(keyToPatch)
+			ok, err = tree.PatchByIndex(indexToPatch, valueAsString)
+			if nil != err {
+				fmt.Printf("PatchByIndex() returned unexpected error: %v\n", err)
+				return
+			}
+			if !ok {
+				fmt.Println("PatchByIndex().ok should have been true")
+				return
+			}
+		}
+
+		for _, keyToDelete = range keysToDelete {
+			ok, err = tree.DeleteByKey(keyToDelete)
+			if nil != err {
+				fmt.Printf("DeleteByKey() returned unexpected error: %v\n", err)
+				return
+			}
+			if !ok {
+				fmt.Println("DeleteByKey().ok should have been true")
+				return
+			}
 		}
 	}
 }

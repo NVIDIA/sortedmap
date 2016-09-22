@@ -13,22 +13,22 @@ const (
 	commonBPlusTreeTestNumKeysMaxLarge   = uint64(1000)
 )
 
-type commonBPlusTreeContextStruct struct {
+type commonBPlusTreeTestContextStruct struct {
 	t    *testing.T
 	tree BPlusTree
 }
 
-func (context *commonBPlusTreeContextStruct) GetNode(logSegmentNumber uint64, logOffset uint64, logLength uint64) (nodeByteSlice []byte, err error) {
+func (context *commonBPlusTreeTestContextStruct) GetNode(logSegmentNumber uint64, logOffset uint64, logLength uint64) (nodeByteSlice []byte, err error) {
 	err = fmt.Errorf("GetNode() not implemented")
 	return
 }
 
-func (context *commonBPlusTreeContextStruct) PutNode(nodeByteSlice []byte) (logSegmentNumber uint64, logOffset uint64, err error) {
+func (context *commonBPlusTreeTestContextStruct) PutNode(nodeByteSlice []byte) (logSegmentNumber uint64, logOffset uint64, err error) {
 	err = fmt.Errorf("PutNode() not implemented")
 	return
 }
 
-func (context *commonBPlusTreeContextStruct) DumpKey(key Key) (keyAsString string, err error) {
+func (context *commonBPlusTreeTestContextStruct) DumpKey(key Key) (keyAsString string, err error) {
 	keyAsInt, ok := key.(int)
 	if !ok {
 		context.t.Fatalf("DumpKey() argument not an int")
@@ -38,7 +38,7 @@ func (context *commonBPlusTreeContextStruct) DumpKey(key Key) (keyAsString strin
 	return
 }
 
-func (context *commonBPlusTreeContextStruct) PackKey(key Key) (packedKey []byte, err error) {
+func (context *commonBPlusTreeTestContextStruct) PackKey(key Key) (packedKey []byte, err error) {
 	keyAsInt, ok := key.(int)
 	if !ok {
 		context.t.Fatalf("PackKey() argument not an int")
@@ -50,12 +50,12 @@ func (context *commonBPlusTreeContextStruct) PackKey(key Key) (packedKey []byte,
 	return
 }
 
-func (context *commonBPlusTreeContextStruct) UnpackKey(payloadData []byte) (key Key, bytesConsumed uint64, err error) {
+func (context *commonBPlusTreeTestContextStruct) UnpackKey(payloadData []byte) (key Key, bytesConsumed uint64, err error) {
 	context.t.Fatalf("UnpackKey() not implemented")
 	return
 }
 
-func (context *commonBPlusTreeContextStruct) DumpValue(value Value) (valueAsString string, err error) {
+func (context *commonBPlusTreeTestContextStruct) DumpValue(value Value) (valueAsString string, err error) {
 	valueAsString, ok := value.(string)
 	if !ok {
 		context.t.Fatalf("PackValue() argument not a string")
@@ -64,7 +64,7 @@ func (context *commonBPlusTreeContextStruct) DumpValue(value Value) (valueAsStri
 	return
 }
 
-func (context *commonBPlusTreeContextStruct) PackValue(value Value) (packedValue []byte, err error) {
+func (context *commonBPlusTreeTestContextStruct) PackValue(value Value) (packedValue []byte, err error) {
 	valueAsString, ok := value.(string)
 	if !ok {
 		context.t.Fatalf("PackValue() argument not a string")
@@ -74,13 +74,58 @@ func (context *commonBPlusTreeContextStruct) PackValue(value Value) (packedValue
 	return
 }
 
-func (context *commonBPlusTreeContextStruct) UnpackValue(payloadData []byte) (value Value, bytesConsumed uint64, err error) {
+func (context *commonBPlusTreeTestContextStruct) UnpackValue(payloadData []byte) (value Value, bytesConsumed uint64, err error) {
 	context.t.Fatalf("UnpackValue() not implemented")
 	return
 }
 
+type commonBPlusTreeBenchmarkContextStruct struct {
+	b    *testing.B
+	tree BPlusTree
+}
+
+func (context *commonBPlusTreeBenchmarkContextStruct) GetNode(logSegmentNumber uint64, logOffset uint64, logLength uint64) (nodeByteSlice []byte, err error) {
+	err = fmt.Errorf("GetNode() not implemented")
+	return
+}
+
+func (context *commonBPlusTreeBenchmarkContextStruct) PutNode(nodeByteSlice []byte) (logSegmentNumber uint64, logOffset uint64, err error) {
+	err = fmt.Errorf("PutNode() not implemented")
+	return
+}
+
+func (context *commonBPlusTreeBenchmarkContextStruct) DumpKey(key Key) (keyAsString string, err error) {
+	err = fmt.Errorf("DumpKey() not implemented")
+	return
+}
+
+func (context *commonBPlusTreeBenchmarkContextStruct) PackKey(key Key) (packedKey []byte, err error) {
+	err = fmt.Errorf("PackKey() not implemented")
+	return
+}
+
+func (context *commonBPlusTreeBenchmarkContextStruct) UnpackKey(payloadData []byte) (key Key, bytesConsumed uint64, err error) {
+	err = fmt.Errorf("UnpackKey() not implemented")
+	return
+}
+
+func (context *commonBPlusTreeBenchmarkContextStruct) DumpValue(value Value) (valueAsString string, err error) {
+	err = fmt.Errorf("DumpValue() not implemented")
+	return
+}
+
+func (context *commonBPlusTreeBenchmarkContextStruct) PackValue(value Value) (packedValue []byte, err error) {
+	err = fmt.Errorf("PackValue() not implemented")
+	return
+}
+
+func (context *commonBPlusTreeBenchmarkContextStruct) UnpackValue(payloadData []byte) (value Value, bytesConsumed uint64, err error) {
+	err = fmt.Errorf("UnpackValue() not implemented")
+	return
+}
+
 func TestBPlusTreeAllButDeleteSimple(t *testing.T) {
-	context := &commonBPlusTreeContextStruct{t: t}
+	context := &commonBPlusTreeTestContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestAllButDeleteSimple(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -92,7 +137,7 @@ func TestBPlusTreeAllButDeleteSimple(t *testing.T) {
 }
 
 func TestBPlusTreeDeleteByIndexSimple(t *testing.T) {
-	context := &commonBPlusTreeContextStruct{t: t}
+	context := &commonBPlusTreeTestContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestDeleteByIndexSimple(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -104,7 +149,7 @@ func TestBPlusTreeDeleteByIndexSimple(t *testing.T) {
 }
 
 func TestBPlusTreeDeleteByKeySimple(t *testing.T) {
-	context := &commonBPlusTreeContextStruct{t: t}
+	context := &commonBPlusTreeTestContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestDeleteByKeySimple(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -116,7 +161,7 @@ func TestBPlusTreeDeleteByKeySimple(t *testing.T) {
 }
 
 func TestBPlusTreeInsertGetDeleteByIndexTrivial(t *testing.T) {
-	context := &commonBPlusTreeContextStruct{t: t}
+	context := &commonBPlusTreeTestContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestInsertGetDeleteByIndexTrivial(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -128,7 +173,7 @@ func TestBPlusTreeInsertGetDeleteByIndexTrivial(t *testing.T) {
 }
 
 func TestBPlusTreeInsertGetDeleteByIndexSmall(t *testing.T) {
-	context := &commonBPlusTreeContextStruct{t: t}
+	context := &commonBPlusTreeTestContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestInsertGetDeleteByIndexSmall(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -140,7 +185,7 @@ func TestBPlusTreeInsertGetDeleteByIndexSmall(t *testing.T) {
 }
 
 func TestBPlusTreeInsertGetDeleteByIndexLarge(t *testing.T) {
-	context := &commonBPlusTreeContextStruct{t: t}
+	context := &commonBPlusTreeTestContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestInsertGetDeleteByIndexLarge(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -152,7 +197,7 @@ func TestBPlusTreeInsertGetDeleteByIndexLarge(t *testing.T) {
 }
 
 func TestBPlusTreeInsertGetDeleteByIndexHuge(t *testing.T) {
-	context := &commonBPlusTreeContextStruct{t: t}
+	context := &commonBPlusTreeTestContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestInsertGetDeleteByIndexHuge(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -164,7 +209,7 @@ func TestBPlusTreeInsertGetDeleteByIndexHuge(t *testing.T) {
 }
 
 func TestBPlusTreeInsertGetDeleteByKeyTrivial(t *testing.T) {
-	context := &commonBPlusTreeContextStruct{t: t}
+	context := &commonBPlusTreeTestContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestInsertGetDeleteByKeyTrivial(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -176,7 +221,7 @@ func TestBPlusTreeInsertGetDeleteByKeyTrivial(t *testing.T) {
 }
 
 func TestBPlusTreeInsertGetDeleteByKeySmall(t *testing.T) {
-	context := &commonBPlusTreeContextStruct{t: t}
+	context := &commonBPlusTreeTestContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestInsertGetDeleteByKeySmall(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -188,7 +233,7 @@ func TestBPlusTreeInsertGetDeleteByKeySmall(t *testing.T) {
 }
 
 func TestBPlusTreeInsertGetDeleteByKeyLarge(t *testing.T) {
-	context := &commonBPlusTreeContextStruct{t: t}
+	context := &commonBPlusTreeTestContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestInsertGetDeleteByKeyLarge(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -200,7 +245,7 @@ func TestBPlusTreeInsertGetDeleteByKeyLarge(t *testing.T) {
 }
 
 func TestBPlusTreeInsertGetDeleteByKeyHuge(t *testing.T) {
-	context := &commonBPlusTreeContextStruct{t: t}
+	context := &commonBPlusTreeTestContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestInsertGetDeleteByKeyHuge(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -212,7 +257,7 @@ func TestBPlusTreeInsertGetDeleteByKeyHuge(t *testing.T) {
 }
 
 func TestBPlusTreeBisect(t *testing.T) {
-	context := &commonBPlusTreeContextStruct{t: t}
+	context := &commonBPlusTreeTestContextStruct{t: t}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxSmall, CompareInt, context)
 	metaTestBisect(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxModest, CompareInt, context)
@@ -221,4 +266,10 @@ func TestBPlusTreeBisect(t *testing.T) {
 	metaTestBisect(t, context.tree)
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxLarge, CompareInt, context)
 	metaTestBisect(t, context.tree)
+}
+
+func BenchmarkBPlusTree(b *testing.B) {
+	context := &commonBPlusTreeBenchmarkContextStruct{b: b}
+	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxTypical, CompareInt, context)
+	metaBenchmark(b, context.tree)
 }
