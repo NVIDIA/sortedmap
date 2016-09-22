@@ -62,7 +62,7 @@ def get_go_commands(options, project_path, skip_tests=False):
         GoCommand('install', project_path),
         GoCommand('generate', project_path, report_as="`go generate`"),
         GoCommand('test', project_path,
-                  filter(lambda x: x, [options.cover]),
+                  filter(lambda x: x, [options.bench, options.cover]),
                   report_as="`go test`",
                   skip=skip_tests),
         GoCommand('vet', project_path, report_as="`go vet`")
@@ -102,6 +102,9 @@ def main(options):
 
 if __name__ == "__main__":
     arg_parser = argparse.ArgumentParser(description=__doc__)
+    arg_parser.add_argument('--bench', '-bench',
+                            action='store_const', const='-bench=.',
+                            help="include benchmark measurements in test output")
     arg_parser.add_argument('--cover', '-cover',
                             action='store_const', const='-cover',
                             help="include coverage statistics in test output")

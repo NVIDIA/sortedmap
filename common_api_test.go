@@ -1595,8 +1595,8 @@ func metaBenchmark(b *testing.B, tree SortedMap) {
 		indexToPatch                        int
 		indicesToGet                        []int
 		indicesToPatch                      []int
-		indicesToDeleteByIndexNotNormalized []int
 		indicesToDeleteByIndexNormalized    []int
+		indicesToDeleteByIndexNotNormalized []int
 		iteration                           int
 		keysToBisectLeft                    []int
 		keysToBisectRight                   []int
@@ -1669,7 +1669,7 @@ func metaBenchmark(b *testing.B, tree SortedMap) {
 
 	b.ResetTimer()
 
-	for iteration = 0; iteration > b.N; iteration++ {
+	for iteration = 0; iteration < b.N; iteration++ {
 		for _, keyToInsert = range keysToInsertForByIndexAPIs {
 			valueAsString = strconv.Itoa(keyToInsert)
 			ok, err = tree.Put(keyToInsert, valueAsString)
