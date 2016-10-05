@@ -263,7 +263,10 @@ func TestBPlusTreeSpecific(t *testing.T) {
 		}
 	}
 
-	btreeNew.Purge()
+	err = btreeNew.Purge()
+	if nil != err {
+		t.Fatalf("btreeNew.Purge() should not have failed")
+	}
 
 	valueAsValueReturned, ok, err = btreeNew.GetByKey(uint32(7))
 	if nil != err {
@@ -325,5 +328,15 @@ func TestBPlusTreeSpecific(t *testing.T) {
 	valueAsValueStructExpected = valueStruct{u32: 7, s8: uint32To8ReplicaByteArray(7)}
 	if valueAsValueStructReturned != valueAsValueStructExpected {
 		t.Fatalf("btreeOld.GetByKey(uint32(3)).value should have been valueAsValueStructExpected")
+	}
+
+	err = btreeOld.Touch()
+	if nil != err {
+		t.Fatalf("btreeOld.Touch() should not have failed")
+	}
+
+	err = btreeOld.Purge()
+	if nil == err {
+		t.Fatalf("btreeOld.Purge() should have failed")
 	}
 }

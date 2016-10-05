@@ -11,6 +11,7 @@ type BPlusTree interface {
 	FetchLayoutReport() (layoutReport LayoutReport, err error)
 	Flush(andPurge bool) (rootObjectNumber uint64, rootObjectOffset uint64, rootObjectLength uint64, err error)
 	Purge() (err error)
+	Touch() (err error)
 }
 
 // BPlusTreeCallbacks specifies the interface to a set of callbacks provided by the client
