@@ -5,6 +5,10 @@ import (
 	"testing"
 )
 
+const (
+	commonLLRBTreeBenchmarkNumKeys = 1000
+)
+
 type commonLLRBTreeTestContextStruct struct {
 	t    *testing.T
 	tree LLRBTree
@@ -116,8 +120,56 @@ func TestLLRBTreeBisect(t *testing.T) {
 	metaTestBisect(t, context.tree)
 }
 
-func BenchmarkLLRBTree(b *testing.B) {
+func BenchmarkLLRBTreePut(b *testing.B) {
 	context := &commonLLRBTreeBenchmarkContextStruct{b: b}
 	context.tree = NewLLRBTree(CompareInt, context)
-	metaBenchmark(b, context.tree)
+	metaBenchmarkPut(b, context.tree, commonLLRBTreeBenchmarkNumKeys)
+}
+
+func BenchmarkLLRBTreeGetByIndex(b *testing.B) {
+	context := &commonLLRBTreeBenchmarkContextStruct{b: b}
+	context.tree = NewLLRBTree(CompareInt, context)
+	metaBenchmarkGetByIndex(b, context.tree, commonLLRBTreeBenchmarkNumKeys)
+}
+
+func BenchmarkLLRBTreePatchByIndex(b *testing.B) {
+	context := &commonLLRBTreeBenchmarkContextStruct{b: b}
+	context.tree = NewLLRBTree(CompareInt, context)
+	metaBenchmarkPatchByIndex(b, context.tree, commonLLRBTreeBenchmarkNumKeys)
+}
+
+func BenchmarkLLRBTreeDeleteByIndex(b *testing.B) {
+	context := &commonLLRBTreeBenchmarkContextStruct{b: b}
+	context.tree = NewLLRBTree(CompareInt, context)
+	metaBenchmarkDeleteByIndex(b, context.tree, commonLLRBTreeBenchmarkNumKeys)
+}
+
+func BenchmarkLLRBTreeGetByKey(b *testing.B) {
+	context := &commonLLRBTreeBenchmarkContextStruct{b: b}
+	context.tree = NewLLRBTree(CompareInt, context)
+	metaBenchmarkGetByKey(b, context.tree, commonLLRBTreeBenchmarkNumKeys)
+}
+
+func BenchmarkLLRBTreeBisectLeft(b *testing.B) {
+	context := &commonLLRBTreeBenchmarkContextStruct{b: b}
+	context.tree = NewLLRBTree(CompareInt, context)
+	metaBenchmarkBisectLeft(b, context.tree, commonLLRBTreeBenchmarkNumKeys)
+}
+
+func BenchmarkLLRBTreeBisectRight(b *testing.B) {
+	context := &commonLLRBTreeBenchmarkContextStruct{b: b}
+	context.tree = NewLLRBTree(CompareInt, context)
+	metaBenchmarkBisectRight(b, context.tree, commonLLRBTreeBenchmarkNumKeys)
+}
+
+func BenchmarkLLRBTreePatchByKey(b *testing.B) {
+	context := &commonLLRBTreeBenchmarkContextStruct{b: b}
+	context.tree = NewLLRBTree(CompareInt, context)
+	metaBenchmarkPatchByKey(b, context.tree, commonLLRBTreeBenchmarkNumKeys)
+}
+
+func BenchmarkLLRBTreeDeleteByKey(b *testing.B) {
+	context := &commonLLRBTreeBenchmarkContextStruct{b: b}
+	context.tree = NewLLRBTree(CompareInt, context)
+	metaBenchmarkDeleteByKey(b, context.tree, commonLLRBTreeBenchmarkNumKeys)
 }

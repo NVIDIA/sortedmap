@@ -11,6 +11,8 @@ const (
 	commonBPlusTreeTestNumKeysMaxModest  = uint64(10)
 	commonBPlusTreeTestNumKeysMaxTypical = uint64(100)
 	commonBPlusTreeTestNumKeysMaxLarge   = uint64(1000)
+
+	commonBPlusTreeBenchmarkNumKeys = 10000
 )
 
 type commonBPlusTreeTestContextStruct struct {
@@ -268,8 +270,56 @@ func TestBPlusTreeBisect(t *testing.T) {
 	metaTestBisect(t, context.tree)
 }
 
-func BenchmarkBPlusTree(b *testing.B) {
+func BenchmarkBPlusTreePut(b *testing.B) {
 	context := &commonBPlusTreeBenchmarkContextStruct{b: b}
 	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxTypical, CompareInt, context)
-	metaBenchmark(b, context.tree)
+	metaBenchmarkPut(b, context.tree, commonBPlusTreeBenchmarkNumKeys)
+}
+
+func BenchmarkBPlusTreeGetByIndex(b *testing.B) {
+	context := &commonBPlusTreeBenchmarkContextStruct{b: b}
+	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxTypical, CompareInt, context)
+	metaBenchmarkGetByIndex(b, context.tree, commonBPlusTreeBenchmarkNumKeys)
+}
+
+func BenchmarkBPlusTreePatchByIndex(b *testing.B) {
+	context := &commonBPlusTreeBenchmarkContextStruct{b: b}
+	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxTypical, CompareInt, context)
+	metaBenchmarkPatchByIndex(b, context.tree, commonBPlusTreeBenchmarkNumKeys)
+}
+
+func BenchmarkBPlusTreeDeleteByIndex(b *testing.B) {
+	context := &commonBPlusTreeBenchmarkContextStruct{b: b}
+	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxTypical, CompareInt, context)
+	metaBenchmarkDeleteByIndex(b, context.tree, commonBPlusTreeBenchmarkNumKeys)
+}
+
+func BenchmarkBPlusTreeGetByKey(b *testing.B) {
+	context := &commonBPlusTreeBenchmarkContextStruct{b: b}
+	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxTypical, CompareInt, context)
+	metaBenchmarkGetByKey(b, context.tree, commonBPlusTreeBenchmarkNumKeys)
+}
+
+func BenchmarkBPlusTreeBisectLeft(b *testing.B) {
+	context := &commonBPlusTreeBenchmarkContextStruct{b: b}
+	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxTypical, CompareInt, context)
+	metaBenchmarkBisectLeft(b, context.tree, commonBPlusTreeBenchmarkNumKeys)
+}
+
+func BenchmarkBPlusTreeBisectRight(b *testing.B) {
+	context := &commonBPlusTreeBenchmarkContextStruct{b: b}
+	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxTypical, CompareInt, context)
+	metaBenchmarkBisectRight(b, context.tree, commonBPlusTreeBenchmarkNumKeys)
+}
+
+func BenchmarkBPlusTreePatchByKey(b *testing.B) {
+	context := &commonBPlusTreeBenchmarkContextStruct{b: b}
+	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxTypical, CompareInt, context)
+	metaBenchmarkPatchByKey(b, context.tree, commonBPlusTreeBenchmarkNumKeys)
+}
+
+func BenchmarkBPlusTreeDeleteByKey(b *testing.B) {
+	context := &commonBPlusTreeBenchmarkContextStruct{b: b}
+	context.tree = NewBPlusTree(commonBPlusTreeTestNumKeysMaxTypical, CompareInt, context)
+	metaBenchmarkDeleteByKey(b, context.tree, commonBPlusTreeBenchmarkNumKeys)
 }
