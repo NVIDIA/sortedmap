@@ -12,6 +12,7 @@ type BPlusTree interface {
 	Flush(andPurge bool) (rootObjectNumber uint64, rootObjectOffset uint64, rootObjectLength uint64, err error)
 	Purge() (err error)
 	Touch() (err error)
+	Clone(callbacks BPlusTreeCallbacks) (newTree BPlusTree, err error)
 }
 
 // BPlusTreeCallbacks specifies the interface to a set of callbacks provided by the client
@@ -78,25 +79,25 @@ func OldBPlusTree(rootObjectNumber uint64, rootObjectOffset uint64, rootObjectLe
 		objectNumber:        rootObjectNumber,
 		objectOffset:        rootObjectOffset,
 		objectLength:        rootObjectLength,
-		items:               0, //                 To be filled in once root node is loaded
+		items:               0, //             To be filled in once root node is loaded
 		loaded:              false,
 		dirty:               false,
 		root:                true,
-		leaf:                true, //              To be updated once root node is loaded
-		tree:                nil,  //              To be set just below
+		leaf:                true, //          To be updated once root node is loaded
+		tree:                nil,  //          To be set just below
 		parentNode:          nil,
-		kvLLRB:              nil, //               To be filled in once root node is loaded
-		nonLeafLeftChild:    nil, //               To be filled in once root node is loaded
-		rootPrefixSumChild:  nil, //               To be filled in once root node is loaded (nil if root is also leaf)
-		prefixSumItems:      0,   //               Not applicable to root node
-		prefixSumParent:     nil, //               Not applicable to root node
-		prefixSumLeftChild:  nil, //               Not applicable to root node
-		prefixSumRightChild: nil, //               Not applicable to root node
+		kvLLRB:              nil, //           To be filled in once root node is loaded
+		nonLeafLeftChild:    nil, //           To be filled in once root node is loaded
+		rootPrefixSumChild:  nil, //           To be filled in once root node is loaded (nil if root is also leaf)
+		prefixSumItems:      0,   //           Not applicable to root node
+		prefixSumParent:     nil, //           Not applicable to root node
+		prefixSumLeftChild:  nil, //           Not applicable to root node
+		prefixSumRightChild: nil, //           Not applicable to root node
 	}
 
 	treePtr := &btreeTreeStruct{
-		minKeysPerNode:     0, //                  To be filled in once root node is loaded
-		maxKeysPerNode:     0, //                  To be filled in once root node is loaded
+		minKeysPerNode:     0, //              To be filled in once root node is loaded
+		maxKeysPerNode:     0, //              To be filled in once root node is loaded
 		Compare:            compare,
 		BPlusTreeCallbacks: callbacks,
 		root:               rootNode,

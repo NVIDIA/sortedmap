@@ -775,7 +775,182 @@ func (tree *btreeTreeStruct) Touch() (err error) {
 	return
 }
 
+func (tree *btreeTreeStruct) Clone(callbacks BPlusTreeCallbacks) (newTree BPlusTree, err error) {
+	var (
+		curTreePtr  *btreeTreeStruct
+		newRootNode *btreeNodeStruct
+		newTreePtr  *btreeTreeStruct
+	)
+
+	curTreePtr = tree
+
+	newRootNode = &btreeNodeStruct{parentNode: nil}
+
+	newTreePtr = &btreeTreeStruct{
+		minKeysPerNode:     curTreePtr.minKeysPerNode,
+		maxKeysPerNode:     curTreePtr.maxKeysPerNode,
+		Compare:            curTreePtr.Compare,
+		BPlusTreeCallbacks: callbacks,
+		root:               newRootNode,
+	}
+
+	newRootNode.tree = newTreePtr
+
+	newTree = newTreePtr
+
+	err = cloneNode(curTreePtr.root, newRootNode)
+
+	return
+}
+
 // Helper functions
+
+func (tree *btreeTreeStruct) cloneKey(curKey Key) (newKey Key, err error) {
+	packedKey, err := tree.PackKey(curKey)
+	if nil != err {
+		return
+	}
+	newKey, bytesConsumed, err := tree.UnpackKey(packedKey)
+	if nil != err {
+		return
+	}
+	if uint64(len(packedKey)) != bytesConsumed {
+		err = fmt.Errorf("UnpackKey() didn't reverse PackKey()")
+		return
+	}
+
+	err = nil
+	return
+}
+
+func (tree *btreeTreeStruct) cloneValue(curValue Value) (newValue Value, err error) {
+	packedValue, err := tree.PackValue(curValue)
+	if nil != err {
+		return
+	}
+	newValue, bytesConsumed, err := tree.UnpackValue(packedValue)
+	if nil != err {
+		return
+	}
+	if uint64(len(packedValue)) != bytesConsumed {
+		err = fmt.Errorf("UnpackValue() didn't reverse PackValue()")
+		return
+	}
+
+	err = nil
+	return
+}
+
+func cloneNode(curNode *btreeNodeStruct, newNode *btreeNodeStruct) (err error) {
+	var (
+		curChildNode *btreeNodeStruct
+		index        int
+		key          Key
+		newChildNode *btreeNodeStruct
+		numIndices   int
+		ok           bool
+		value        Value
+	)
+
+	newNode.loaded = curNode.loaded
+
+	if curNode.loaded || !curNode.dirty {
+		// If curNode is loaded and dirty, clone a fresh instance
+
+		newNode.objectNumber = 0
+		newNode.objectOffset = 0
+		newNode.objectLength = 0
+
+		newNode.items = curNode.items
+
+		newNode.loaded = true
+		newNode.dirty = true
+		newNode.root = curNode.root
+		newNode.leaf = curNode.leaf
+		newNode.tree = curNode.tree
+
+		newNode.kvLLRB = NewLLRBTree(newNode.tree.Compare, newNode.tree.BPlusTreeCallbacks)
+
+		if newNode.leaf || (nil == curNode.nonLeafLeftChild) {
+			newNode.nonLeafLeftChild = nil
+		} else {
+			newNode.nonLeafLeftChild = &btreeNodeStruct{parentNode: newNode}
+			err = cloneNode(curNode.nonLeafLeftChild, newNode.nonLeafLeftChild)
+			if nil != err {
+				return
+			}
+		}
+
+		newNode.kvLLRB = NewLLRBTree(newNode.tree.Compare, newNode.tree.BPlusTreeCallbacks)
+
+		numIndices, err = curNode.kvLLRB.Len()
+		if nil != err {
+			return
+		}
+
+		for index = 0; index < numIndices; index++ {
+			key, value, ok, err = curNode.kvLLRB.GetByIndex(index)
+			if nil != err {
+				return
+			}
+			if !ok {
+				err = fmt.Errorf("GetByIndex for an valid index should have found an entry")
+				panic(err)
+			}
+			key, err = curNode.tree.cloneKey(key)
+			if nil != err {
+				return
+			}
+			if newNode.leaf {
+				value, err = curNode.tree.cloneValue(value)
+				if nil != err {
+					return
+				}
+				ok, err = newNode.kvLLRB.Put(key, value)
+				if nil != err {
+					return
+				}
+				if !ok {
+					err = fmt.Errorf("newNode.kvLLRB.Put() [case 1] should have returned ok == true")
+					return
+				}
+			} else {
+				curChildNode = value.(*btreeNodeStruct)
+				newChildNode = &btreeNodeStruct{parentNode: newNode}
+				ok, err = newNode.kvLLRB.Put(key, newChildNode)
+				if nil != err {
+					return
+				}
+				if !ok {
+					err = fmt.Errorf("newNode.kvLLRB.Put() [case 2] should have returned ok == true")
+					return
+				}
+				err = cloneNode(curChildNode, newChildNode)
+				if nil != err {
+					return
+				}
+			}
+		}
+
+		if newNode.leaf {
+			newNode.rootPrefixSumChild = nil
+		} else {
+			newNode.tree.arrangePrefixSumTree(newNode)
+		}
+	} else {
+		// If curNode not loaded, or if curNode loaded but clean, indicate newNode is not loaded
+
+		newNode.objectNumber = curNode.objectNumber
+		newNode.objectOffset = curNode.objectOffset
+		newNode.objectLength = curNode.objectLength
+
+		newNode.items = curNode.items
+	}
+
+	err = nil
+
+	return
+}
 
 func (tree *btreeTreeStruct) insertHere(insertNode *btreeNodeStruct, key Key, value Value) (err error) {
 	insertNode.kvLLRB.Put(key, value)

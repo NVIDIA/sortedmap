@@ -339,4 +339,57 @@ func TestBPlusTreeSpecific(t *testing.T) {
 	if nil == err {
 		t.Fatalf("btreeOld.Purge() should have failed")
 	}
+
+	btreeClone, err := btreeOld.Clone(persistentContext)
+	if nil != err {
+		t.Fatalf("btreeOld.Clone() should not have failed")
+	}
+
+	ok, err = btreeOld.DeleteByKey(uint32(3))
+	if nil != err {
+		t.Fatalf("btreeOld.DeleteByKey(uint32(3)) should not have failed")
+	}
+	if !ok {
+		t.Fatalf("btreeOld.DetelByKey(uint32(3)) should have returned true")
+	}
+
+	ok, err = btreeClone.DeleteByKey(uint32(7))
+	if nil != err {
+		t.Fatalf("btreeClone.DeleteByKey(uint32(7)) should not have failed")
+	}
+	if !ok {
+		t.Fatalf("btreeClone.DetelByKey(uint32(7)) should have returned true")
+	}
+
+	_, ok, err = btreeOld.GetByKey(uint32(3))
+	if nil != err {
+		t.Fatalf("btreeOld.GetByKey(uint32(3)) should not have failed")
+	}
+	if ok {
+		t.Fatalf("btreeOld.GetByKey(uint32(3)) should have returned false")
+	}
+
+	_, ok, err = btreeOld.GetByKey(uint32(7))
+	if nil != err {
+		t.Fatalf("btreeOld.GetByKey(uint32(7)) should not have failed")
+	}
+	if !ok {
+		t.Fatalf("btreeOld.GetByKey(uint32(7)) should have returned true")
+	}
+
+	_, ok, err = btreeClone.GetByKey(uint32(3))
+	if nil != err {
+		t.Fatalf("btreeClone.GetByKey(uint32(3)) should not have failed")
+	}
+	if !ok {
+		t.Fatalf("btreeClone.GetByKey(uint32(3)) should have returned true")
+	}
+
+	_, ok, err = btreeClone.GetByKey(uint32(7))
+	if nil != err {
+		t.Fatalf("btreeClone.GetByKey(uint32(7)) should not have failed")
+	}
+	if ok {
+		t.Fatalf("btreeClone.GetByKey(uint32(7)) should have returned false")
+	}
 }
