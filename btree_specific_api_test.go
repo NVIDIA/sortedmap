@@ -281,7 +281,10 @@ func TestBPlusTreeSpecific(t *testing.T) {
 		t.Fatalf("btreeNew.GetByKey(uint32(3)).value should have been valueAsValueStructExpected")
 	}
 
-	btreeOld := OldBPlusTree(rootLogSegmentNumber, rootLogOffset, rootLogLength, CompareUint32, persistentContext)
+	btreeOld, err := OldBPlusTree(rootLogSegmentNumber, rootLogOffset, rootLogLength, CompareUint32, persistentContext)
+	if nil != err {
+		t.Fatalf("OldBPlusTree() should not have failed")
+	}
 
 	btreeLen, err = btreeOld.Len()
 	if nil != err {

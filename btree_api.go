@@ -74,7 +74,7 @@ func NewBPlusTree(maxKeysPerNode uint64, compare Compare, callbacks BPlusTreeCal
 }
 
 // OldBPlusTree is used to re-construct a B+Tree previously persisted
-func OldBPlusTree(rootObjectNumber uint64, rootObjectOffset uint64, rootObjectLength uint64, compare Compare, callbacks BPlusTreeCallbacks) (tree BPlusTree) {
+func OldBPlusTree(rootObjectNumber uint64, rootObjectOffset uint64, rootObjectLength uint64, compare Compare, callbacks BPlusTreeCallbacks) (tree BPlusTree, err error) {
 	rootNode := &btreeNodeStruct{
 		objectNumber:        rootObjectNumber,
 		objectOffset:        rootObjectOffset,
@@ -105,9 +105,9 @@ func OldBPlusTree(rootObjectNumber uint64, rootObjectOffset uint64, rootObjectLe
 
 	rootNode.tree = treePtr
 
-	treePtr.loadNode(rootNode)
-
 	tree = treePtr
+
+	err = treePtr.loadNode(rootNode)
 
 	return
 }
