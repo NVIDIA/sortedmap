@@ -430,6 +430,8 @@ func TestBPlusTreeCloneStress(t *testing.T) {
 		t.Fatalf("btreeLive.Clone() should have worked")
 	}
 
+	// PHASE ONE - clone un-flushed/purged btreeLive
+
 	// Add maxElements elements to btreeLive cloning every cloneInterval
 
 	for elementKey = 0; elementKey < maxElements; elementKey++ {
@@ -479,6 +481,89 @@ func TestBPlusTreeCloneStress(t *testing.T) {
 		}
 
 		if 0 == ((elementKey + 1) % cloneInterval) {
+			btreeCloneMap[maxElements-int(elementKey+1)], err = btreeLive.Clone(persistentContext)
+			if nil != err {
+				t.Fatalf("btreeLive.Clone() should have worked")
+			}
+		}
+	}
+
+	// Check Len of and Validate each btreeCloneMap element
+
+	for expectedLen, btreeClone = range btreeCloneMap {
+		actualLen, err = btreeClone.Len()
+		if nil != err {
+			t.Fatalf("btreeClone.Len() should have worked")
+		}
+		if expectedLen != actualLen {
+			t.Fatalf("btreeClone.Len() expectedLen == %v actualLen == %v", expectedLen, actualLen)
+		}
+
+		err = btreeClone.Validate()
+		if nil != err {
+			t.Fatalf("btreeClone.Validate() should have worked")
+		}
+	}
+
+	// PHASE TWO - clone flushed/purged btreeLive
+
+	// Add maxElements elements to btreeLive cloning every cloneInterval
+
+	for elementKey = 0; elementKey < maxElements; elementKey++ {
+		valueAsValueStructToInsert = valueStruct{u32: elementKey, s8: uint32To8ReplicaByteArray(elementKey)}
+		ok, err = btreeLive.Put(elementKey, valueAsValueStructToInsert)
+		if nil != err {
+			t.Fatalf("btreeLive.Put(elementKey == %v) should not have failed", elementKey)
+		}
+		if !ok {
+			t.Fatalf("btreeLive.Put(elementKey == %v).ok should have been true", elementKey)
+		}
+
+		if 0 == ((elementKey + 1) % cloneInterval) {
+			_, _, _, err = btreeLive.Flush(true)
+			if nil != err {
+				t.Fatalf("btreeLive.Flush(true) should have worked")
+			}
+			btreeCloneMap[int(elementKey+1)], err = btreeLive.Clone(persistentContext)
+			if nil != err {
+				t.Fatalf("btreeLive.Clone() should have worked")
+			}
+		}
+	}
+
+	// Check Len of and Validate each btreeCloneMap element
+
+	for expectedLen, btreeClone = range btreeCloneMap {
+		actualLen, err = btreeClone.Len()
+		if nil != err {
+			t.Fatalf("btreeClone.Len() should have worked")
+		}
+		if expectedLen != actualLen {
+			t.Fatalf("btreeClone.Len() expectedLen == %v actualLen == %v", expectedLen, actualLen)
+		}
+
+		err = btreeClone.Validate()
+		if nil != err {
+			t.Fatalf("btreeClone.Validate() should have worked")
+		}
+	}
+
+	// Remove elements from btreeLive until empty cloning every cloneInterval
+
+	for elementKey = 0; elementKey < maxElements; elementKey++ {
+		ok, err = btreeLive.DeleteByKey(elementKey)
+		if nil != err {
+			t.Fatalf("btreeLive.DeleteByKey(elementKey == %v) should not have failed", elementKey)
+		}
+		if !ok {
+			t.Fatalf("btreeLive.DeleteByKey(elementKey == %v).ok should have been true", elementKey)
+		}
+
+		if 0 == ((elementKey + 1) % cloneInterval) {
+			_, _, _, err = btreeLive.Flush(true)
+			if nil != err {
+				t.Fatalf("btreeLive.Flush(true) should have worked")
+			}
 			btreeCloneMap[maxElements-int(elementKey+1)], err = btreeLive.Clone(persistentContext)
 			if nil != err {
 				t.Fatalf("btreeLive.Clone() should have worked")

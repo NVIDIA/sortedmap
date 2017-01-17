@@ -854,7 +854,7 @@ func cloneNode(curNode *btreeNodeStruct, newNode *btreeNodeStruct) (err error) {
 
 	newNode.loaded = curNode.loaded
 
-	if curNode.loaded || !curNode.dirty {
+	if curNode.loaded && curNode.dirty {
 		// If curNode is loaded and dirty, clone a fresh instance
 
 		newNode.objectNumber = 0
@@ -945,6 +945,8 @@ func cloneNode(curNode *btreeNodeStruct, newNode *btreeNodeStruct) (err error) {
 		newNode.objectLength = curNode.objectLength
 
 		newNode.items = curNode.items
+
+		newNode.loaded = false
 	}
 
 	err = nil
@@ -1117,6 +1119,13 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 			leftSiblingNode = leftSiblingNodeAsValue.(*btreeNodeStruct)
 		}
 
+		if !leftSiblingNode.loaded {
+			err = tree.loadNode(leftSiblingNode)
+			if nil != err {
+				return
+			}
+		}
+
 		llrbLen, nonShadowingErr := leftSiblingNode.kvLLRB.Len()
 		if nil != nonShadowingErr {
 			err = nonShadowingErr
@@ -1126,8 +1135,8 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 		if uint64(llrbLen) > tree.minKeysPerNode {
 			// leftSiblingNode can give up a key
 
-			leftSiblingNode.items -= 1
-			rebalanceNode.items += 1
+			leftSiblingNode.items--
+			rebalanceNode.items++
 
 			if rebalanceNode.leaf {
 				// move one key from leftSiblingNode to rebalanceNode
@@ -1214,6 +1223,13 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 		}
 		rightSiblingNode = rightSiblingNodeAsValue.(*btreeNodeStruct)
 
+		if !rightSiblingNode.loaded {
+			err = tree.loadNode(rightSiblingNode)
+			if nil != err {
+				return
+			}
+		}
+
 		llrbLen, nonShadowingErr := rightSiblingNode.kvLLRB.Len()
 		if nil != nonShadowingErr {
 			err = nonShadowingErr
@@ -1223,8 +1239,8 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 		if uint64(llrbLen) > tree.minKeysPerNode {
 			// rightSiblingNode can give up a key
 
-			rebalanceNode.items += 1
-			rightSiblingNode.items -= 1
+			rebalanceNode.items++
+			rightSiblingNode.items--
 
 			if rebalanceNode.leaf {
 				// move one key from rightSiblingNode to rebalanceNode
