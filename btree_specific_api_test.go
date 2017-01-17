@@ -159,7 +159,10 @@ func uint32To8ReplicaByteArray(u32 uint32) (b8 [8]byte) {
 
 func TestBPlusTreeSpecific(t *testing.T) {
 	var (
+		btreeClone                 BPlusTree
 		btreeLen                   int
+		btreeNew                   BPlusTree
+		btreeOld                   BPlusTree
 		err                        error
 		layoutReportExpected       LayoutReport
 		layoutReportReturned       LayoutReport
@@ -168,6 +171,7 @@ func TestBPlusTreeSpecific(t *testing.T) {
 		logSegmentChunk            *logSegmentChunkStruct
 		logSegmentNumber           uint64
 		ok                         bool
+		persistentContext          *specificBPlusTreeTestContextStruct
 		rootLogSegmentNumber       uint64
 		rootLogOffset              uint64
 		rootLogLength              uint64
@@ -177,9 +181,9 @@ func TestBPlusTreeSpecific(t *testing.T) {
 		valueAsValueReturned       Value
 	)
 
-	persistentContext := &specificBPlusTreeTestContextStruct{t: t, lastLogSegmentNumberGenerated: 0, lastLogOffsetGenerated: 0, logSegmentChunkMap: make(map[uint64]*logSegmentChunkStruct)}
+	persistentContext = &specificBPlusTreeTestContextStruct{t: t, lastLogSegmentNumberGenerated: 0, lastLogOffsetGenerated: 0, logSegmentChunkMap: make(map[uint64]*logSegmentChunkStruct)}
 
-	btreeNew := NewBPlusTree(specificBPlusTreeTestNumKeysMaxSmall, CompareUint32, persistentContext)
+	btreeNew = NewBPlusTree(specificBPlusTreeTestNumKeysMaxSmall, CompareUint32, persistentContext)
 
 	valueAsValueStructToInsert = valueStruct{u32: 5, s8: uint32To8ReplicaByteArray(5)}
 	ok, err = btreeNew.Put(uint32(5), valueAsValueStructToInsert)
@@ -281,7 +285,7 @@ func TestBPlusTreeSpecific(t *testing.T) {
 		t.Fatalf("btreeNew.GetByKey(uint32(3)).value should have been valueAsValueStructExpected")
 	}
 
-	btreeOld, err := OldBPlusTree(rootLogSegmentNumber, rootLogOffset, rootLogLength, CompareUint32, persistentContext)
+	btreeOld, err = OldBPlusTree(rootLogSegmentNumber, rootLogOffset, rootLogLength, CompareUint32, persistentContext)
 	if nil != err {
 		t.Fatalf("OldBPlusTree() should not have failed")
 	}
@@ -343,7 +347,7 @@ func TestBPlusTreeSpecific(t *testing.T) {
 		t.Fatalf("btreeOld.Purge() should have failed")
 	}
 
-	btreeClone, err := btreeOld.Clone(persistentContext)
+	btreeClone, err = btreeOld.Clone(persistentContext)
 	if nil != err {
 		t.Fatalf("btreeOld.Clone() should not have failed")
 	}
@@ -394,5 +398,108 @@ func TestBPlusTreeSpecific(t *testing.T) {
 	}
 	if ok {
 		t.Fatalf("btreeClone.GetByKey(uint32(7)) should have returned false")
+	}
+}
+
+func TestBPlusTreeCloneStress(t *testing.T) {
+	const (
+		cloneInterval = 0x0040
+		maxElements   = 0x1000
+	)
+	var (
+		actualLen                  int
+		btreeClone                 BPlusTree
+		btreeCloneMap              map[int]BPlusTree
+		btreeLive                  BPlusTree
+		elementKey                 uint32
+		expectedLen                int
+		err                        error
+		ok                         bool
+		persistentContext          *specificBPlusTreeTestContextStruct
+		valueAsValueStructToInsert valueStruct
+	)
+
+	persistentContext = &specificBPlusTreeTestContextStruct{t: t, lastLogSegmentNumberGenerated: 0, lastLogOffsetGenerated: 0, logSegmentChunkMap: make(map[uint64]*logSegmentChunkStruct)}
+
+	btreeLive = NewBPlusTree(specificBPlusTreeTestNumKeysMaxSmall, CompareUint32, persistentContext)
+
+	btreeCloneMap = make(map[int]BPlusTree)
+
+	btreeCloneMap[0], err = btreeLive.Clone(persistentContext)
+	if nil != err {
+		t.Fatalf("btreeLive.Clone() should have worked")
+	}
+
+	// Add maxElements elements to btreeLive cloning every cloneInterval
+
+	for elementKey = 0; elementKey < maxElements; elementKey++ {
+		valueAsValueStructToInsert = valueStruct{u32: elementKey, s8: uint32To8ReplicaByteArray(elementKey)}
+		ok, err = btreeLive.Put(elementKey, valueAsValueStructToInsert)
+		if nil != err {
+			t.Fatalf("btreeLive.Put(elementKey == %v) should not have failed", elementKey)
+		}
+		if !ok {
+			t.Fatalf("btreeLive.Put(elementKey == %v).ok should have been true", elementKey)
+		}
+
+		if 0 == ((elementKey + 1) % cloneInterval) {
+			btreeCloneMap[int(elementKey+1)], err = btreeLive.Clone(persistentContext)
+			if nil != err {
+				t.Fatalf("btreeLive.Clone() should have worked")
+			}
+		}
+	}
+
+	// Check Len of and Validate each btreeCloneMap element
+
+	for expectedLen, btreeClone = range btreeCloneMap {
+		actualLen, err = btreeClone.Len()
+		if nil != err {
+			t.Fatalf("btreeClone.Len() should have worked")
+		}
+		if expectedLen != actualLen {
+			t.Fatalf("btreeClone.Len() expectedLen == %v actualLen == %v", expectedLen, actualLen)
+		}
+
+		err = btreeClone.Validate()
+		if nil != err {
+			t.Fatalf("btreeClone.Validate() should have worked")
+		}
+	}
+
+	// Remove elements from btreeLive until empty cloning every cloneInterval
+
+	for elementKey = 0; elementKey < maxElements; elementKey++ {
+		ok, err = btreeLive.DeleteByKey(elementKey)
+		if nil != err {
+			t.Fatalf("btreeLive.DeleteByKey(elementKey == %v) should not have failed", elementKey)
+		}
+		if !ok {
+			t.Fatalf("btreeLive.DeleteByKey(elementKey == %v).ok should have been true", elementKey)
+		}
+
+		if 0 == ((elementKey + 1) % cloneInterval) {
+			btreeCloneMap[maxElements-int(elementKey+1)], err = btreeLive.Clone(persistentContext)
+			if nil != err {
+				t.Fatalf("btreeLive.Clone() should have worked")
+			}
+		}
+	}
+
+	// Check Len of and Validate each btreeCloneMap element
+
+	for expectedLen, btreeClone = range btreeCloneMap {
+		actualLen, err = btreeClone.Len()
+		if nil != err {
+			t.Fatalf("btreeClone.Len() should have worked")
+		}
+		if expectedLen != actualLen {
+			t.Fatalf("btreeClone.Len() expectedLen == %v actualLen == %v", expectedLen, actualLen)
+		}
+
+		err = btreeClone.Validate()
+		if nil != err {
+			t.Fatalf("btreeClone.Validate() should have worked")
+		}
 	}
 }
