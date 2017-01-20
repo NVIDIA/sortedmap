@@ -30,9 +30,6 @@ type btreeNodeStruct struct {
 	prefixSumRightChild *btreeNodeStruct //                   nil if no right child btreeNodeStruct
 }
 
-// OnDiskByteOrder specifies the endian-ness expected to be used to persist B+Tree data structures
-var OnDiskByteOrder = cstruct.LittleEndian
-
 type onDiskUint64Struct struct {
 	U64 uint64
 }

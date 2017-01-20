@@ -1,6 +1,13 @@
 package sortedmap
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/swiftstack/cstruct"
+)
+
+// OnDiskByteOrder specifies the endian-ness expected to be used to persist B+Tree data structures
+var OnDiskByteOrder = cstruct.LittleEndian
 
 // LayoutReport is a map where key is an objectNumber and value is objectBytes used in that objectNumber
 type LayoutReport map[uint64]uint64
