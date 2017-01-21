@@ -347,7 +347,7 @@ func TestBPlusTreeSpecific(t *testing.T) {
 		t.Fatalf("btreeOld.Purge() should have failed")
 	}
 
-	btreeClone, err = btreeOld.Clone(persistentContext)
+	btreeClone, err = btreeOld.Clone(false, persistentContext)
 	if nil != err {
 		t.Fatalf("btreeOld.Clone() should not have failed")
 	}
@@ -425,7 +425,7 @@ func TestBPlusTreeCloneStress(t *testing.T) {
 
 	btreeCloneMap = make(map[int]BPlusTree)
 
-	btreeCloneMap[0], err = btreeLive.Clone(persistentContext)
+	btreeCloneMap[0], err = btreeLive.Clone(false, persistentContext)
 	if nil != err {
 		t.Fatalf("btreeLive.Clone() should have worked")
 	}
@@ -445,7 +445,7 @@ func TestBPlusTreeCloneStress(t *testing.T) {
 		}
 
 		if 0 == ((elementKey + 1) % cloneInterval) {
-			btreeCloneMap[int(elementKey+1)], err = btreeLive.Clone(persistentContext)
+			btreeCloneMap[int(elementKey+1)], err = btreeLive.Clone(false, persistentContext)
 			if nil != err {
 				t.Fatalf("btreeLive.Clone() should have worked")
 			}
@@ -481,7 +481,7 @@ func TestBPlusTreeCloneStress(t *testing.T) {
 		}
 
 		if 0 == ((elementKey + 1) % cloneInterval) {
-			btreeCloneMap[maxElements-int(elementKey+1)], err = btreeLive.Clone(persistentContext)
+			btreeCloneMap[maxElements-int(elementKey+1)], err = btreeLive.Clone(false, persistentContext)
 			if nil != err {
 				t.Fatalf("btreeLive.Clone() should have worked")
 			}
@@ -524,7 +524,7 @@ func TestBPlusTreeCloneStress(t *testing.T) {
 			if nil != err {
 				t.Fatalf("btreeLive.Flush(true) should have worked")
 			}
-			btreeCloneMap[int(elementKey+1)], err = btreeLive.Clone(persistentContext)
+			btreeCloneMap[int(elementKey+1)], err = btreeLive.Clone(false, persistentContext)
 			if nil != err {
 				t.Fatalf("btreeLive.Clone() should have worked")
 			}
@@ -564,7 +564,7 @@ func TestBPlusTreeCloneStress(t *testing.T) {
 			if nil != err {
 				t.Fatalf("btreeLive.Flush(true) should have worked")
 			}
-			btreeCloneMap[maxElements-int(elementKey+1)], err = btreeLive.Clone(persistentContext)
+			btreeCloneMap[maxElements-int(elementKey+1)], err = btreeLive.Clone(false, persistentContext)
 			if nil != err {
 				t.Fatalf("btreeLive.Clone() should have worked")
 			}

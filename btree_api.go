@@ -19,7 +19,7 @@ type BPlusTree interface {
 	Flush(andPurge bool) (rootObjectNumber uint64, rootObjectOffset uint64, rootObjectLength uint64, err error)
 	Purge() (err error)
 	Touch() (err error)
-	Clone(callbacks BPlusTreeCallbacks) (newTree BPlusTree, err error)
+	Clone(andUnTouch bool, callbacks BPlusTreeCallbacks) (newTree BPlusTree, err error)
 }
 
 // BPlusTreeCallbacks specifies the interface to a set of callbacks provided by the client

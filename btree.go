@@ -88,8 +88,8 @@ func (tree *btreeTreeStruct) BisectLeft(key Key) (index int, found bool, err err
 
 			index = int(indexDelta) + netIndex
 			found = nonShadowingFound
-			err = nil
 
+			err = nil
 			return
 		}
 
@@ -200,8 +200,8 @@ func (tree *btreeTreeStruct) BisectRight(key Key) (index int, found bool, err er
 
 			index = int(indexDelta) + netIndex
 			found = nonShadowingFound
-			err = nil
 
+			err = nil
 			return
 		}
 
@@ -545,7 +545,6 @@ func (tree *btreeTreeStruct) Len() (numberOfItems int, err error) {
 	numberOfItems = int(tree.root.items)
 
 	err = nil
-
 	return
 }
 
@@ -684,7 +683,6 @@ func (tree *btreeTreeStruct) Put(key Key, value Value) (ok bool, err error) {
 			}
 
 			err = nil
-
 			return
 		}
 
@@ -752,7 +750,6 @@ func (tree *btreeTreeStruct) Flush(andPurge bool) (rootObjectNumber uint64, root
 	rootObjectLength = tree.root.objectLength
 
 	err = nil
-
 	return
 }
 
@@ -761,6 +758,7 @@ func (tree *btreeTreeStruct) Purge() (err error) {
 	defer tree.Unlock()
 
 	err = tree.purgeNode(tree.root)
+
 	return
 }
 
@@ -769,10 +767,11 @@ func (tree *btreeTreeStruct) Touch() (err error) {
 	defer tree.Unlock()
 
 	err = tree.touchNode(tree.root)
+
 	return
 }
 
-func (tree *btreeTreeStruct) Clone(callbacks BPlusTreeCallbacks) (newTree BPlusTree, err error) {
+func (tree *btreeTreeStruct) Clone(andUnTouch bool, callbacks BPlusTreeCallbacks) (newTree BPlusTree, err error) {
 	var (
 		curTreePtr  *btreeTreeStruct
 		newRootNode *btreeNodeStruct
@@ -795,7 +794,7 @@ func (tree *btreeTreeStruct) Clone(callbacks BPlusTreeCallbacks) (newTree BPlusT
 
 	newTree = newTreePtr
 
-	err = cloneNode(curTreePtr.root, newRootNode)
+	err = cloneNode(andUnTouch, curTreePtr.root, newRootNode)
 
 	return
 }
@@ -838,7 +837,7 @@ func (tree *btreeTreeStruct) cloneValue(curValue Value) (newValue Value, err err
 	return
 }
 
-func cloneNode(curNode *btreeNodeStruct, newNode *btreeNodeStruct) (err error) {
+func cloneNode(andUnTouch bool, curNode *btreeNodeStruct, newNode *btreeNodeStruct) (err error) {
 	var (
 		curChildNode *btreeNodeStruct
 		index        int
@@ -849,30 +848,49 @@ func cloneNode(curNode *btreeNodeStruct, newNode *btreeNodeStruct) (err error) {
 		value        Value
 	)
 
-	newNode.loaded = curNode.loaded
+	newNode.items = curNode.items
 
 	if curNode.loaded && curNode.dirty {
-		// If curNode is loaded and dirty, clone a fresh instance
+		// Clone a dirty instance
 
 		newNode.objectNumber = 0
 		newNode.objectOffset = 0
 		newNode.objectLength = 0
 
-		newNode.items = curNode.items
-
 		newNode.loaded = true
 		newNode.dirty = true
+
 		newNode.root = curNode.root
 		newNode.leaf = curNode.leaf
 		newNode.tree = curNode.tree
+
+		if andUnTouch {
+			// Mark curNode as clean
+			//
+			// Note: A subsequent B+Tree Purge() will lose curNode's data !!!
+			//
+			//       Presumably, andUnTouch==true is being used when taking a snapshot
+			//       where the snapshot is what gets flushed for persistence... so there
+			//       would never be a need to call Purge() on the "live" B+Tree.
+			//
+			//       In this model, should the clone B+Tree Flush() fail and execution
+			//       must continue (perhaps to try a later snapshot), the "live" B+Tree
+			//       should be Touch()'d to ensure the next clone/snapshot will include
+			//       any nodes marked clean in the "live" B+Tree previously. Of course
+			//       this will mark nodes that were not previously dirty as now dirty,
+			//       so hopefully this is an infrequent condition and the overly cautious
+			//       marking of every node as dirty is not too onerous.
+
+			curNode.dirty = false
+		}
 
 		newNode.kvLLRB = NewLLRBTree(newNode.tree.Compare, newNode.tree.BPlusTreeCallbacks)
 
 		if newNode.leaf || (nil == curNode.nonLeafLeftChild) {
 			newNode.nonLeafLeftChild = nil
 		} else {
-			newNode.nonLeafLeftChild = &btreeNodeStruct{parentNode: newNode}
-			err = cloneNode(curNode.nonLeafLeftChild, newNode.nonLeafLeftChild)
+			newNode.nonLeafLeftChild = &btreeNodeStruct{tree: newNode.tree, parentNode: newNode}
+			err = cloneNode(andUnTouch, curNode.nonLeafLeftChild, newNode.nonLeafLeftChild)
 			if nil != err {
 				return
 			}
@@ -913,7 +931,7 @@ func cloneNode(curNode *btreeNodeStruct, newNode *btreeNodeStruct) (err error) {
 				}
 			} else {
 				curChildNode = value.(*btreeNodeStruct)
-				newChildNode = &btreeNodeStruct{parentNode: newNode}
+				newChildNode = &btreeNodeStruct{tree: newNode.tree, parentNode: newNode}
 				ok, err = newNode.kvLLRB.Put(key, newChildNode)
 				if nil != err {
 					return
@@ -922,7 +940,7 @@ func cloneNode(curNode *btreeNodeStruct, newNode *btreeNodeStruct) (err error) {
 					err = fmt.Errorf("newNode.kvLLRB.Put() [case 2] should have returned ok == true")
 					return
 				}
-				err = cloneNode(curChildNode, newChildNode)
+				err = cloneNode(andUnTouch, curChildNode, newChildNode)
 				if nil != err {
 					return
 				}
@@ -934,20 +952,17 @@ func cloneNode(curNode *btreeNodeStruct, newNode *btreeNodeStruct) (err error) {
 		} else {
 			newNode.tree.arrangePrefixSumTree(newNode)
 		}
-	} else {
-		// If curNode not loaded, or if curNode loaded but clean, indicate newNode is not loaded
+	} else { // !curNode.loaded || !curNode.dirty
+		// Clone a clean instance
 
 		newNode.objectNumber = curNode.objectNumber
 		newNode.objectOffset = curNode.objectOffset
 		newNode.objectLength = curNode.objectLength
 
-		newNode.items = curNode.items
-
 		newNode.loaded = false
 	}
 
 	err = nil
-
 	return
 }
 
@@ -1073,7 +1088,6 @@ func (tree *btreeTreeStruct) insertHere(insertNode *btreeNodeStruct, key Key, va
 	}
 
 	err = nil
-
 	return
 }
 
@@ -1200,7 +1214,6 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 			tree.arrangePrefixSumTree(parentNode)
 
 			err = nil
-
 			return
 		}
 	}
@@ -1304,7 +1317,6 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 			tree.arrangePrefixSumTree(parentNode)
 
 			err = nil
-
 			return
 		}
 	}
@@ -1443,7 +1455,6 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 	}
 
 	err = nil
-
 	return
 }
 
@@ -1473,7 +1484,7 @@ func (tree *btreeTreeStruct) flushNode(node *btreeNodeStruct, andPurge bool) (er
 					return
 				}
 				if !ok {
-					err = fmt.Errorf("Logic error: purgeNode() had indexing problem in kvLLRB")
+					err = fmt.Errorf("Logic error: flushNode() had indexing problem in kvLLRB")
 					return
 				}
 				childNode := childNodeAsValue.(*btreeNodeStruct)
@@ -1499,7 +1510,6 @@ func (tree *btreeTreeStruct) flushNode(node *btreeNodeStruct, andPurge bool) (er
 	}
 
 	err = nil
-
 	return
 }
 
@@ -1554,11 +1564,9 @@ func (tree *btreeTreeStruct) purgeNode(node *btreeNodeStruct) (err error) {
 	node.loaded = false
 
 	err = nil
-
 	return
 }
 
-//func (tree *btreeTreeStruct) loadNode(node *btreeNodeStruct) (err error) {
 func (tree *btreeTreeStruct) touchNode(node *btreeNodeStruct) (err error) {
 	if !node.loaded {
 		err = tree.loadNode(node)
@@ -1603,7 +1611,6 @@ func (tree *btreeTreeStruct) touchNode(node *btreeNodeStruct) (err error) {
 	}
 
 	err = nil
-
 	return
 }
 
@@ -1667,7 +1674,6 @@ func (tree *btreeTreeStruct) arrangePrefixSumTree(node *btreeNodeStruct) (err er
 	node.items = node.rootPrefixSumChild.prefixSumItems
 
 	err = nil
-
 	return
 }
 
@@ -1732,7 +1738,6 @@ func (tree *btreeTreeStruct) updatePrefixSumTreeLeafToRoot(leafNode *btreeNodeSt
 	tree.updatePrefixSumTreeLeafToRootRecursively(leafNode, delta)
 
 	err = nil
-
 	return
 }
 
@@ -1889,7 +1894,6 @@ func (tree *btreeTreeStruct) loadNode(node *btreeNodeStruct) (err error) {
 	node.dirty = false
 
 	err = nil
-
 	return
 }
 
@@ -2068,7 +2072,6 @@ func (tree *btreeTreeStruct) postNode(node *btreeNodeStruct) (err error) {
 	node.dirty = false
 
 	err = nil
-
 	return
 }
 
@@ -2121,5 +2124,6 @@ func (tree *btreeTreeStruct) updateLayoutReport(layoutReport LayoutReport, node 
 		}
 	}
 
+	err = nil
 	return
 }

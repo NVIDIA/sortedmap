@@ -18,7 +18,11 @@ func (tree *btreeTreeStruct) dumpNode(node *btreeNodeStruct, indent string) (err
 		node.tree.loadNode(node)
 	}
 
+	fmt.Printf("%v  .objectNumber        = 0x%016x\n", indent, node.objectNumber)
+	fmt.Printf("%v  .objectOffset        = 0x%016x\n", indent, node.objectOffset)
+	fmt.Printf("%v  .objectLength        = 0x%016x\n", indent, node.objectLength)
 	fmt.Printf("%v  .items               = %v\n", indent, node.items)
+	fmt.Printf("%v  .loaded              = %v\n", indent, node.loaded)
 	fmt.Printf("%v  .dirty               = %v\n", indent, node.dirty)
 	fmt.Printf("%v  .root                = %v\n", indent, node.root)
 	fmt.Printf("%v  .leaf                = %v\n", indent, node.leaf)
