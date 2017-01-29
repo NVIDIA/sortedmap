@@ -855,6 +855,8 @@ func cloneNode(andUnTouch bool, curNode *btreeNodeStruct, newNode *btreeNodeStru
 
 	newNode.items = curNode.items
 
+	newNode.tree = curNode.tree
+
 	if curNode.loaded && curNode.dirty {
 		// Clone a dirty instance
 
@@ -867,7 +869,6 @@ func cloneNode(andUnTouch bool, curNode *btreeNodeStruct, newNode *btreeNodeStru
 
 		newNode.root = curNode.root
 		newNode.leaf = curNode.leaf
-		newNode.tree = curNode.tree
 
 		if andUnTouch {
 			// Mark curNode as clean
@@ -965,6 +966,8 @@ func cloneNode(andUnTouch bool, curNode *btreeNodeStruct, newNode *btreeNodeStru
 		newNode.objectLength = curNode.objectLength
 
 		newNode.loaded = false
+
+		newNode.kvLLRB = nil
 	}
 
 	err = nil
