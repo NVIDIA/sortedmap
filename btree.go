@@ -571,6 +571,7 @@ func (tree *btreeTreeStruct) PatchByIndex(index int, value Value) (ok bool, err 
 		}
 
 		if node.leaf {
+			tree.touchLoadedNodeToRoot(node)
 			_, err = node.kvLLRB.PatchByIndex(int(netIndex), value)
 			ok = true
 			return
@@ -615,6 +616,7 @@ func (tree *btreeTreeStruct) PatchByKey(key Key, value Value) (ok bool, err erro
 		}
 
 		if node.leaf {
+			tree.touchLoadedNodeToRoot(node)
 			ok, err = node.kvLLRB.PatchByKey(key, value)
 			return
 		}
@@ -1615,6 +1617,17 @@ func (tree *btreeTreeStruct) touchNode(node *btreeNodeStruct) (err error) {
 
 	err = nil
 	return
+}
+
+func (tree *btreeTreeStruct) touchLoadedNodeToRoot(node *btreeNodeStruct) {
+	for {
+		node.dirty = true
+		if node.root {
+			return
+		} else {
+			node = node.parentNode
+		}
+	}
 }
 
 func (tree *btreeTreeStruct) arrangePrefixSumTreeRecursively(prefixSumSlice []*btreeNodeStruct) (midPointNode *btreeNodeStruct) {
