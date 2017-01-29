@@ -1475,29 +1475,29 @@ func (tree *btreeTreeStruct) flushNode(node *btreeNodeStruct, andPurge bool) (er
 			if nil != err {
 				return
 			}
+		}
 
-			numIndices, nonShadowingErr := node.kvLLRB.Len()
+		numIndices, nonShadowingErr := node.kvLLRB.Len()
+		if nil != nonShadowingErr {
+			err = nonShadowingErr
+			return
+		}
+
+		for i := 0; i < numIndices; i++ {
+			_, childNodeAsValue, ok, nonShadowingErr := node.kvLLRB.GetByIndex(i)
 			if nil != nonShadowingErr {
 				err = nonShadowingErr
 				return
 			}
+			if !ok {
+				err = fmt.Errorf("Logic error: flushNode() had indexing problem in kvLLRB")
+				return
+			}
+			childNode := childNodeAsValue.(*btreeNodeStruct)
 
-			for i := 0; i < numIndices; i++ {
-				_, childNodeAsValue, ok, nonShadowingErr := node.kvLLRB.GetByIndex(i)
-				if nil != nonShadowingErr {
-					err = nonShadowingErr
-					return
-				}
-				if !ok {
-					err = fmt.Errorf("Logic error: flushNode() had indexing problem in kvLLRB")
-					return
-				}
-				childNode := childNodeAsValue.(*btreeNodeStruct)
-
-				err = tree.flushNode(childNode, andPurge)
-				if nil != err {
-					return
-				}
+			err = tree.flushNode(childNode, andPurge)
+			if nil != err {
+				return
 			}
 		}
 	}
@@ -1535,29 +1535,29 @@ func (tree *btreeTreeStruct) purgeNode(node *btreeNodeStruct) (err error) {
 			if nil != err {
 				return
 			}
+		}
 
-			numIndices, nonShadowingErr := node.kvLLRB.Len()
+		numIndices, nonShadowingErr := node.kvLLRB.Len()
+		if nil != nonShadowingErr {
+			err = nonShadowingErr
+			return
+		}
+
+		for i := 0; i < numIndices; i++ {
+			_, childNodeAsValue, ok, nonShadowingErr := node.kvLLRB.GetByIndex(i)
 			if nil != nonShadowingErr {
 				err = nonShadowingErr
 				return
 			}
+			if !ok {
+				err = fmt.Errorf("Logic error: purgeNode() had indexing problem in kvLLRB")
+				return
+			}
+			childNode := childNodeAsValue.(*btreeNodeStruct)
 
-			for i := 0; i < numIndices; i++ {
-				_, childNodeAsValue, ok, nonShadowingErr := node.kvLLRB.GetByIndex(i)
-				if nil != nonShadowingErr {
-					err = nonShadowingErr
-					return
-				}
-				if !ok {
-					err = fmt.Errorf("Logic error: purgeNode() had indexing problem in kvLLRB")
-					return
-				}
-				childNode := childNodeAsValue.(*btreeNodeStruct)
-
-				err = tree.purgeNode(childNode)
-				if nil != err {
-					return
-				}
+			err = tree.purgeNode(childNode)
+			if nil != err {
+				return
 			}
 		}
 	}
@@ -1588,29 +1588,29 @@ func (tree *btreeTreeStruct) touchNode(node *btreeNodeStruct) (err error) {
 			if nil != err {
 				return
 			}
+		}
 
-			numIndices, nonShadowingErr := node.kvLLRB.Len()
+		numIndices, nonShadowingErr := node.kvLLRB.Len()
+		if nil != nonShadowingErr {
+			err = nonShadowingErr
+			return
+		}
+
+		for i := 0; i < numIndices; i++ {
+			_, childNodeAsValue, ok, nonShadowingErr := node.kvLLRB.GetByIndex(i)
 			if nil != nonShadowingErr {
 				err = nonShadowingErr
 				return
 			}
+			if !ok {
+				err = fmt.Errorf("Logic error: touchNode() had indexing problem in kvLLRB")
+				return
+			}
+			childNode := childNodeAsValue.(*btreeNodeStruct)
 
-			for i := 0; i < numIndices; i++ {
-				_, childNodeAsValue, ok, nonShadowingErr := node.kvLLRB.GetByIndex(i)
-				if nil != nonShadowingErr {
-					err = nonShadowingErr
-					return
-				}
-				if !ok {
-					err = fmt.Errorf("Logic error: touchNode() had indexing problem in kvLLRB")
-					return
-				}
-				childNode := childNodeAsValue.(*btreeNodeStruct)
-
-				err = tree.touchNode(childNode)
-				if nil != err {
-					return
-				}
+			err = tree.touchNode(childNode)
+			if nil != err {
+				return
 			}
 		}
 	}
@@ -1624,9 +1624,8 @@ func (tree *btreeTreeStruct) touchLoadedNodeToRoot(node *btreeNodeStruct) {
 		node.dirty = true
 		if node.root {
 			return
-		} else {
-			node = node.parentNode
 		}
+		node = node.parentNode
 	}
 }
 
