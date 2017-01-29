@@ -778,6 +778,9 @@ func (tree *btreeTreeStruct) Clone(andUnTouch bool, callbacks BPlusTreeCallbacks
 		newTreePtr  *btreeTreeStruct
 	)
 
+	tree.Lock()
+	defer tree.Unlock()
+
 	curTreePtr = tree
 
 	newRootNode = &btreeNodeStruct{parentNode: nil}
