@@ -15,7 +15,10 @@ func (tree *btreeTreeStruct) Dump() (err error) {
 
 func (tree *btreeTreeStruct) dumpNode(node *btreeNodeStruct, indent string) (err error) {
 	if !node.loaded {
-		node.tree.loadNode(node)
+		err = node.tree.loadNode(node)
+		if nil != err {
+			return
+		}
 	}
 
 	fmt.Printf("%v  .objectNumber        = 0x%016x\n", indent, node.objectNumber)

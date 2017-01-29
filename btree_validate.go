@@ -13,7 +13,10 @@ func (tree *btreeTreeStruct) Validate() (err error) {
 
 func (node *btreeNodeStruct) validate() (err error) {
 	if !node.loaded {
-		node.tree.loadNode(node)
+		err = node.tree.loadNode(node)
+		if nil != err {
+			return
+		}
 	}
 
 	if node.leaf {
