@@ -20,7 +20,7 @@ type BPlusTree interface {
 	Purge() (err error)
 	Touch() (err error)
 	Clone(andUnTouch bool, callbacks BPlusTreeCallbacks) (newTree BPlusTree, err error)
-	UpdateCloneSource(preLoad bool) (err error)
+	UpdateCloneSource() (err error)
 }
 
 // BPlusTreeCallbacks specifies the interface to a set of callbacks provided by the client

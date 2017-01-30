@@ -807,7 +807,7 @@ func (tree *btreeTreeStruct) Clone(andUnTouch bool, callbacks BPlusTreeCallbacks
 	return
 }
 
-func (tree *btreeTreeStruct) UpdateCloneSource(preLoad bool) (err error) {
+func (tree *btreeTreeStruct) UpdateCloneSource() (err error) {
 	tree.Lock()
 	defer tree.Unlock()
 
@@ -819,7 +819,7 @@ func (tree *btreeTreeStruct) UpdateCloneSource(preLoad bool) (err error) {
 	tree.clonedFromTree.Lock()
 	defer tree.clonedFromTree.Unlock()
 
-	err = tree.updateCloneSourceNode(tree.root, preLoad)
+	err = tree.updateCloneSourceNode(tree.root)
 
 	return
 }
@@ -889,6 +889,8 @@ func cloneNode(andUnTouch bool, curNode *btreeNodeStruct, newNode *btreeNodeStru
 
 		newNode.root = curNode.root
 		newNode.leaf = curNode.leaf
+
+		newNode.clonedFromNode = curNode
 
 		if andUnTouch {
 			// Mark curNode as clean
@@ -987,8 +989,6 @@ func cloneNode(andUnTouch bool, curNode *btreeNodeStruct, newNode *btreeNodeStru
 
 		newNode.loaded = false
 
-		newNode.clonedFromNode = curNode
-
 		newNode.kvLLRB = nil
 	}
 
@@ -996,7 +996,7 @@ func cloneNode(andUnTouch bool, curNode *btreeNodeStruct, newNode *btreeNodeStru
 	return
 }
 
-func (tree *btreeTreeStruct) updateCloneSourceNode(curNode *btreeNodeStruct, preLoad bool) (err error) {
+func (tree *btreeTreeStruct) updateCloneSourceNode(curNode *btreeNodeStruct) (err error) {
 	var (
 		childIndex       int
 		childNode        *btreeNodeStruct
@@ -1005,50 +1005,40 @@ func (tree *btreeTreeStruct) updateCloneSourceNode(curNode *btreeNodeStruct, pre
 		ok               bool
 	)
 
-	if !curNode.loaded {
-		if preLoad {
-			err = tree.loadNode(curNode)
-			if nil != err {
-				return
-			}
-		} else {
-			err = nil
-			return
-		}
-	}
-
-	if (nil != curNode.clonedFromNode) && (!curNode.dirty) && (0 != curNode.objectNumber) && (!curNode.clonedFromNode.dirty) && (0 == curNode.clonedFromNode.objectNumber) {
+	if (nil != curNode.clonedFromNode) && (!curNode.clonedFromNode.dirty) {
 		curNode.clonedFromNode.objectNumber = curNode.objectNumber
 		curNode.clonedFromNode.objectOffset = curNode.objectOffset
 		curNode.clonedFromNode.objectLength = curNode.objectLength
 	}
 
-	if !curNode.leaf {
-		if nil != curNode.nonLeafLeftChild {
-			err = tree.updateCloneSourceNode(curNode.nonLeafLeftChild, preLoad)
-			if nil != err {
-				return
+	if curNode.loaded {
+		if !curNode.leaf {
+			if nil != curNode.nonLeafLeftChild {
+				err = tree.updateCloneSourceNode(curNode.nonLeafLeftChild)
+				if nil != err {
+					return
+				}
 			}
-		}
 
-		llrbLen, err = curNode.kvLLRB.Len()
-		if nil != err {
-			return
-		}
+			llrbLen, err = curNode.kvLLRB.Len()
+			if nil != err {
+				return
+			}
 
-		for childIndex = 0; childIndex < llrbLen; childIndex++ {
-			_, childNodeAsValue, ok, err = curNode.kvLLRB.GetByIndex(childIndex)
-			if nil != err {
-				return
-			}
-			if !ok {
-				err = fmt.Errorf("updateCloneSourceNode() had problem indexing kvLLRB")
-				return
-			}
-			childNode = childNodeAsValue.(*btreeNodeStruct)
-			err = tree.updateCloneSourceNode(childNode, preLoad)
-			if nil != err {
-				return
+			for childIndex = 0; childIndex < llrbLen; childIndex++ {
+				_, childNodeAsValue, ok, err = curNode.kvLLRB.GetByIndex(childIndex)
+				if nil != err {
+					return
+				}
+				if !ok {
+					err = fmt.Errorf("updateCloneSourceNode() had problem indexing kvLLRB")
+					return
+				}
+				childNode = childNodeAsValue.(*btreeNodeStruct)
+				err = tree.updateCloneSourceNode(childNode)
+				if nil != err {
+					return
+				}
 			}
 		}
 	}
