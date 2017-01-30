@@ -807,7 +807,7 @@ func (tree *btreeTreeStruct) Clone(andUnTouch bool, callbacks BPlusTreeCallbacks
 	return
 }
 
-func (tree *btreeTreeStruct) UpdateCloneSource() (err error) {
+func (tree *btreeTreeStruct) UpdateCloneSource(preLoad bool) (err error) {
 	tree.Lock()
 	defer tree.Unlock()
 
@@ -819,7 +819,7 @@ func (tree *btreeTreeStruct) UpdateCloneSource() (err error) {
 	tree.clonedFromTree.Lock()
 	defer tree.clonedFromTree.Unlock()
 
-	err = tree.updateCloneSourceNode(tree.root)
+	err = tree.updateCloneSourceNode(tree.root, preLoad)
 
 	return
 }
@@ -996,7 +996,7 @@ func cloneNode(andUnTouch bool, curNode *btreeNodeStruct, newNode *btreeNodeStru
 	return
 }
 
-func (tree *btreeTreeStruct) updateCloneSourceNode(curNode *btreeNodeStruct) (err error) {
+func (tree *btreeTreeStruct) updateCloneSourceNode(curNode *btreeNodeStruct, preLoad bool) (err error) {
 	var (
 		childIndex       int
 		childNode        *btreeNodeStruct
@@ -1006,8 +1006,13 @@ func (tree *btreeTreeStruct) updateCloneSourceNode(curNode *btreeNodeStruct) (er
 	)
 
 	if !curNode.loaded {
-		err = tree.loadNode(curNode)
-		if nil != err {
+		if preLoad {
+			err = tree.loadNode(curNode)
+			if nil != err {
+				return
+			}
+		} else {
+			err = nil
 			return
 		}
 	}
@@ -1020,7 +1025,7 @@ func (tree *btreeTreeStruct) updateCloneSourceNode(curNode *btreeNodeStruct) (er
 
 	if !curNode.leaf {
 		if nil != curNode.nonLeafLeftChild {
-			err = tree.updateCloneSourceNode(curNode.nonLeafLeftChild)
+			err = tree.updateCloneSourceNode(curNode.nonLeafLeftChild, preLoad)
 			if nil != err {
 				return
 			}
@@ -1041,7 +1046,7 @@ func (tree *btreeTreeStruct) updateCloneSourceNode(curNode *btreeNodeStruct) (er
 				return
 			}
 			childNode = childNodeAsValue.(*btreeNodeStruct)
-			err = tree.updateCloneSourceNode(childNode)
+			err = tree.updateCloneSourceNode(childNode, preLoad)
 			if nil != err {
 				return
 			}
