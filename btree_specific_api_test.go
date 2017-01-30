@@ -399,6 +399,17 @@ func TestBPlusTreeSpecific(t *testing.T) {
 	if ok {
 		t.Fatalf("btreeClone.GetByKey(uint32(7)) should have returned false")
 	}
+
+	err = btreeOld.UpdateCloneSource()
+	if nil == err {
+		t.Fatalf("btreeOld.UpdateCloneSource() should have failed")
+	}
+
+	err = btreeClone.UpdateCloneSource()
+	if nil != err {
+		fmt.Println(err)
+		t.Fatalf("btreeClone.UpdateCloneSource() should not have failed")
+	}
 }
 
 func TestBPlusTreeCloneStress(t *testing.T) {

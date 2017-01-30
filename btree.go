@@ -8,17 +8,18 @@ import (
 )
 
 type btreeNodeStruct struct {
-	objectNumber uint64 //                  if != 0, log* fields identify on-disk copy of this btreeNodeStruct
-	objectOffset uint64
-	objectLength uint64
-	items        uint64 //                  number of item's (Keys & Values) at all leaf btreeNodeStructs at or below this btreeNodeStruct
-	loaded       bool
-	dirty        bool
-	root         bool
-	leaf         bool
-	tree         *btreeTreeStruct
-	parentNode   *btreeNodeStruct //        if root == true,  Value == nil
-	kvLLRB       LLRBTree         //        if leaf == true,  Key == item's' Key, Value == item's Value
+	objectNumber   uint64 //                if != 0, log* fields identify on-disk copy of this btreeNodeStruct
+	objectOffset   uint64
+	objectLength   uint64
+	items          uint64 //                number of item's (Keys & Values) at all leaf btreeNodeStructs at or below this btreeNodeStruct
+	loaded         bool
+	dirty          bool
+	root           bool
+	leaf           bool
+	tree           *btreeTreeStruct
+	clonedFromNode *btreeNodeStruct //      if created via Clone(), points to corresponding unloaded or clean node in source (if any)
+	parentNode     *btreeNodeStruct //      if root == true,  Value == nil
+	kvLLRB         LLRBTree         //      if leaf == true,  Key == item's' Key, Value == item's Value
 	//                                      if leaf == false, Key == minimum item's Key, Value = ptr to child btreeNodeStruct
 	nonLeafLeftChild   *btreeNodeStruct //                    Value == ptr to btreeNodeStruct to the left of kvLLRB's 0th element
 	rootPrefixSumChild *btreeNodeStruct //                    Value == ptr to root of binary tree of child btreeNodeStruct's sorted by prefixSumItems
@@ -54,12 +55,13 @@ type onDiskNodeStruct struct {
 
 type btreeTreeStruct struct {
 	sync.Mutex
-	minKeysPerNode uint64 // only applies to non-Root nodes
-	//                       "order" according to Bayer & McCreight (1972) & Comer (1979)
-	maxKeysPerNode uint64 // "order" according to Knuth (1998)
+	minKeysPerNode uint64 //           only applies to non-Root nodes
+	//                                 "order" according to Bayer & McCreight (1972) & Comer (1979)
+	maxKeysPerNode uint64 //           "order" according to Knuth (1998)
 	Compare
 	BPlusTreeCallbacks
-	root *btreeNodeStruct //      should never be nil
+	root           *btreeNodeStruct // should never be nil
+	clonedFromTree *btreeTreeStruct
 }
 
 // API functions (see api.go)
@@ -785,7 +787,7 @@ func (tree *btreeTreeStruct) Clone(andUnTouch bool, callbacks BPlusTreeCallbacks
 
 	curTreePtr = tree
 
-	newRootNode = &btreeNodeStruct{parentNode: nil}
+	newRootNode = &btreeNodeStruct{clonedFromNode: nil, parentNode: nil}
 
 	newTreePtr = &btreeTreeStruct{
 		minKeysPerNode:     curTreePtr.minKeysPerNode,
@@ -793,6 +795,7 @@ func (tree *btreeTreeStruct) Clone(andUnTouch bool, callbacks BPlusTreeCallbacks
 		Compare:            curTreePtr.Compare,
 		BPlusTreeCallbacks: callbacks,
 		root:               newRootNode,
+		clonedFromTree:     tree,
 	}
 
 	newRootNode.tree = newTreePtr
@@ -800,6 +803,23 @@ func (tree *btreeTreeStruct) Clone(andUnTouch bool, callbacks BPlusTreeCallbacks
 	newTree = newTreePtr
 
 	err = cloneNode(andUnTouch, curTreePtr.root, newRootNode)
+
+	return
+}
+
+func (tree *btreeTreeStruct) UpdateCloneSource() (err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
+	if nil == tree.clonedFromTree {
+		err = fmt.Errorf("UpdateCloneSource() called on non-clone tree")
+		return
+	}
+
+	tree.clonedFromTree.Lock()
+	defer tree.clonedFromTree.Unlock()
+
+	err = updateCloneSourceNode(tree.root)
 
 	return
 }
@@ -895,7 +915,7 @@ func cloneNode(andUnTouch bool, curNode *btreeNodeStruct, newNode *btreeNodeStru
 		if newNode.leaf || (nil == curNode.nonLeafLeftChild) {
 			newNode.nonLeafLeftChild = nil
 		} else {
-			newNode.nonLeafLeftChild = &btreeNodeStruct{tree: newNode.tree, parentNode: newNode}
+			newNode.nonLeafLeftChild = &btreeNodeStruct{tree: newNode.tree, clonedFromNode: nil, parentNode: newNode}
 			err = cloneNode(andUnTouch, curNode.nonLeafLeftChild, newNode.nonLeafLeftChild)
 			if nil != err {
 				return
@@ -937,7 +957,7 @@ func cloneNode(andUnTouch bool, curNode *btreeNodeStruct, newNode *btreeNodeStru
 				}
 			} else {
 				curChildNode = value.(*btreeNodeStruct)
-				newChildNode = &btreeNodeStruct{tree: newNode.tree, parentNode: newNode}
+				newChildNode = &btreeNodeStruct{tree: newNode.tree, clonedFromNode: nil, parentNode: newNode}
 				ok, err = newNode.kvLLRB.Put(key, newChildNode)
 				if nil != err {
 					return
@@ -967,10 +987,60 @@ func cloneNode(andUnTouch bool, curNode *btreeNodeStruct, newNode *btreeNodeStru
 
 		newNode.loaded = false
 
+		newNode.clonedFromNode = curNode
+
 		newNode.kvLLRB = nil
 	}
 
 	err = nil
+	return
+}
+
+func updateCloneSourceNode(curNode *btreeNodeStruct) (err error) {
+	var (
+		childIndex       int
+		childNode        *btreeNodeStruct
+		childNodeAsValue Value
+		llrbLen          int
+		ok               bool
+	)
+
+	if (nil != curNode.clonedFromNode) && (!curNode.dirty) && (0 != curNode.objectNumber) && (!curNode.clonedFromNode.dirty) && (0 == curNode.clonedFromNode.objectNumber) {
+		curNode.clonedFromNode.objectNumber = curNode.objectNumber
+		curNode.clonedFromNode.objectOffset = curNode.objectOffset
+		curNode.clonedFromNode.objectLength = curNode.objectLength
+	}
+
+	if !curNode.leaf {
+		if nil != curNode.nonLeafLeftChild {
+			err = updateCloneSourceNode(curNode.nonLeafLeftChild)
+			if nil != err {
+				return
+			}
+		}
+
+		llrbLen, err = curNode.kvLLRB.Len()
+		if nil != err {
+			return
+		}
+
+		for childIndex = 0; childIndex < llrbLen; childIndex++ {
+			_, childNodeAsValue, ok, err = curNode.kvLLRB.GetByIndex(childIndex)
+			if nil != err {
+				return
+			}
+			if !ok {
+				err = fmt.Errorf("updateCloneSourceNode() had problem indexing kvLLRB")
+				return
+			}
+			childNode = childNodeAsValue.(*btreeNodeStruct)
+			err = updateCloneSourceNode(childNode)
+			if nil != err {
+				return
+			}
+		}
+	}
+
 	return
 }
 
@@ -997,6 +1067,7 @@ func (tree *btreeTreeStruct) insertHere(insertNode *btreeNodeStruct, key Key, va
 			root:                false, //                                           Note: insertNode.root will also (at least eventually) be false
 			leaf:                insertNode.leaf,
 			tree:                tree,
+			clonedFromNode:      nil,
 			parentNode:          insertNode.parentNode,
 			kvLLRB:              NewLLRBTree(tree.Compare, tree.BPlusTreeCallbacks),
 			nonLeafLeftChild:    nil,
@@ -1071,6 +1142,7 @@ func (tree *btreeTreeStruct) insertHere(insertNode *btreeNodeStruct, key Key, va
 				root:                true,
 				leaf:                false,
 				tree:                tree,
+				clonedFromNode:      nil,
 				parentNode:          nil,
 				kvLLRB:              NewLLRBTree(tree.Compare, tree.BPlusTreeCallbacks),
 				nonLeafLeftChild:    insertNode,
@@ -1856,14 +1928,15 @@ func (tree *btreeTreeStruct) loadNode(node *btreeNodeStruct) (err error) {
 			payload = payload[bytesConsumed:]
 
 			childNode := &btreeNodeStruct{
-				objectNumber: onDiskReferenceToNode.ObjectNumber,
-				objectOffset: onDiskReferenceToNode.ObjectOffset,
-				objectLength: onDiskReferenceToNode.ObjectLength,
-				items:        onDiskReferenceToNode.Items,
-				loaded:       false,
-				tree:         node.tree,
-				parentNode:   node,
-				kvLLRB:       nil,
+				objectNumber:   onDiskReferenceToNode.ObjectNumber,
+				objectOffset:   onDiskReferenceToNode.ObjectOffset,
+				objectLength:   onDiskReferenceToNode.ObjectLength,
+				items:          onDiskReferenceToNode.Items,
+				loaded:         false,
+				tree:           node.tree,
+				clonedFromNode: nil,
+				parentNode:     node,
+				kvLLRB:         nil,
 			}
 
 			node.nonLeafLeftChild = childNode
@@ -1886,14 +1959,15 @@ func (tree *btreeTreeStruct) loadNode(node *btreeNodeStruct) (err error) {
 				payload = payload[bytesConsumed:]
 
 				childNode := &btreeNodeStruct{
-					objectNumber: onDiskReferenceToNode.ObjectNumber,
-					objectOffset: onDiskReferenceToNode.ObjectOffset,
-					objectLength: onDiskReferenceToNode.ObjectLength,
-					items:        onDiskReferenceToNode.Items,
-					loaded:       false,
-					tree:         node.tree,
-					parentNode:   node,
-					kvLLRB:       nil,
+					objectNumber:   onDiskReferenceToNode.ObjectNumber,
+					objectOffset:   onDiskReferenceToNode.ObjectOffset,
+					objectLength:   onDiskReferenceToNode.ObjectLength,
+					items:          onDiskReferenceToNode.Items,
+					loaded:         false,
+					tree:           node.tree,
+					clonedFromNode: nil,
+					parentNode:     node,
+					kvLLRB:         nil,
 				}
 
 				node.kvLLRB.Put(key, childNode)
