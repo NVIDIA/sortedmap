@@ -19,6 +19,8 @@ type BPlusTree interface {
 	Flush(andPurge bool) (rootObjectNumber uint64, rootObjectOffset uint64, rootObjectLength uint64, err error)
 	Purge() (err error)
 	Touch() (err error)
+	Prune() (err error)
+	Discard() (err error)
 	Clone(andUnTouch bool, callbacks BPlusTreeCallbacks) (newTree BPlusTree, err error)
 	UpdateCloneSource() (err error)
 }
@@ -28,6 +30,7 @@ type BPlusTreeCallbacks interface {
 	DumpCallbacks
 	GetNode(objectNumber uint64, objectOffset uint64, objectLength uint64) (nodeByteSlice []byte, err error)
 	PutNode(nodeByteSlice []byte) (objectNumber uint64, objectOffset uint64, err error)
+	DiscardNode(objectNumber uint64, objectOffset uint64, objectLength uint64) (err error)
 	PackKey(key Key) (packedKey []byte, err error)
 	UnpackKey(payloadData []byte) (key Key, bytesConsumed uint64, err error)
 	PackValue(value Value) (packedValue []byte, err error)
@@ -67,12 +70,17 @@ func NewBPlusTree(maxKeysPerNode uint64, compare Compare, callbacks BPlusTreeCal
 		prefixSumRightChild: nil, //                          Not applicable to root node
 	}
 
+	staleOnDiskReferencesContext := &onDiskReferencesContext{}
+
 	treePtr := &btreeTreeStruct{
-		minKeysPerNode:     minKeysPerNode,
-		maxKeysPerNode:     maxKeysPerNode,
-		Compare:            compare,
-		BPlusTreeCallbacks: callbacks,
-		root:               rootNode,
+		minKeysPerNode:        minKeysPerNode,
+		maxKeysPerNode:        maxKeysPerNode,
+		Compare:               compare,
+		BPlusTreeCallbacks:    callbacks,
+		root:                  rootNode,
+		activeClones:          0,
+		clonedFromTree:        nil,
+		staleOnDiskReferences: NewLLRBTree(compareOnDiskReferenceKey, staleOnDiskReferencesContext),
 	}
 
 	rootNode.tree = treePtr
@@ -105,12 +113,17 @@ func OldBPlusTree(rootObjectNumber uint64, rootObjectOffset uint64, rootObjectLe
 		prefixSumRightChild: nil, //           Not applicable to root node
 	}
 
+	staleOnDiskReferencesContext := &onDiskReferencesContext{}
+
 	treePtr := &btreeTreeStruct{
-		minKeysPerNode:     0, //              To be filled in once root node is loaded
-		maxKeysPerNode:     0, //              To be filled in once root node is loaded
-		Compare:            compare,
-		BPlusTreeCallbacks: callbacks,
-		root:               rootNode,
+		minKeysPerNode:        0, //              To be filled in once root node is loaded
+		maxKeysPerNode:        0, //              To be filled in once root node is loaded
+		Compare:               compare,
+		BPlusTreeCallbacks:    callbacks,
+		root:                  rootNode,
+		activeClones:          0,
+		clonedFromTree:        nil,
+		staleOnDiskReferences: NewLLRBTree(compareOnDiskReferenceKey, staleOnDiskReferencesContext),
 	}
 
 	rootNode.tree = treePtr

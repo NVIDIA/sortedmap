@@ -53,15 +53,28 @@ type onDiskNodeStruct struct {
 	//                                  counted <N-1> number of Key:onDiskReferenceToNodeStruct pairs
 }
 
+type onDiskReferenceKeyStruct struct { // Used as Key for staleOndiskReferences LLRBTree below
+	objectNumber uint64
+	objectOffset uint64
+}
+
+type onDiskReferencesContext struct { // Used as context for LLRBTreeCallbacks for staleOndiskReferences LLRBTree below
+	LLRBTreeCallbacks
+}
+
 type btreeTreeStruct struct {
 	sync.Mutex
-	minKeysPerNode uint64 //           only applies to non-Root nodes
-	//                                 "order" according to Bayer & McCreight (1972) & Comer (1979)
-	maxKeysPerNode uint64 //           "order" according to Knuth (1998)
+	minKeysPerNode uint64 //                                only applies to non-Root nodes
+	//                                                      "order" according to Bayer & McCreight (1972) & Comer (1979)
+	maxKeysPerNode uint64 //                                "order" according to Knuth (1998)
 	Compare
 	BPlusTreeCallbacks
-	root           *btreeNodeStruct // should never be nil
-	clonedFromTree *btreeTreeStruct
+	root                  *btreeNodeStruct //               should never be nil
+	activeClones          uint64
+	clonedFromTree        *btreeTreeStruct
+	staleOnDiskReferences LLRBTree //                       previously posted node locations yet to be discarded
+	//                                                        key   is an onDiskReferenceKeyStruct objectNumber, objectOffset tuple
+	//                                                        value is a simple objectLength value
 }
 
 // API functions (see api.go)
@@ -744,6 +757,8 @@ func (tree *btreeTreeStruct) Flush(andPurge bool) (rootObjectNumber uint64, root
 	tree.Lock()
 	defer tree.Unlock()
 
+	// First flush (and optionally purge) B+Tree
+
 	err = tree.flushNode(tree.root, andPurge)
 	if nil != err {
 		return
@@ -752,6 +767,8 @@ func (tree *btreeTreeStruct) Flush(andPurge bool) (rootObjectNumber uint64, root
 	rootObjectNumber = tree.root.objectNumber
 	rootObjectOffset = tree.root.objectOffset
 	rootObjectLength = tree.root.objectLength
+
+	// All done
 
 	err = nil
 	return
@@ -772,6 +789,148 @@ func (tree *btreeTreeStruct) Touch() (err error) {
 
 	err = tree.touchNode(tree.root)
 
+	return
+}
+
+func (tree *btreeTreeStruct) Prune() (err error) {
+	var (
+		keyAsKey                      Key
+		keyAsOnDiskReferenceKeyStruct *onDiskReferenceKeyStruct
+		objectLengthAsValue           Value
+		objectLengthAsUint64          uint64
+		ok                            bool
+	)
+
+	tree.Lock()
+	defer tree.Unlock()
+
+	if nil != tree.clonedFromTree {
+		err = fmt.Errorf("Prune() called on B+Tree that is a clone of another B+Tree")
+		return
+	}
+
+	if 0 != tree.activeClones {
+		err = fmt.Errorf("Prune() called on B+Tree with active clones")
+		return
+	}
+
+	// Discard all stale OnDisk node references
+
+	keyAsKey, objectLengthAsValue, ok, err = tree.staleOnDiskReferences.GetByIndex(0)
+
+	for ok {
+		keyAsOnDiskReferenceKeyStruct, ok = keyAsKey.(*onDiskReferenceKeyStruct)
+		if !ok {
+			err = fmt.Errorf("Logic error... tree.staleOnDiskReferences contained bad Key")
+			return
+		}
+		objectLengthAsUint64, ok = objectLengthAsValue.(uint64)
+		if !ok {
+			err = fmt.Errorf("Logic error... tree.staleOnDiskReferences contained bad Value")
+			return
+		}
+		err = tree.BPlusTreeCallbacks.DiscardNode(keyAsOnDiskReferenceKeyStruct.objectNumber, keyAsOnDiskReferenceKeyStruct.objectOffset, objectLengthAsUint64)
+		if nil != err {
+			return
+		}
+		ok, err = tree.staleOnDiskReferences.DeleteByIndex(0)
+		if nil != err {
+			return
+		}
+		if !ok {
+			err = fmt.Errorf("Logic error... unable to delete previously fetched first element of tree.staleOnDiskReferences")
+			return
+		}
+		keyAsKey, objectLengthAsValue, ok, err = tree.staleOnDiskReferences.GetByIndex(0)
+	}
+
+	// All done
+
+	err = nil
+	return
+}
+
+func (tree *btreeTreeStruct) Discard() (err error) {
+	var (
+		keyAsKey                      Key
+		keyAsOnDiskReferenceKeyStruct *onDiskReferenceKeyStruct
+		objectLengthAsValue           Value
+		objectLengthAsUint64          uint64
+		ok                            bool
+	)
+
+	tree.Lock()
+	defer tree.Unlock()
+
+	if 0 != tree.activeClones {
+		err = fmt.Errorf("Discard() called on B+Tree with active clones")
+		return
+	}
+
+	// Following logic dependent upon whether or not tree is a clone of some other B+Tree
+
+	if nil == tree.clonedFromTree {
+		// This is a non-clone B+Tree, so first make sure there are no active clones
+
+		if 0 != tree.activeClones {
+			err = fmt.Errorf("Discard() called on B+Tree with active clones")
+			return
+		}
+
+		// Discard all nodes recursively
+
+		err = tree.discardNode(tree.root)
+		if nil != err {
+			return
+		}
+
+		// Discard all stale OnDisk node references
+
+		keyAsKey, objectLengthAsValue, ok, err = tree.staleOnDiskReferences.GetByIndex(0)
+
+		for ok {
+			keyAsOnDiskReferenceKeyStruct, ok = keyAsKey.(*onDiskReferenceKeyStruct)
+			if !ok {
+				err = fmt.Errorf("Logic error... tree.staleOnDiskReferences contained bad Key")
+				return
+			}
+			objectLengthAsUint64, ok = objectLengthAsValue.(uint64)
+			if !ok {
+				err = fmt.Errorf("Logic error... tree.staleOnDiskReferences contained bad Value")
+				return
+			}
+			err = tree.BPlusTreeCallbacks.DiscardNode(keyAsOnDiskReferenceKeyStruct.objectNumber, keyAsOnDiskReferenceKeyStruct.objectOffset, objectLengthAsUint64)
+			if nil != err {
+				return
+			}
+			ok, err = tree.staleOnDiskReferences.DeleteByIndex(0)
+			if nil != err {
+				return
+			}
+			if !ok {
+				err = fmt.Errorf("Logic error... unable to delete previously fetched first element of tree.staleOnDiskReferences")
+				return
+			}
+			keyAsKey, objectLengthAsValue, ok, err = tree.staleOnDiskReferences.GetByIndex(0)
+		}
+	} else {
+		// This is a cloned B+Tree, so merely update clonedFromTree's activeClones count
+
+		tree.clonedFromTree.Lock()
+		tree.clonedFromTree.activeClones--
+		tree.clonedFromTree.Unlock()
+	}
+
+	// Reset btreeTreeStruct to trigger Golang Garbage Collection now (and prevent further use)
+
+	tree.Compare = nil
+	tree.BPlusTreeCallbacks = nil
+	tree.root = nil
+	tree.clonedFromTree = nil
+
+	// All done
+
+	err = nil
 	return
 }
 
@@ -804,6 +963,8 @@ func (tree *btreeTreeStruct) Clone(andUnTouch bool, callbacks BPlusTreeCallbacks
 
 	err = cloneNode(andUnTouch, curTreePtr.root, newRootNode)
 
+	tree.activeClones++
+
 	return
 }
 
@@ -825,6 +986,108 @@ func (tree *btreeTreeStruct) UpdateCloneSource() (err error) {
 }
 
 // Helper functions
+
+func compareOnDiskReferenceKey(key1 Key, key2 Key) (result int, err error) {
+	key1AsOnDiskReferenceKeyStructPtr, ok := key1.(*onDiskReferenceKeyStruct)
+	if !ok {
+		err = fmt.Errorf("compareOnDiskReferenceKey(non-*onDiskReferenceKeyStruct,) not supported")
+		return
+	}
+	key2AsOnDiskReferenceKeyStructPtr, ok := key2.(*onDiskReferenceKeyStruct)
+	if !ok {
+		err = fmt.Errorf("compareOnDiskReferenceKey(,non-*onDiskReferenceKeyStruct) not supported")
+		return
+	}
+
+	if key1AsOnDiskReferenceKeyStructPtr.objectNumber < key2AsOnDiskReferenceKeyStructPtr.objectNumber {
+		result = -1
+	} else if key1AsOnDiskReferenceKeyStructPtr.objectNumber == key2AsOnDiskReferenceKeyStructPtr.objectNumber {
+		if key1AsOnDiskReferenceKeyStructPtr.objectOffset < key2AsOnDiskReferenceKeyStructPtr.objectOffset {
+			result = -1
+		} else if key1AsOnDiskReferenceKeyStructPtr.objectOffset == key2AsOnDiskReferenceKeyStructPtr.objectOffset {
+			result = 0
+		} else { // key1AsOnDiskReferenceKeyStructPtr.objectOffset > key2AsOnDiskReferenceKeyStructPtr.objectOffset
+			result = 1
+		}
+	} else { // key1AsOnDiskReferenceKeyStructPtr.objectNumber > key2AsOnDiskReferenceKeyStructPtr.objectNumber
+		result = 1
+	}
+
+	err = nil
+	return
+}
+
+func (context *onDiskReferencesContext) DumpKey(key Key) (keyAsString string, err error) {
+	keyAsStruct, ok := key.(*onDiskReferenceKeyStruct)
+	if !ok {
+		err = fmt.Errorf("DumpKey() argument not a *onDiskReferenceKeyStruct")
+		return
+	}
+	keyAsString = fmt.Sprintf("0x%016X 0x%016X", keyAsStruct.objectNumber, keyAsStruct.objectOffset)
+	err = nil
+	return
+}
+
+func (context *onDiskReferencesContext) DumpValue(value Value) (valueAsString string, err error) {
+	valueAsUint64, ok := value.(uint64)
+	if !ok {
+		err = fmt.Errorf("DumpValue() argument not a uint64")
+		return
+	}
+	valueAsString = fmt.Sprintf("0x%016X", valueAsUint64)
+	err = nil
+	return
+}
+
+func (tree *btreeTreeStruct) discardNode(node *btreeNodeStruct) (err error) {
+	if !node.loaded {
+		err = tree.loadNode(node)
+		if nil != err {
+			return
+		}
+	}
+
+	if !node.leaf {
+		if nil != node.nonLeafLeftChild {
+			err = tree.discardNode(node.nonLeafLeftChild)
+			if nil != err {
+				return
+			}
+		}
+
+		numIndices, nonShadowingErr := node.kvLLRB.Len()
+		if nil != nonShadowingErr {
+			err = nonShadowingErr
+			return
+		}
+
+		for i := 0; i < numIndices; i++ {
+			_, childNodeAsValue, ok, nonShadowingErr := node.kvLLRB.GetByIndex(i)
+			if nil != nonShadowingErr {
+				err = nonShadowingErr
+				return
+			}
+			if !ok {
+				err = fmt.Errorf("Logic error: destroyNode() had indexing problem in kvLLRB")
+				return
+			}
+			childNode := childNodeAsValue.(*btreeNodeStruct)
+
+			err = tree.discardNode(childNode)
+			if nil != err {
+				return
+			}
+		}
+	}
+
+	if 0 == node.objectLength {
+		err = nil
+	} else {
+		err = tree.BPlusTreeCallbacks.DiscardNode(node.objectNumber, node.objectOffset, node.objectLength)
+	}
+
+	return
+}
 
 func (tree *btreeTreeStruct) cloneKey(curKey Key) (newKey Key, err error) {
 	packedKey, err := tree.PackKey(curKey)
@@ -1106,8 +1369,8 @@ func (tree *btreeTreeStruct) insertHere(insertNode *btreeNodeStruct, key Key, va
 			}
 
 			if insertNode.leaf {
-				insertNode.items -= 1
-				newRightSiblingNode.items += 1
+				insertNode.items--
+				newRightSiblingNode.items++
 			}
 		}
 
@@ -1649,6 +1912,50 @@ func (tree *btreeTreeStruct) purgeNode(node *btreeNodeStruct) (err error) {
 	return
 }
 
+func (tree *btreeTreeStruct) markNodeDirty(node *btreeNodeStruct) {
+	node.dirty = true
+
+	// Did node come from a now-stale copy on disk?
+
+	if 0 != node.objectLength {
+		// Schedule stale on-disk reference to be reclaimed in (this or top-level ancestor) non-clone B+Tree
+
+		thisTree := tree
+		for nil != thisTree.clonedFromTree {
+			parentTree := thisTree.clonedFromTree
+			parentTree.Lock()
+			if tree != thisTree {
+				thisTree.Unlock()
+			}
+			thisTree = parentTree
+		}
+
+		// Mark node's prior on-disk reference as stale
+
+		staleOnDiskReferenceKey := &onDiskReferenceKeyStruct{
+			objectNumber: node.objectNumber,
+			objectOffset: node.objectOffset,
+		}
+
+		_, err := thisTree.staleOnDiskReferences.Put(staleOnDiskReferenceKey, node.objectLength)
+		if nil != err {
+			err = fmt.Errorf("Logic error inserting into staleOnDiskReferences LLRB Tree: %v", err)
+			panic(err)
+		}
+		// if ok were false, that just means it was already there which is just fine
+
+		if tree != thisTree {
+			thisTree.Unlock()
+		}
+
+		// Zero-out on-disk reference so that the above is only done once for this now dirty node
+
+		node.objectNumber = 0
+		node.objectOffset = 0
+		node.objectLength = 0
+	}
+}
+
 func (tree *btreeTreeStruct) touchNode(node *btreeNodeStruct) (err error) {
 	if !node.loaded {
 		err = tree.loadNode(node)
@@ -1657,7 +1964,7 @@ func (tree *btreeTreeStruct) touchNode(node *btreeNodeStruct) (err error) {
 		}
 	}
 
-	node.dirty = true
+	tree.markNodeDirty(node)
 
 	if !node.leaf {
 		if nil != node.nonLeafLeftChild {
@@ -1698,10 +2005,12 @@ func (tree *btreeTreeStruct) touchNode(node *btreeNodeStruct) (err error) {
 
 func (tree *btreeTreeStruct) touchLoadedNodeToRoot(node *btreeNodeStruct) {
 	for {
-		node.dirty = true
+		tree.markNodeDirty(node)
+
 		if node.root {
 			return
 		}
+
 		node = node.parentNode
 	}
 }
@@ -1772,7 +2081,7 @@ func (tree *btreeTreeStruct) arrangePrefixSumTree(node *btreeNodeStruct) (err er
 func (tree *btreeTreeStruct) rearrangePrefixSumTreeToRoot(node *btreeNodeStruct) {
 	tree.arrangePrefixSumTree(node)
 
-	node.dirty = true
+	tree.markNodeDirty(node)
 
 	if !node.root {
 		tree.rearrangePrefixSumTreeToRoot(node.parentNode)
@@ -1786,7 +2095,7 @@ func (tree *btreeTreeStruct) updatePrefixSumTreeLeafToRootRecursively(updatedChi
 		updatedChildNode.items += uint64(delta)
 	}
 
-	updatedChildNode.dirty = true
+	tree.markNodeDirty(updatedChildNode)
 
 	if updatedChildNode.root {
 		return

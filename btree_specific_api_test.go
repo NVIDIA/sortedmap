@@ -68,6 +68,29 @@ func (context *specificBPlusTreeTestContextStruct) PutNode(nodeByteSlice []byte)
 	return
 }
 
+func (context *specificBPlusTreeTestContextStruct) DiscardNode(logSegmentNumber uint64, logOffset uint64, logLength uint64) (err error) {
+	logSegmentChunk, ok := context.logSegmentChunkMap[logSegmentNumber]
+	if !ok {
+		err = fmt.Errorf("logSegmentNumber not found")
+		return
+	}
+
+	if logSegmentChunk.startingOffset != logOffset {
+		err = fmt.Errorf("logOffset not found")
+		return
+	}
+
+	if uint64(len(logSegmentChunk.chunkByteSlice)) != logLength {
+		err = fmt.Errorf("logLength not found")
+		return
+	}
+
+	delete(context.logSegmentChunkMap, logSegmentNumber)
+	err = nil
+
+	return
+}
+
 func (context *specificBPlusTreeTestContextStruct) DumpKey(key Key) (keyAsString string, err error) {
 	keyAsUint32, ok := key.(uint32)
 	if !ok {
@@ -103,7 +126,7 @@ func (context *specificBPlusTreeTestContextStruct) UnpackKey(packedKey []byte) (
 func (context *specificBPlusTreeTestContextStruct) DumpValue(value Value) (valueAsString string, err error) {
 	valueAsValueStruct, ok := value.(valueStruct)
 	if !ok {
-		context.t.Fatalf("PackValue() argument not a valueStruct")
+		context.t.Fatalf("DumpValue() argument not a valueStruct")
 	}
 	valueAsString = fmt.Sprintf(
 		"{u32: 0x%08X, s8: 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X}",
@@ -285,6 +308,8 @@ func TestBPlusTreeSpecific(t *testing.T) {
 		t.Fatalf("btreeNew.GetByKey(uint32(3)).value should have been valueAsValueStructExpected")
 	}
 
+	btreeNew = nil // Just let Go Garbage Collection have it (similating a crash/restart)
+
 	btreeOld, err = OldBPlusTree(rootLogSegmentNumber, rootLogOffset, rootLogLength, CompareUint32, persistentContext)
 	if nil != err {
 		t.Fatalf("OldBPlusTree() should not have failed")
@@ -308,7 +333,7 @@ func TestBPlusTreeSpecific(t *testing.T) {
 	valueAsValueStructReturned = valueAsValueReturned.(valueStruct)
 	valueAsValueStructExpected = valueStruct{u32: 5, s8: uint32To8ReplicaByteArray(5)}
 	if valueAsValueStructReturned != valueAsValueStructExpected {
-		t.Fatalf("btreeNew.GetByKey(uint32(5)).value should have been valueAsValueStructExpected")
+		t.Fatalf("btreeOld.GetByKey(uint32(5)).value should have been valueAsValueStructExpected")
 	}
 
 	valueAsValueReturned, ok, err = btreeOld.GetByKey(uint32(3))
@@ -407,8 +432,89 @@ func TestBPlusTreeSpecific(t *testing.T) {
 
 	err = btreeClone.UpdateCloneSource()
 	if nil != err {
-		fmt.Println(err)
 		t.Fatalf("btreeClone.UpdateCloneSource() should not have failed")
+	}
+
+	err = btreeClone.Prune()
+	if nil == err {
+		t.Fatalf("btreeClone.Prune() should have failed")
+	}
+
+	err = btreeOld.Prune()
+	if nil == err {
+		t.Fatalf("btreeOld.Prune() with active clone should have failed")
+	}
+
+	err = btreeOld.Discard()
+	if nil == err {
+		t.Fatalf("btreeOld.Discard() with active clone should have failed")
+	}
+
+	err = btreeClone.Discard()
+	if nil != err {
+		t.Fatalf("btreeClone.Discard() should not have failed")
+	}
+
+	err = btreeOld.Discard()
+	if nil != err {
+		t.Fatalf("btreeOld.Discard() with no active clones should not have failed")
+	}
+}
+
+func TestCompareOnDiskReferenceKey(t *testing.T) {
+	key0 := &onDiskReferenceKeyStruct{objectNumber: 5, objectOffset: 7}
+	key1 := &onDiskReferenceKeyStruct{objectNumber: 4, objectOffset: 7} // <  key0 due to objectNumber
+	key2 := &onDiskReferenceKeyStruct{objectNumber: 5, objectOffset: 6} // <  key0 due to objectOffset
+	key3 := &onDiskReferenceKeyStruct{objectNumber: 5, objectOffset: 7} // == key0
+	key4 := &onDiskReferenceKeyStruct{objectNumber: 5, objectOffset: 8} // >  key0 due to objectOffset
+	key5 := &onDiskReferenceKeyStruct{objectNumber: 6, objectOffset: 7} // >  key0 due to objectNumber
+
+	result, err := compareOnDiskReferenceKey(key0, key0)
+	if nil != err {
+		t.Fatalf("compareOnDiskReferenceKey(key0, key0) should not have failed: %v", err)
+	}
+	if !(result == 0) {
+		t.Fatalf("compareOnDiskReferenceKey(key0, key0) should have returned == 0... instead: %v", result)
+	}
+
+	result, err = compareOnDiskReferenceKey(key1, key0)
+	if nil != err {
+		t.Fatalf("compareOnDiskReferenceKey(key1, key0) should not have failed: %v", err)
+	}
+	if !(result < 0) {
+		t.Fatalf("compareOnDiskReferenceKey(key1, key0) should have returned < 0... instead: %v", result)
+	}
+
+	result, err = compareOnDiskReferenceKey(key2, key0)
+	if nil != err {
+		t.Fatalf("compareOnDiskReferenceKey(key2, key0) should not have failed: %v", err)
+	}
+	if !(result < 0) {
+		t.Fatalf("compareOnDiskReferenceKey(key2, key0) should have returned < 0... instead: %v", result)
+	}
+
+	result, err = compareOnDiskReferenceKey(key3, key0)
+	if nil != err {
+		t.Fatalf("compareOnDiskReferenceKey(key3, key0) should not have failed: %v", err)
+	}
+	if !(result == 0) {
+		t.Fatalf("compareOnDiskReferenceKey(key3, key0) should have returned == 0... instead: %v", result)
+	}
+
+	result, err = compareOnDiskReferenceKey(key4, key0)
+	if nil != err {
+		t.Fatalf("compareOnDiskReferenceKey(key4, key0) should not have failed: %v", err)
+	}
+	if !(result > 0) {
+		t.Fatalf("compareOnDiskReferenceKey(key4, key0) should have returned > 0... instead: %v", result)
+	}
+
+	result, err = compareOnDiskReferenceKey(key5, key0)
+	if nil != err {
+		t.Fatalf("compareOnDiskReferenceKey(key5, key0) should not have failed: %v", err)
+	}
+	if !(result > 0) {
+		t.Fatalf("compareOnDiskReferenceKey(key5, key0) should have returned > 0... instead: %v", result)
 	}
 }
 
@@ -420,6 +526,7 @@ func TestBPlusTreeCloneStress(t *testing.T) {
 	var (
 		actualLen                  int
 		btreeClone                 BPlusTree
+		btreeCloneDiscardList      []BPlusTree
 		btreeCloneMap              map[int]BPlusTree
 		btreeLive                  BPlusTree
 		elementKey                 uint32
@@ -430,16 +537,22 @@ func TestBPlusTreeCloneStress(t *testing.T) {
 		valueAsValueStructToInsert valueStruct
 	)
 
+	// PHASE SETUP
+
 	persistentContext = &specificBPlusTreeTestContextStruct{t: t, lastLogSegmentNumberGenerated: 0, lastLogOffsetGenerated: 0, logSegmentChunkMap: make(map[uint64]*logSegmentChunkStruct)}
 
 	btreeLive = NewBPlusTree(specificBPlusTreeTestNumKeysMaxSmall, CompareUint32, persistentContext)
 
 	btreeCloneMap = make(map[int]BPlusTree)
+	btreeCloneDiscardList = make([]BPlusTree, 0, 1+2*int(maxElements/cloneInterval))
 
-	btreeCloneMap[0], err = btreeLive.Clone(false, persistentContext)
+	btreeClone, err = btreeLive.Clone(false, persistentContext)
 	if nil != err {
-		t.Fatalf("btreeLive.Clone() should have worked")
+		t.Fatalf("btreeLive.Clone() should not have failed")
 	}
+
+	btreeCloneMap[0] = btreeClone
+	btreeCloneDiscardList = append(btreeCloneDiscardList, btreeClone)
 
 	// PHASE ONE - clone un-flushed/purged btreeLive
 
@@ -456,10 +569,13 @@ func TestBPlusTreeCloneStress(t *testing.T) {
 		}
 
 		if 0 == ((elementKey + 1) % cloneInterval) {
-			btreeCloneMap[int(elementKey+1)], err = btreeLive.Clone(false, persistentContext)
+			btreeClone, err = btreeLive.Clone(false, persistentContext)
 			if nil != err {
-				t.Fatalf("btreeLive.Clone() should have worked")
+				t.Fatalf("btreeLive.Clone() should not have failed")
 			}
+			expectedLen = int(elementKey + 1)
+			btreeCloneMap[expectedLen] = btreeClone
+			btreeCloneDiscardList = append(btreeCloneDiscardList, btreeClone)
 		}
 	}
 
@@ -468,7 +584,7 @@ func TestBPlusTreeCloneStress(t *testing.T) {
 	for expectedLen, btreeClone = range btreeCloneMap {
 		actualLen, err = btreeClone.Len()
 		if nil != err {
-			t.Fatalf("btreeClone.Len() should have worked")
+			t.Fatalf("btreeClone.Len() should not have failed")
 		}
 		if expectedLen != actualLen {
 			t.Fatalf("btreeClone.Len() expectedLen == %v actualLen == %v", expectedLen, actualLen)
@@ -476,7 +592,7 @@ func TestBPlusTreeCloneStress(t *testing.T) {
 
 		err = btreeClone.Validate()
 		if nil != err {
-			t.Fatalf("btreeClone.Validate() should have worked")
+			t.Fatalf("btreeClone.Validate() should not have failed")
 		}
 	}
 
@@ -492,10 +608,13 @@ func TestBPlusTreeCloneStress(t *testing.T) {
 		}
 
 		if 0 == ((elementKey + 1) % cloneInterval) {
-			btreeCloneMap[maxElements-int(elementKey+1)], err = btreeLive.Clone(false, persistentContext)
+			btreeClone, err = btreeLive.Clone(false, persistentContext)
 			if nil != err {
-				t.Fatalf("btreeLive.Clone() should have worked")
+				t.Fatalf("btreeLive.Clone() should not have failed")
 			}
+			expectedLen = maxElements - int(elementKey+1)
+			btreeCloneMap[expectedLen] = btreeClone
+			btreeCloneDiscardList = append(btreeCloneDiscardList, btreeClone)
 		}
 	}
 
@@ -504,7 +623,7 @@ func TestBPlusTreeCloneStress(t *testing.T) {
 	for expectedLen, btreeClone = range btreeCloneMap {
 		actualLen, err = btreeClone.Len()
 		if nil != err {
-			t.Fatalf("btreeClone.Len() should have worked")
+			t.Fatalf("btreeClone.Len() should not have failed")
 		}
 		if expectedLen != actualLen {
 			t.Fatalf("btreeClone.Len() expectedLen == %v actualLen == %v", expectedLen, actualLen)
@@ -512,7 +631,7 @@ func TestBPlusTreeCloneStress(t *testing.T) {
 
 		err = btreeClone.Validate()
 		if nil != err {
-			t.Fatalf("btreeClone.Validate() should have worked")
+			t.Fatalf("btreeClone.Validate() should not have failed")
 		}
 	}
 
@@ -533,12 +652,15 @@ func TestBPlusTreeCloneStress(t *testing.T) {
 		if 0 == ((elementKey + 1) % cloneInterval) {
 			_, _, _, err = btreeLive.Flush(true)
 			if nil != err {
-				t.Fatalf("btreeLive.Flush(true) should have worked")
+				t.Fatalf("btreeLive.Flush(true) should not have failed")
 			}
-			btreeCloneMap[int(elementKey+1)], err = btreeLive.Clone(false, persistentContext)
+			btreeClone, err = btreeLive.Clone(false, persistentContext)
 			if nil != err {
-				t.Fatalf("btreeLive.Clone() should have worked")
+				t.Fatalf("btreeLive.Clone() should not have failed")
 			}
+			expectedLen = int(elementKey + 1)
+			btreeCloneMap[expectedLen] = btreeClone
+			btreeCloneDiscardList = append(btreeCloneDiscardList, btreeClone)
 		}
 	}
 
@@ -547,7 +669,7 @@ func TestBPlusTreeCloneStress(t *testing.T) {
 	for expectedLen, btreeClone = range btreeCloneMap {
 		actualLen, err = btreeClone.Len()
 		if nil != err {
-			t.Fatalf("btreeClone.Len() should have worked")
+			t.Fatalf("btreeClone.Len() should not have failed")
 		}
 		if expectedLen != actualLen {
 			t.Fatalf("btreeClone.Len() expectedLen == %v actualLen == %v", expectedLen, actualLen)
@@ -555,13 +677,14 @@ func TestBPlusTreeCloneStress(t *testing.T) {
 
 		err = btreeClone.Validate()
 		if nil != err {
-			t.Fatalf("btreeClone.Validate() should have worked")
+			t.Fatalf("btreeClone.Validate() should not have failed")
 		}
 	}
 
 	// Remove elements from btreeLive until empty cloning every cloneInterval
 
 	for elementKey = 0; elementKey < maxElements; elementKey++ {
+		expectedLen = maxElements - int(elementKey+1) // TODO: Remove this
 		ok, err = btreeLive.DeleteByKey(elementKey)
 		if nil != err {
 			t.Fatalf("btreeLive.DeleteByKey(elementKey == %v) should not have failed", elementKey)
@@ -573,12 +696,15 @@ func TestBPlusTreeCloneStress(t *testing.T) {
 		if 0 == ((elementKey + 1) % cloneInterval) {
 			_, _, _, err = btreeLive.Flush(true)
 			if nil != err {
-				t.Fatalf("btreeLive.Flush(true) should have worked")
+				t.Fatalf("btreeLive.Flush(true) should not have failed")
 			}
-			btreeCloneMap[maxElements-int(elementKey+1)], err = btreeLive.Clone(false, persistentContext)
+			btreeClone, err = btreeLive.Clone(false, persistentContext)
 			if nil != err {
-				t.Fatalf("btreeLive.Clone() should have worked")
+				t.Fatalf("btreeLive.Clone() should not have failed")
 			}
+			expectedLen = maxElements - int(elementKey+1)
+			btreeCloneMap[expectedLen] = btreeClone
+			btreeCloneDiscardList = append(btreeCloneDiscardList, btreeClone)
 		}
 	}
 
@@ -587,7 +713,7 @@ func TestBPlusTreeCloneStress(t *testing.T) {
 	for expectedLen, btreeClone = range btreeCloneMap {
 		actualLen, err = btreeClone.Len()
 		if nil != err {
-			t.Fatalf("btreeClone.Len() should have worked")
+			t.Fatalf("btreeClone.Len() should not have failed")
 		}
 		if expectedLen != actualLen {
 			t.Fatalf("btreeClone.Len() expectedLen == %v actualLen == %v", expectedLen, actualLen)
@@ -595,7 +721,21 @@ func TestBPlusTreeCloneStress(t *testing.T) {
 
 		err = btreeClone.Validate()
 		if nil != err {
-			t.Fatalf("btreeClone.Validate() should have worked")
+			t.Fatalf("btreeClone.Validate() should not have failed")
 		}
+	}
+
+	// PHASE TEARDOWN
+
+	for _, btreeClone = range btreeCloneDiscardList {
+		err = btreeClone.Discard()
+		if nil != err {
+			t.Fatalf("btreeClone.Discard() should not have failed")
+		}
+	}
+
+	err = btreeLive.Discard()
+	if nil != err {
+		t.Fatalf("btreeLive.Discard() should not have failed")
 	}
 }

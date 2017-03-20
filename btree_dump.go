@@ -6,7 +6,11 @@ func (tree *btreeTreeStruct) Dump() (err error) {
 	tree.Lock()
 	defer tree.Unlock()
 
-	fmt.Printf("Root Node @ %p\n", tree.root)
+	if nil == tree.clonedFromTree {
+		fmt.Printf("B+Tree @ %p has Root Node @ %p with %v activeClones\n", tree, tree.root, tree.activeClones)
+	} else {
+		fmt.Printf("B+Tree @ %p has Root Node @ %p with %v activeClones (clone of B+Tree @ %p)\n", tree, tree.root, tree.activeClones, tree.clonedFromTree)
+	}
 
 	err = tree.dumpNode(tree.root, "")
 

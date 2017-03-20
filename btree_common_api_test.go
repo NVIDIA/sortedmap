@@ -20,13 +20,18 @@ type commonBPlusTreeTestContextStruct struct {
 	tree BPlusTree
 }
 
-func (context *commonBPlusTreeTestContextStruct) GetNode(logSegmentNumber uint64, logOffset uint64, logLength uint64) (nodeByteSlice []byte, err error) {
+func (context *commonBPlusTreeTestContextStruct) GetNode(objectNumber uint64, objectOffset uint64, objectLength uint64) (nodeByteSlice []byte, err error) {
 	err = fmt.Errorf("GetNode() not implemented")
 	return
 }
 
-func (context *commonBPlusTreeTestContextStruct) PutNode(nodeByteSlice []byte) (logSegmentNumber uint64, logOffset uint64, err error) {
+func (context *commonBPlusTreeTestContextStruct) PutNode(nodeByteSlice []byte) (objectNumber uint64, objectOffset uint64, err error) {
 	err = fmt.Errorf("PutNode() not implemented")
+	return
+}
+
+func (context *commonBPlusTreeTestContextStruct) DiscardNode(objectNumber uint64, objectOffset uint64, objectLength uint64) (err error) {
+	err = fmt.Errorf("DiscardNode() not implemented")
 	return
 }
 
@@ -86,13 +91,18 @@ type commonBPlusTreeBenchmarkContextStruct struct {
 	tree BPlusTree
 }
 
-func (context *commonBPlusTreeBenchmarkContextStruct) GetNode(logSegmentNumber uint64, logOffset uint64, logLength uint64) (nodeByteSlice []byte, err error) {
+func (context *commonBPlusTreeBenchmarkContextStruct) GetNode(objectNumber uint64, objectOffset uint64, objectLength uint64) (nodeByteSlice []byte, err error) {
 	err = fmt.Errorf("GetNode() not implemented")
 	return
 }
 
-func (context *commonBPlusTreeBenchmarkContextStruct) PutNode(nodeByteSlice []byte) (logSegmentNumber uint64, logOffset uint64, err error) {
+func (context *commonBPlusTreeBenchmarkContextStruct) PutNode(nodeByteSlice []byte) (objectNumber uint64, objectOffset uint64, err error) {
 	err = fmt.Errorf("PutNode() not implemented")
+	return
+}
+
+func (context *commonBPlusTreeBenchmarkContextStruct) DiscardNode(objectNumber uint64, objectOffset uint64, objectLength uint64) (err error) {
+	err = fmt.Errorf("GetNode() not implemented")
 	return
 }
 
