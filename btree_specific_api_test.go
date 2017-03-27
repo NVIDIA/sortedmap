@@ -44,8 +44,8 @@ func (context *specificBPlusTreeTestContextStruct) GetNode(logSegmentNumber uint
 	}
 
 	nodeByteSlice = logSegmentChunk.chunkByteSlice
-	err = nil
 
+	err = nil
 	return
 }
 
@@ -64,7 +64,6 @@ func (context *specificBPlusTreeTestContextStruct) PutNode(nodeByteSlice []byte)
 	context.logSegmentChunkMap[logSegmentNumber] = logSegmentChunk
 
 	err = nil
-
 	return
 }
 
@@ -86,8 +85,8 @@ func (context *specificBPlusTreeTestContextStruct) DiscardNode(logSegmentNumber 
 	}
 
 	delete(context.logSegmentChunkMap, logSegmentNumber)
-	err = nil
 
+	err = nil
 	return
 }
 
@@ -453,6 +452,30 @@ func TestBPlusTreeSpecific(t *testing.T) {
 	err = btreeClone.Discard()
 	if nil != err {
 		t.Fatalf("btreeClone.Discard() should not have failed")
+	}
+
+	nextItemIndexToTouch, err := btreeOld.TouchItem(0)
+	if nil != err {
+		t.Fatalf("btreeOld.TouchItem(0) should not have failed")
+	}
+	if 1 != nextItemIndexToTouch {
+		t.Fatalf("btreeOld.TouchItem(0) should have returned 1")
+	}
+
+	nextItemIndexToTouch, err = btreeOld.TouchItem(1)
+	if nil != err {
+		t.Fatalf("btreeOld.TouchItem(1) should not have failed")
+	}
+	if 2 != nextItemIndexToTouch {
+		t.Fatalf("btreeOld.TouchItem(1) should have returned 2")
+	}
+
+	nextItemIndexToTouch, err = btreeOld.TouchItem(2)
+	if nil != err {
+		t.Fatalf("btreeOld.TouchItem(2) should not have failed")
+	}
+	if 1 != nextItemIndexToTouch {
+		t.Fatalf("btreeOld.TouchItem(2) should have returned 1")
 	}
 
 	err = btreeOld.Discard()

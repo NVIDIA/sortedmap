@@ -19,6 +19,7 @@ type BPlusTree interface {
 	Flush(andPurge bool) (rootObjectNumber uint64, rootObjectOffset uint64, rootObjectLength uint64, err error)
 	Purge() (err error)
 	Touch() (err error)
+	TouchItem(thisItemIndexToTouch uint64) (nextItemIndexToTouch uint64, err error)
 	Prune() (err error)
 	Discard() (err error)
 	Clone(andUnTouch bool, callbacks BPlusTreeCallbacks) (newTree BPlusTree, err error)

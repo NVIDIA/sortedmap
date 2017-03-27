@@ -792,6 +792,82 @@ func (tree *btreeTreeStruct) Touch() (err error) {
 	return
 }
 
+func (tree *btreeTreeStruct) TouchItem(thisItemIndexToTouch uint64) (nextItemIndexToTouch uint64, err error) {
+	tree.Lock()
+	defer tree.Unlock()
+
+	node := tree.root
+
+	if 0 == node.items {
+		// Special case where tree is empty... just return
+		nextItemIndexToTouch = 0
+		err = nil
+		return
+	}
+
+	if thisItemIndexToTouch >= node.items {
+		// Apparently tree has shrunk since last TouchItem() call,
+		// so simply wrap back to the zeroth element
+		thisItemIndexToTouch = 0
+	}
+
+	netIndex := uint64(thisItemIndexToTouch)
+
+	for {
+		if !node.loaded {
+			err = tree.loadNode(node)
+			if nil != err {
+				// Upon detected corruption, just return
+				nextItemIndexToTouch = 0
+				return
+			}
+		}
+
+		if node.leaf {
+			// Touch this node up to root
+
+			tree.touchLoadedNodeToRoot(node)
+
+			// Return nextItemIndexToTouch as index beyond this leaf node
+
+			itemsInLeafNode, nonShadowingErr := node.kvLLRB.Len()
+			if nil != nonShadowingErr {
+				// Upon detected corruption, just return
+				nextItemIndexToTouch = 0
+				err = nonShadowingErr
+				return
+			}
+
+			nextItemIndexToTouch = thisItemIndexToTouch + (uint64(itemsInLeafNode) - netIndex)
+
+			err = nil
+			return
+		}
+
+		node = node.rootPrefixSumChild
+
+		var leftChildPrefixSumItems uint64
+
+		for {
+			if nil == node.prefixSumLeftChild {
+				leftChildPrefixSumItems = 0
+			} else {
+				leftChildPrefixSumItems = node.prefixSumLeftChild.prefixSumItems
+			}
+
+			if netIndex < leftChildPrefixSumItems {
+				node = node.prefixSumLeftChild
+			} else if netIndex < (leftChildPrefixSumItems + node.items) {
+				netIndex -= leftChildPrefixSumItems
+				break
+			} else {
+				netIndex -= (leftChildPrefixSumItems + node.items)
+				node = node.prefixSumRightChild
+			}
+		}
+	}
+}
+
 func (tree *btreeTreeStruct) Prune() (err error) {
 	var (
 		keyAsKey                      Key
