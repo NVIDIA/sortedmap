@@ -289,9 +289,9 @@ func TestBPlusTreeSpecific(t *testing.T) {
 		}
 	}
 
-	err = btreeNew.Purge()
+	err = btreeNew.Purge(true)
 	if nil != err {
-		t.Fatalf("btreeNew.Purge() should not have failed")
+		t.Fatalf("btreeNew.Purge(true) should not have failed")
 	}
 
 	valueAsValueReturned, ok, err = btreeNew.GetByKey(uint32(7))
@@ -366,9 +366,14 @@ func TestBPlusTreeSpecific(t *testing.T) {
 		t.Fatalf("btreeOld.Touch() should not have failed")
 	}
 
-	err = btreeOld.Purge()
+	err = btreeOld.Purge(false)
+	if nil != err {
+		t.Fatalf("btreeOld.Purge(false) should not have failed")
+	}
+
+	err = btreeOld.Purge(true)
 	if nil == err {
-		t.Fatalf("btreeOld.Purge() should have failed")
+		t.Fatalf("btreeOld.Purge(true) should have failed")
 	}
 
 	btreeClone, err = btreeOld.Clone(false, persistentContext)

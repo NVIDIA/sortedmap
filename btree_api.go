@@ -17,7 +17,7 @@ type BPlusTree interface {
 	SortedMap
 	FetchLayoutReport() (layoutReport LayoutReport, err error)
 	Flush(andPurge bool) (rootObjectNumber uint64, rootObjectOffset uint64, rootObjectLength uint64, err error)
-	Purge() (err error)
+	Purge(full bool) (err error)
 	Touch() (err error)
 	TouchItem(thisItemIndexToTouch uint64) (nextItemIndexToTouch uint64, err error)
 	Prune() (err error)

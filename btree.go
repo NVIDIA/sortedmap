@@ -774,11 +774,11 @@ func (tree *btreeTreeStruct) Flush(andPurge bool) (rootObjectNumber uint64, root
 	return
 }
 
-func (tree *btreeTreeStruct) Purge() (err error) {
+func (tree *btreeTreeStruct) Purge(full bool) (err error) {
 	tree.Lock()
 	defer tree.Unlock()
 
-	err = tree.purgeNode(tree.root)
+	err = tree.purgeNode(tree.root, full)
 
 	return
 }
@@ -1934,20 +1934,20 @@ func (tree *btreeTreeStruct) flushNode(node *btreeNodeStruct, andPurge bool) (er
 	return
 }
 
-func (tree *btreeTreeStruct) purgeNode(node *btreeNodeStruct) (err error) {
+func (tree *btreeTreeStruct) purgeNode(node *btreeNodeStruct, full bool) (err error) {
 	if !node.loaded {
 		err = nil
 		return
 	}
 
-	if node.dirty {
-		err = fmt.Errorf("Logic error: purgeNode() shouldn't have found a dirty node")
+	if full && node.dirty {
+		err = fmt.Errorf("Logic error: purgeNode(,full==true) shouldn't have found a dirty node")
 		return
 	}
 
 	if !node.leaf {
 		if nil != node.nonLeafLeftChild {
-			err = tree.purgeNode(node.nonLeafLeftChild)
+			err = tree.purgeNode(node.nonLeafLeftChild, full)
 			if nil != err {
 				return
 			}
@@ -1971,18 +1971,20 @@ func (tree *btreeTreeStruct) purgeNode(node *btreeNodeStruct) (err error) {
 			}
 			childNode := childNodeAsValue.(*btreeNodeStruct)
 
-			err = tree.purgeNode(childNode)
+			err = tree.purgeNode(childNode, full)
 			if nil != err {
 				return
 			}
 		}
 	}
 
-	node.kvLLRB = nil
-	node.nonLeafLeftChild = nil
-	node.rootPrefixSumChild = nil
+	if !node.dirty {
+		node.kvLLRB = nil
+		node.nonLeafLeftChild = nil
+		node.rootPrefixSumChild = nil
 
-	node.loaded = false
+		node.loaded = false
+	}
 
 	err = nil
 	return
