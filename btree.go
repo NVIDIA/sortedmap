@@ -2557,7 +2557,9 @@ func (tree *btreeTreeStruct) postNode(node *btreeNodeStruct) (err error) {
 }
 
 func (tree *btreeTreeStruct) updateLayoutReport(layoutReport LayoutReport, node *btreeNodeStruct) (err error) {
-	if !node.loaded {
+	wasLoaded := node.loaded
+
+	if !wasLoaded {
 		err = tree.loadNode(node)
 		if nil != err {
 			return
@@ -2602,6 +2604,13 @@ func (tree *btreeTreeStruct) updateLayoutReport(layoutReport LayoutReport, node 
 			if nil != err {
 				return
 			}
+		}
+	}
+
+	if !wasLoaded {
+		err = tree.purgeNode(node, true)
+		if nil != err {
+			return
 		}
 	}
 
