@@ -31,6 +31,8 @@ type btreeNodeStruct struct {
 	prefixSumRightChild *btreeNodeStruct //                   nil if no right child btreeNodeStruct
 }
 
+type internalFlushedList map[*btreeNodeStruct]bool // Key == pointer to btreeNodeStruct in the "list"; Value is ignored
+
 type onDiskUint64Struct struct {
 	U64 uint64
 }
@@ -741,11 +743,6 @@ func (tree *btreeTreeStruct) FetchLayoutReport() (layoutReport LayoutReport, err
 	tree.Lock()
 	defer tree.Unlock()
 
-	err = tree.flushNode(tree.root, false)
-	if nil != err {
-		return
-	}
-
 	layoutReport = make(map[uint64]uint64)
 
 	err = tree.updateLayoutReport(layoutReport, tree.root)
@@ -753,13 +750,34 @@ func (tree *btreeTreeStruct) FetchLayoutReport() (layoutReport LayoutReport, err
 	return
 }
 
-func (tree *btreeTreeStruct) Flush(andPurge bool) (rootObjectNumber uint64, rootObjectOffset uint64, rootObjectLength uint64, err error) {
+func (tree *btreeTreeStruct) TouchFlushedList(flushedList FlushedList) (err error) {
+	iFL, ok := flushedList.(internalFlushedList)
+	if !ok {
+		err = fmt.Errorf("TouchFlushedList() could not parse flushedList")
+		return
+	}
+
+	for node := range iFL {
+		node.dirty = true
+	}
+
+	err = nil
+	return
+}
+
+func (tree *btreeTreeStruct) Flush(andPurge bool) (rootObjectNumber uint64, rootObjectOffset uint64, rootObjectLength uint64, flushedList FlushedList, err error) {
+	var (
+		iFL internalFlushedList
+	)
+
 	tree.Lock()
 	defer tree.Unlock()
 
+	iFL = make(map[*btreeNodeStruct]bool)
+
 	// First flush (and optionally purge) B+Tree
 
-	err = tree.flushNode(tree.root, andPurge)
+	err = tree.flushNode(tree.root, andPurge, iFL)
 	if nil != err {
 		return
 	}
@@ -1879,7 +1897,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 	return
 }
 
-func (tree *btreeTreeStruct) flushNode(node *btreeNodeStruct, andPurge bool) (err error) {
+func (tree *btreeTreeStruct) flushNode(node *btreeNodeStruct, andPurge bool, iFL internalFlushedList) (err error) {
 	if !node.loaded {
 		err = nil
 		return
@@ -1887,7 +1905,7 @@ func (tree *btreeTreeStruct) flushNode(node *btreeNodeStruct, andPurge bool) (er
 
 	if !node.leaf {
 		if nil != node.nonLeafLeftChild {
-			err = tree.flushNode(node.nonLeafLeftChild, andPurge)
+			err = tree.flushNode(node.nonLeafLeftChild, andPurge, iFL)
 			if nil != err {
 				return
 			}
@@ -1911,7 +1929,7 @@ func (tree *btreeTreeStruct) flushNode(node *btreeNodeStruct, andPurge bool) (er
 			}
 			childNode := childNodeAsValue.(*btreeNodeStruct)
 
-			err = tree.flushNode(childNode, andPurge)
+			err = tree.flushNode(childNode, andPurge, iFL)
 			if nil != err {
 				return
 			}
@@ -1920,6 +1938,7 @@ func (tree *btreeTreeStruct) flushNode(node *btreeNodeStruct, andPurge bool) (er
 
 	if node.dirty {
 		tree.postNode(node)
+		iFL[node] = true
 	}
 
 	if andPurge {
@@ -2566,11 +2585,13 @@ func (tree *btreeTreeStruct) updateLayoutReport(layoutReport LayoutReport, node 
 		}
 	}
 
-	prevObjectBytes, ok := layoutReport[node.objectNumber]
-	if !ok {
-		prevObjectBytes = 0
+	if 0 != node.objectNumber {
+		prevObjectBytes, ok := layoutReport[node.objectNumber]
+		if !ok {
+			prevObjectBytes = 0
+		}
+		layoutReport[node.objectNumber] = prevObjectBytes + node.objectLength
 	}
-	layoutReport[node.objectNumber] = prevObjectBytes + node.objectLength
 
 	if !node.leaf {
 		if nil == node.nonLeafLeftChild {
