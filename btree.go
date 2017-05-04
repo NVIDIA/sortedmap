@@ -788,6 +788,7 @@ func (tree *btreeTreeStruct) Flush(andPurge bool) (rootObjectNumber uint64, root
 
 	// All done
 
+	flushedList = iFL
 	err = nil
 	return
 }
@@ -956,15 +957,10 @@ func (tree *btreeTreeStruct) Discard() (err error) {
 	tree.Lock()
 	defer tree.Unlock()
 
-	if 0 != tree.activeClones {
-		err = fmt.Errorf("Discard() called on B+Tree with active clones")
-		return
-	}
-
 	// Following logic dependent upon whether or not tree is a clone of some other B+Tree
 
 	if nil == tree.clonedFromTree {
-		// This is a non-clone B+Tree, so first make sure there are no active clones
+		// Make sure there are no active clones
 
 		if 0 != tree.activeClones {
 			err = fmt.Errorf("Discard() called on B+Tree with active clones")
@@ -1652,6 +1648,8 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 
 			tree.arrangePrefixSumTree(parentNode)
 
+			tree.markNodeDirty(leftSiblingNode)
+
 			err = nil
 			return
 		}
@@ -1755,6 +1753,8 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 
 			tree.arrangePrefixSumTree(parentNode)
 
+			tree.markNodeDirty(rightSiblingNode)
+
 			err = nil
 			return
 		}
@@ -1821,6 +1821,8 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 
 			tree.rebalanceHere(parentNode, parentIndexStackPruned)
 		}
+
+		tree.markNodeDirty(leftSiblingNode)
 	} else if nil != rightSiblingNode {
 		// move keys from rightSiblingNode to rebalanceNode (along with former splitKey for non-leaf case)
 
@@ -1886,6 +1888,8 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 
 			tree.rebalanceHere(parentNode, parentIndexStackPruned)
 		}
+
+		tree.markNodeDirty(rightSiblingNode)
 	} else {
 		// non-root node must have had a sibling, so if we reach here, we have a logic problem
 
