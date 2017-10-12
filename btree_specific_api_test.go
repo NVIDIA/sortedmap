@@ -292,6 +292,8 @@ func TestBPlusTreeSpecific(t *testing.T) {
 		}
 	}
 
+	btreeCacheNew.UpdateLimits(200, 300)
+
 	err = btreeNew.Purge(true)
 	if nil != err {
 		t.Fatalf("btreeNew.Purge(true) should not have failed")

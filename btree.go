@@ -2145,6 +2145,17 @@ func (bPlusTreeCache *btreeNodeCacheStruct) btreeNodeCacheDrainer() {
 	}
 }
 
+func (bPlusTreeCache *btreeNodeCacheStruct) UpdateLimits(evictLowLimit uint64, evictHighLimit uint64) {
+	bPlusTreeCache.Lock()
+	bPlusTreeCache.evictLowLimit = evictLowLimit
+	bPlusTreeCache.evictHighLimit = evictHighLimit
+	if !bPlusTreeCache.drainerActive && (0 < bPlusTreeCache.cleanLRUItems) && (bPlusTreeCache.evictHighLimit < (bPlusTreeCache.cleanLRUItems + bPlusTreeCache.dirtyLRUItems)) {
+		bPlusTreeCache.drainerActive = true
+		go bPlusTreeCache.btreeNodeCacheDrainer()
+	}
+	bPlusTreeCache.Unlock()
+}
+
 func (tree *btreeTreeStruct) touchNode(node *btreeNodeStruct) (err error) {
 	if !node.loaded {
 		err = tree.loadNode(node)

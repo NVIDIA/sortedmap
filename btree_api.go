@@ -36,7 +36,9 @@ type BPlusTreeCallbacks interface {
 	UnpackValue(payloadData []byte) (value Value, bytesConsumed uint64, err error)
 }
 
-type BPlusTreeCache interface{}
+type BPlusTreeCache interface {
+	UpdateLimits(evictLowLimit uint64, evictHighLimit uint64)
+}
 
 func NewBPlusTreeCache(evictLowLimit uint64, evictHighLimit uint64) (bPlusTreeCache BPlusTreeCache) {
 	bPlusTreeCache = &btreeNodeCacheStruct{
