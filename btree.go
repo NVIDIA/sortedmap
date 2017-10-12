@@ -2,6 +2,7 @@ package sortedmap
 
 import (
 	"fmt"
+	"runtime"
 	"sync"
 
 	"github.com/swiftstack/cstruct"
@@ -33,6 +34,7 @@ type btreeNodeCacheStruct struct {
 	dirtyLRUHead   *btreeNodeStruct
 	dirtyLRUTail   *btreeNodeStruct
 	dirtyLRUItems  uint64
+	drainerActive  bool // if true, btreeNodeCacheDrainer() is already attempting to evict cleanLRU elements
 }
 
 type btreeNodeStruct struct {
@@ -1876,6 +1878,10 @@ func (tree *btreeTreeStruct) markNodeClean(node *btreeNodeStruct) {
 				tree.nodeCache.cleanLRUItems++
 			}
 		}
+		if !tree.nodeCache.drainerActive && (tree.nodeCache.evictHighLimit < (tree.nodeCache.cleanLRUItems + tree.nodeCache.dirtyLRUItems)) {
+			tree.nodeCache.drainerActive = true
+			go tree.nodeCache.btreeNodeCacheDrainer()
+		}
 		tree.nodeCache.Unlock()
 	}
 }
@@ -2079,6 +2085,63 @@ func (tree *btreeTreeStruct) markNodeEvicted(node *btreeNodeStruct) {
 			}
 		}
 		tree.nodeCache.Unlock()
+	}
+}
+
+// btreeNodeCacheDrainer is a goroutine used to reduce the number of clean B+Tree Nodes
+// so that the combined number of clean and dirty B+Tree Nodes is at or below the
+// evictLowLimit specified in the associated btreeNodeCacheStruct.
+//
+// Note that the btreeNodeCacheStruct's sync.Mutex is obtained by the above markNode...()
+// functions while their callers hold the B+Tree's btreeTreeStruct sync.Mutex. Hence, it
+// would be a deadlock-inducing activity to grab these sync.Mutex's in the reverse order.
+// Care must be taken to avoid this. The challenge is that a given btreeNodeCacheStruct
+// is likely to be shared among multiple btreeTreeStruct's. So processing the cleanLRU
+// doubly-linked list, while only holding the btreeNodeCacheStruct's sync.Mutex, will
+// ultimately require holding both that sync.Mutex and the associated btreeTreeStruct's
+// sync.Mutex in order to "evict" it. This will necessitate the following sequence:
+//
+//   1 - release the btreeNodeCacheStruct's sync.Mutex
+//   2 - obtain the selected btreeNodeStruct's btreeTreeStruct's sync.Mutex
+//   3 - verifying the selected btreeNodeStruct is still appropriate for eviction
+//   4 - performing the eviction
+//
+// Note also that non-leaf btreeNodeStruct's with loaded children cannot be evicted.
+// Instead, all loaded descendants that are themselves evictable, should first be evicted.
+// This will be accomplished by simply invoking purgeNode(,full==true) which should not
+// find any dirty nodes at or beneath the btreeNodeStruct selected for eviction.
+func (bPlusTreeCache *btreeNodeCacheStruct) btreeNodeCacheDrainer() {
+	var (
+		err                  error
+		nodeToEvict          *btreeNodeStruct
+		treeBeingEvictedFrom *btreeTreeStruct
+	)
+
+	for {
+		bPlusTreeCache.Lock()
+		if (0 == bPlusTreeCache.cleanLRUItems) || (bPlusTreeCache.evictLowLimit >= (bPlusTreeCache.cleanLRUItems + bPlusTreeCache.dirtyLRUItems)) {
+			bPlusTreeCache.drainerActive = false
+			bPlusTreeCache.Unlock()
+			runtime.Goexit()
+		}
+
+		nodeToEvict = bPlusTreeCache.cleanLRUHead
+		treeBeingEvictedFrom = nodeToEvict.tree
+		bPlusTreeCache.Unlock()
+		treeBeingEvictedFrom.Lock()
+
+		if cleanLRU != nodeToEvict.btreeNodeCacheTag {
+			// Between bPlusTreeCache.Unlock() & nodeToEvict.tree.Lock(), nodeToEvict no longer evictable
+			treeBeingEvictedFrom.Unlock()
+			continue
+		}
+
+		err = treeBeingEvictedFrom.purgeNode(nodeToEvict, true)
+		if nil != err {
+			panic(err)
+		}
+
+		treeBeingEvictedFrom.Unlock()
 	}
 }
 

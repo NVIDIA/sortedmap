@@ -48,6 +48,7 @@ func NewBPlusTreeCache(evictLowLimit uint64, evictHighLimit uint64) (bPlusTreeCa
 		dirtyLRUHead:   nil,
 		dirtyLRUTail:   nil,
 		dirtyLRUItems:  0,
+		drainerActive:  false,
 	}
 	return
 }

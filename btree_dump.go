@@ -32,6 +32,7 @@ func (tree *btreeTreeStruct) Dump() (err error) {
 			fmt.Printf("  .dirtyLRUTail   = %p\n", tree.nodeCache.dirtyLRUTail)
 		}
 		fmt.Printf("  .dirtyLRUItems  = %v\n", tree.nodeCache.dirtyLRUItems)
+		fmt.Printf("  .drainerActive  = %v\n", tree.nodeCache.drainerActive)
 	}
 
 	fmt.Printf("B+Tree @ %p has Root Node @ %p\n", tree, tree.root)
