@@ -1730,6 +1730,7 @@ func (tree *btreeTreeStruct) initNodeAsEvicted(node *btreeNodeStruct) {
 
 func (tree *btreeTreeStruct) markNodeUsed(node *btreeNodeStruct) {
 	if nil != tree.nodeCache {
+		tree.nodeCache.Lock()
 		switch node.btreeNodeCacheTag {
 		case noLRU:
 			err := fmt.Errorf("Logic error in markNodeUsed() with node.btreeNodeCacheTag == noLRU (%v)", noLRU)
@@ -1781,6 +1782,7 @@ func (tree *btreeTreeStruct) markNodeUsed(node *btreeNodeStruct) {
 				}
 			}
 		}
+		tree.nodeCache.Unlock()
 	}
 }
 
@@ -1788,6 +1790,7 @@ func (tree *btreeTreeStruct) markNodeClean(node *btreeNodeStruct) {
 	node.dirty = false
 
 	if nil != tree.nodeCache {
+		tree.nodeCache.Lock()
 		switch node.btreeNodeCacheTag {
 		case noLRU:
 			// Place node at the MRU end of tree.nodeCache's cleanLRU
@@ -1873,6 +1876,7 @@ func (tree *btreeTreeStruct) markNodeClean(node *btreeNodeStruct) {
 				tree.nodeCache.cleanLRUItems++
 			}
 		}
+		tree.nodeCache.Unlock()
 	}
 }
 
@@ -1906,6 +1910,7 @@ func (tree *btreeTreeStruct) markNodeDirty(node *btreeNodeStruct) {
 	}
 
 	if nil != tree.nodeCache {
+		tree.nodeCache.Lock()
 		switch node.btreeNodeCacheTag {
 		case noLRU:
 			// Place node at the MRU end of tree.nodeCache's dirtyLRU
@@ -1991,11 +1996,13 @@ func (tree *btreeTreeStruct) markNodeDirty(node *btreeNodeStruct) {
 				}
 			}
 		}
+		tree.nodeCache.Unlock()
 	}
 }
 
 func (tree *btreeTreeStruct) markNodeEvicted(node *btreeNodeStruct) {
 	if nil != tree.nodeCache {
+		tree.nodeCache.Lock()
 		switch node.btreeNodeCacheTag {
 		case noLRU:
 			err := fmt.Errorf("Logic error in markNodeUsed() with node.btreeNodeCacheTag == noLRU (%v)", noLRU)
@@ -2071,6 +2078,7 @@ func (tree *btreeTreeStruct) markNodeEvicted(node *btreeNodeStruct) {
 				}
 			}
 		}
+		tree.nodeCache.Unlock()
 	}
 }
 
