@@ -1,6 +1,6 @@
 all: fmt install test vet
 
-.PHONY: bench clean cover fmt install test vet
+.PHONY: all bench clean cover fmt install test vet
 
 bench:
 	go test -bench .
