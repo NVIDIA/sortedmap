@@ -1,7 +1,6 @@
 package sortedmap
 
 import (
-	"container/list"
 	"fmt"
 	"runtime"
 	"sync"
@@ -97,9 +96,9 @@ type btreeTreeStruct struct {
 	maxKeysPerNode uint64 //                           "order" according to Knuth (1998)
 	Compare
 	BPlusTreeCallbacks
-	root                      *btreeNodeStruct      // should never be nil
-	staleOnDiskReferencesList *list.List            // previously posted node locations (staleOnDiskReferenceStruct) yet to be discarded
-	nodeCache                 *btreeNodeCacheStruct // likely shared with other btreeTreeStruct's
+	root                      *btreeNodeStruct                        // should never be nil
+	staleOnDiskReferencesList map[staleOnDiskReferenceStruct]struct{} // previously posted node locations (staleOnDiskReferenceStruct) yet to be discarded
+	nodeCache                 *btreeNodeCacheStruct                   // likely shared with other btreeTreeStruct's
 }
 
 // API functions (see api.go)
@@ -952,27 +951,20 @@ func (tree *btreeTreeStruct) Discard() (err error) {
 
 func (tree *btreeTreeStruct) pruneWhileLocked() (err error) {
 	var (
-		staleOnDiskReferenceElement *list.Element
-		staleOnDiskReferenceValue   *staleOnDiskReferenceStruct
+		staleOnDiskReference staleOnDiskReferenceStruct
 	)
 
 	// Discard all stale OnDisk node references
 
 	if nil != tree.staleOnDiskReferencesList {
-		staleOnDiskReferenceElement = tree.staleOnDiskReferencesList.Front()
-
-		for nil != staleOnDiskReferenceElement {
-			staleOnDiskReferenceValue = staleOnDiskReferenceElement.Value.(*staleOnDiskReferenceStruct)
-
-			err = tree.BPlusTreeCallbacks.DiscardNode(staleOnDiskReferenceValue.objectNumber, staleOnDiskReferenceValue.objectOffset, staleOnDiskReferenceValue.objectLength)
+		for staleOnDiskReference = range tree.staleOnDiskReferencesList {
+			err = tree.BPlusTreeCallbacks.DiscardNode(staleOnDiskReference.objectNumber, staleOnDiskReference.objectOffset, staleOnDiskReference.objectLength)
 			if nil != err {
 				return
 			}
-
-			_ = tree.staleOnDiskReferencesList.Remove(staleOnDiskReferenceElement)
-
-			staleOnDiskReferenceElement = tree.staleOnDiskReferencesList.Front()
 		}
+
+		tree.staleOnDiskReferencesList = nil
 	}
 
 	// All done
@@ -1833,28 +1825,7 @@ func (tree *btreeTreeStruct) markNodeClean(node *btreeNodeStruct) {
 func (tree *btreeTreeStruct) markNodeDirty(node *btreeNodeStruct) {
 	node.dirty = true
 
-	if 0 != node.objectLength {
-		// Node came from a now-stale copy on disk...
-		//   so schedule stale on-disk reference to be reclaimed in a subsequent Prune() call
-
-		if nil == tree.staleOnDiskReferencesList {
-			tree.staleOnDiskReferencesList = list.New()
-		}
-
-		staleOnDiskReference := &staleOnDiskReferenceStruct{
-			objectNumber: node.objectNumber,
-			objectOffset: node.objectOffset,
-			objectLength: node.objectLength,
-		}
-
-		_ = tree.staleOnDiskReferencesList.PushBack(staleOnDiskReference)
-
-		// Zero-out on-disk reference so that the above is only done once for this now dirty node
-
-		node.objectNumber = 0
-		node.objectOffset = 0
-		node.objectLength = 0
-	}
+	tree.placeNodeOnStaleOnDiskReferenceList(node)
 
 	if nil != tree.nodeCache {
 		tree.nodeCache.Lock()
@@ -2030,34 +2001,13 @@ func (tree *btreeTreeStruct) markNodeEvicted(node *btreeNodeStruct) {
 }
 
 func (tree *btreeTreeStruct) markNodeToBeDiscarded(node *btreeNodeStruct) {
-	if 0 != node.objectLength {
-		// Node came from a now-stale copy on disk...
-		//   so schedule stale on-disk reference to be reclaimed in a subsequent Prune() call
-
-		if nil == tree.staleOnDiskReferencesList {
-			tree.staleOnDiskReferencesList = list.New()
-		}
-
-		staleOnDiskReference := &staleOnDiskReferenceStruct{
-			objectNumber: node.objectNumber,
-			objectOffset: node.objectOffset,
-			objectLength: node.objectLength,
-		}
-
-		_ = tree.staleOnDiskReferencesList.PushBack(staleOnDiskReference)
-
-		// Zero-out on-disk reference so that the above is only done once for this now dirty node
-
-		node.objectNumber = 0
-		node.objectOffset = 0
-		node.objectLength = 0
-	}
+	tree.placeNodeOnStaleOnDiskReferenceList(node)
 
 	if nil != tree.nodeCache {
 		tree.nodeCache.Lock()
 		switch node.btreeNodeCacheTag {
 		case noLRU:
-			err := fmt.Errorf("Logic error in markNodeEvicted() with node.btreeNodeCacheTag == noLRU (%v)", noLRU)
+			err := fmt.Errorf("Logic error in markNodeToBeDiscarded() with node.btreeNodeCacheTag == noLRU (%v)", noLRU)
 			panic(err)
 		case cleanLRU:
 			// Remove node from tree.nodeCache's cleanLRU
@@ -2131,6 +2081,33 @@ func (tree *btreeTreeStruct) markNodeToBeDiscarded(node *btreeNodeStruct) {
 			}
 		}
 		tree.nodeCache.Unlock()
+	}
+}
+
+func (tree *btreeTreeStruct) placeNodeOnStaleOnDiskReferenceList(node *btreeNodeStruct) {
+	if 0 != node.objectLength {
+		// Node came from a now-stale copy on disk...
+		//   so schedule stale on-disk reference to be reclaimed in a subsequent Prune() call
+
+		if nil == tree.staleOnDiskReferencesList {
+			tree.staleOnDiskReferencesList = make(map[staleOnDiskReferenceStruct]struct{})
+		}
+
+		staleOnDiskReference := staleOnDiskReferenceStruct{
+			objectNumber: node.objectNumber,
+			objectOffset: node.objectOffset,
+			objectLength: node.objectLength,
+		}
+
+		// Duplicate insertions, since staleOnDiskReference is "by value" will be merged
+
+		tree.staleOnDiskReferencesList[staleOnDiskReference] = struct{}{}
+
+		// Zero-out on-disk reference so that the above is only done once for this node
+
+		node.objectNumber = 0
+		node.objectOffset = 0
+		node.objectLength = 0
 	}
 }
 
