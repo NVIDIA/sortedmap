@@ -2364,6 +2364,13 @@ func (bPlusTreeCache *btreeNodeCacheStruct) btreeNodeCacheDrainer() {
 		}
 
 		nodeToEvict = bPlusTreeCache.cleanLRUHead
+		if nil == nodeToEvict {
+			// No nodes to evict... try again next time
+			bPlusTreeCache.drainerActive = false
+			bPlusTreeCache.Unlock()
+			runtime.Goexit()
+		}
+
 		treeBeingEvictedFrom = nodeToEvict.tree
 		bPlusTreeCache.Unlock()
 		treeBeingEvictedFrom.Lock()

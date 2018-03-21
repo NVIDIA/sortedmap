@@ -5,6 +5,11 @@ import (
 	"reflect"
 	"sync"
 	"testing"
+	"time"
+)
+
+const (
+	testBPlusTreeCacheDelay = 100 * time.Millisecond
 )
 
 type testBPlusTreeStruct struct {
@@ -137,12 +142,12 @@ func (tree *testBPlusTreeStruct) PackKey(key Key) (packedKey []byte, err error) 
 }
 
 func (tree *testBPlusTreeStruct) UnpackKey(payloadData []byte) (key Key, bytesConsumed uint64, err error) {
-	if len(payloadData) != 2 {
-		err = fmt.Errorf("UnpackKey() called for length %v... expected length of 2", len(payloadData))
+	if len(payloadData) < 2 {
+		err = fmt.Errorf("UnpackKey() called for length %v... expected length of at least 2", len(payloadData))
 		return
 	}
 
-	key = uint32(payloadData[0]) | (uint32(payloadData[1]) << 8)
+	key = uint16(payloadData[0]) | (uint16(payloadData[1]) << 8)
 
 	bytesConsumed = 2
 
@@ -173,8 +178,8 @@ func (tree *testBPlusTreeStruct) PackValue(value Value) (packedValue []byte, err
 }
 
 func (tree *testBPlusTreeStruct) UnpackValue(payloadData []byte) (value Value, bytesConsumed uint64, err error) {
-	if len(payloadData) != 4 {
-		err = fmt.Errorf("UnpackValue() called for length %v... expected length of 4", len(payloadData))
+	if len(payloadData) < 4 {
+		err = fmt.Errorf("UnpackValue() called for length %v... expected length of at least 4", len(payloadData))
 		return
 	}
 
@@ -188,9 +193,11 @@ func (tree *testBPlusTreeStruct) UnpackValue(payloadData []byte) (value Value, b
 
 func TestBPlusTreeCache(t *testing.T) {
 	var (
-		tree       BPlusTree // map[uint16]uint32
-		treeCache  BPlusTreeCache
-		treeStruct *testBPlusTreeStruct
+		treeA           BPlusTree // map[uint16]uint32
+		treeB           BPlusTree // map[uint16]uint32
+		treeCache       BPlusTreeCache
+		treeCacheStruct *btreeNodeCacheStruct
+		treeStruct      *testBPlusTreeStruct
 	)
 
 	treeStruct = &testBPlusTreeStruct{
@@ -198,26 +205,106 @@ func TestBPlusTreeCache(t *testing.T) {
 		objectMap:        make(map[uint64][]byte),
 	}
 
-	treeCache = NewBPlusTreeCache(0, 1000)
+	treeCache = NewBPlusTreeCache(1, 4)
+	treeCacheStruct = treeCache.(*btreeNodeCacheStruct)
 
-	tree = NewBPlusTree(4, CompareUint16, treeStruct, treeCache)
+	// Consume 1 node for treeA
 
-	_, _ = tree.Put(uint16(0x0000), uint32(0x00000000))
-	_, _ = tree.Put(uint16(0x0001), uint32(0x00000001))
-	_, _ = tree.Put(uint16(0x0002), uint32(0x00000002))
-	_, _ = tree.Put(uint16(0x0003), uint32(0x00000003))
-	_, _ = tree.Put(uint16(0x0004), uint32(0x00000004))
-	_, _ = tree.Put(uint16(0x0005), uint32(0x00000005))
-	_, _ = tree.Put(uint16(0x0006), uint32(0x00000006))
-	_, _ = tree.Put(uint16(0x0007), uint32(0x00000007))
-	_, _ = tree.Put(uint16(0x0008), uint32(0x00000008))
-	_, _ = tree.Put(uint16(0x0009), uint32(0x00000009))
-	_, _ = tree.Put(uint16(0x000A), uint32(0x0000000A))
-	_, _ = tree.Put(uint16(0x000B), uint32(0x0000000B))
-	_, _ = tree.Put(uint16(0x000C), uint32(0x0000000C))
-	_, _ = tree.Put(uint16(0x000D), uint32(0x0000000D))
-	_, _ = tree.Put(uint16(0x000E), uint32(0x0000000E))
-	_, _ = tree.Put(uint16(0x000F), uint32(0x0000000F))
+	treeA = NewBPlusTree(4, CompareUint16, treeStruct, treeCache)
 
-	// TODO: Need to finish TestBPlusTreeCache()
+	_, _ = treeA.Put(uint16(0x0000), uint32(0x00000000))
+
+	if 0 != treeCacheStruct.cleanLRUItems {
+		t.Fatalf("Expected treeCacheStruct.cleanLRUItems to be 0 (was %v)", treeCacheStruct.cleanLRUItems)
+	}
+	if 1 != treeCacheStruct.dirtyLRUItems {
+		t.Fatalf("Expected treeCacheStruct.dirtyLRUItems to be 1 (was %v)", treeCacheStruct.dirtyLRUItems)
+	}
+
+	treeA.Flush(false)
+
+	if 1 != treeCacheStruct.cleanLRUItems {
+		t.Fatalf("Expected treeCacheStruct.cleanLRUItems to be 1 (was %v)", treeCacheStruct.cleanLRUItems)
+	}
+	if 0 != treeCacheStruct.dirtyLRUItems {
+		t.Fatalf("Expected treeCacheStruct.dirtyLRUItems to be 0 (was %v)", treeCacheStruct.dirtyLRUItems)
+	}
+
+	treeA.Flush(true)
+
+	if 0 != treeCacheStruct.cleanLRUItems {
+		t.Fatalf("Expected treeCacheStruct.cleanLRUItems to be 0 (was %v)", treeCacheStruct.cleanLRUItems)
+	}
+	if 0 != treeCacheStruct.dirtyLRUItems {
+		t.Fatalf("Expected treeCacheStruct.dirtyLRUItems to be 0 (was %v)", treeCacheStruct.dirtyLRUItems)
+	}
+
+	// Consume 4 nodes for treeB
+
+	treeB = NewBPlusTree(4, CompareUint16, treeStruct, treeCache)
+
+	_, _ = treeB.Put(uint16(0x0000), uint32(0x00000000))
+	_, _ = treeB.Put(uint16(0x0001), uint32(0x00000001))
+	_, _ = treeB.Put(uint16(0x0002), uint32(0x00000002))
+	_, _ = treeB.Put(uint16(0x0003), uint32(0x00000003))
+	_, _ = treeB.Put(uint16(0x0004), uint32(0x00000004))
+	_, _ = treeB.Put(uint16(0x0005), uint32(0x00000005))
+	_, _ = treeB.Put(uint16(0x0006), uint32(0x00000006))
+
+	if 0 != treeCacheStruct.cleanLRUItems {
+		t.Fatalf("Expected treeCacheStruct.cleanLRUItems to be 0 (was %v)", treeCacheStruct.cleanLRUItems)
+	}
+	if 4 != treeCacheStruct.dirtyLRUItems {
+		t.Fatalf("Expected treeCacheStruct.dirtyLRUItems to be 4 (was %v)", treeCacheStruct.dirtyLRUItems)
+	}
+
+	treeB.Flush(false)
+
+	if 4 != treeCacheStruct.cleanLRUItems {
+		t.Fatalf("Expected treeCacheStruct.cleanLRUItems to be 4 (was %v)", treeCacheStruct.cleanLRUItems)
+	}
+	if 0 != treeCacheStruct.dirtyLRUItems {
+		t.Fatalf("Expected treeCacheStruct.dirtyLRUItems to be 0 (was %v)", treeCacheStruct.dirtyLRUItems)
+	}
+
+	treeB.Flush(true)
+
+	if 0 != treeCacheStruct.cleanLRUItems {
+		t.Fatalf("Expected treeCacheStruct.cleanLRUItems to be 0 (was %v)", treeCacheStruct.cleanLRUItems)
+	}
+	if 0 != treeCacheStruct.dirtyLRUItems {
+		t.Fatalf("Expected treeCacheStruct.dirtyLRUItems to be 0 (was %v)", treeCacheStruct.dirtyLRUItems)
+	}
+
+	// Read entire treeB filling all 4 treeCacheStruct.cleanLRUItems
+
+	_, _, _ = treeB.GetByKey(uint16(0x0000))
+	_, _, _ = treeB.GetByKey(uint16(0x0001))
+	_, _, _ = treeB.GetByKey(uint16(0x0002))
+	_, _, _ = treeB.GetByKey(uint16(0x0003))
+	_, _, _ = treeB.GetByKey(uint16(0x0004))
+	_, _, _ = treeB.GetByKey(uint16(0x0005))
+	_, _, _ = treeB.GetByKey(uint16(0x0006))
+
+	if 4 != treeCacheStruct.cleanLRUItems {
+		t.Fatalf("Expected treeCacheStruct.cleanLRUItems to be 4 (was %v)", treeCacheStruct.cleanLRUItems)
+	}
+	if 0 != treeCacheStruct.dirtyLRUItems {
+		t.Fatalf("Expected treeCacheStruct.dirtyLRUItems to be 0 (was %v)", treeCacheStruct.dirtyLRUItems)
+	}
+
+	// Read lone key from treeA expecting treeCache to have to purge down to evictLowLimit
+
+	_, _, _ = treeA.GetByKey(uint16(0x0000))
+
+	for treeCacheStruct.drainerActive {
+		time.Sleep(testBPlusTreeCacheDelay)
+	}
+
+	if 1 != treeCacheStruct.cleanLRUItems {
+		t.Fatalf("Expected treeCacheStruct.cleanLRUItems to be 1 (was %v)", treeCacheStruct.cleanLRUItems)
+	}
+	if 0 != treeCacheStruct.dirtyLRUItems {
+		t.Fatalf("Expected treeCacheStruct.dirtyLRUItems to be 0 (was %v)", treeCacheStruct.dirtyLRUItems)
+	}
 }

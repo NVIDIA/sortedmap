@@ -429,8 +429,6 @@ func TestBPlusTreeSpecific(t *testing.T) {
 		t.Fatalf("btreeOld.Purge(true) [case 2] should have failed")
 	}
 
-	fmt.Println("...before TouchItem(0)...:")
-	btreeOld.Dump()
 	nextItemIndexToTouch, err := btreeOld.TouchItem(0)
 	if nil != err {
 		t.Fatalf("btreeOld.TouchItem(0) should not have failed")
