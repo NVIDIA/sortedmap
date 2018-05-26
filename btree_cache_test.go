@@ -316,11 +316,11 @@ func TestBPlusTreeCache(t *testing.T) {
 
 	cacheHits, cacheMisses, evictLowLimit, evictHighLimit = treeCacheStruct.Stats()
 
-	if 25 != cacheHits {
-		t.Fatalf("Expected cacheHits to be 25 (was %v)", cacheHits)
+	if 20 != cacheHits {
+		t.Fatalf("Expected cacheHits to be 20 (was %v)", cacheHits)
 	}
-	if 0 != cacheMisses {
-		t.Fatalf("Expected cacheMisses to be 0 (was %v)", cacheMisses)
+	if 5 != cacheMisses {
+		t.Fatalf("Expected cacheMisses to be 5 (was %v)", cacheMisses)
 	}
 	if 1 != evictLowLimit {
 		t.Fatalf("Expected evictLowLimit to be 1 (was %v)", evictLowLimit)

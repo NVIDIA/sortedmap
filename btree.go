@@ -1956,7 +1956,7 @@ func (tree *btreeTreeStruct) incCacheHits() {
 func (tree *btreeTreeStruct) incCacheMisses() {
 	if nil != tree.nodeCache {
 		tree.nodeCache.Lock()
-		tree.nodeCache.cacheHits++
+		tree.nodeCache.cacheMisses++
 		tree.nodeCache.Unlock()
 	}
 }
