@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/swiftstack/cstruct"
+	"github.com/NVIDIA/cstruct"
 )
 
 type btreeNodeCacheTag uint32

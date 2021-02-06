@@ -6,7 +6,7 @@ package sortedmap
 import (
 	"fmt"
 
-	"github.com/swiftstack/cstruct"
+	"github.com/NVIDIA/cstruct"
 )
 
 // OnDiskByteOrder specifies the endian-ness expected to be used to persist B+Tree data structures
