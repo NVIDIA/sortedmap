@@ -1,2 +1,4 @@
 github.com/NVIDIA/cstruct v0.0.0-20210203201140-f4db46040b9a h1:kC/haCyNLEPaV++f9Ro7w5MyW5KclVUNrTG7JhmSp/M=
 github.com/NVIDIA/cstruct v0.0.0-20210203201140-f4db46040b9a/go.mod h1:Ffet7HOf/prPpmqMxpWFXEimd/5YHt9MKO/murMNKos=
+github.com/NVIDIA/cstruct v0.0.0-20210804235153-e02d4f5f012d h1:DSX7RxYXf0jevVSL+NbPdaMKNr8YADNcAFYvP1L10JE=
+github.com/NVIDIA/cstruct v0.0.0-20210804235153-e02d4f5f012d/go.mod h1:d68dR75IgEqHcodexLfWr6dEFVUs90ApRj5KSYkL59k=
