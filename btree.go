@@ -836,6 +836,48 @@ func (tree *btreeTreeStruct) FetchLayoutReport() (layoutReport LayoutReport, err
 	return
 }
 
+func (tree *btreeTreeStruct) FetchDimensionsReport() (dimensionsReport DimensionsReport, err error) {
+	var (
+		node *btreeNodeStruct
+	)
+
+	tree.Lock()
+	defer tree.Unlock()
+
+	node = tree.root
+
+	for {
+		if node.loaded {
+			tree.incCacheHits()
+			tree.markNodeUsed(node)
+		} else {
+			tree.incCacheMisses()
+			err = tree.loadNode(node) // will also mark node clean/used in LRU
+			if nil != err {
+				return
+			}
+		}
+
+		if node.root {
+			dimensionsReport = DimensionsReport{
+				minKeysPerNode: tree.minKeysPerNode,
+				maxKeysPerNode: tree.maxKeysPerNode,
+				items:          node.items,
+				height:         1,
+			}
+		}
+
+		if node.leaf {
+			err = nil
+			return
+		}
+
+		node = node.nonLeafLeftChild
+
+		dimensionsReport.height++
+	}
+}
+
 func (tree *btreeTreeStruct) Flush(andPurge bool) (rootObjectNumber uint64, rootObjectOffset uint64, rootObjectLength uint64, err error) {
 	tree.Lock()
 	defer tree.Unlock()
