@@ -860,10 +860,10 @@ func (tree *btreeTreeStruct) FetchDimensionsReport() (dimensionsReport Dimension
 
 		if node.root {
 			dimensionsReport = DimensionsReport{
-				minKeysPerNode: tree.minKeysPerNode,
-				maxKeysPerNode: tree.maxKeysPerNode,
-				items:          node.items,
-				height:         1,
+				MinKeysPerNode: tree.minKeysPerNode,
+				MaxKeysPerNode: tree.maxKeysPerNode,
+				Items:          node.items,
+				Height:         1,
 			}
 		}
 
@@ -874,7 +874,7 @@ func (tree *btreeTreeStruct) FetchDimensionsReport() (dimensionsReport Dimension
 
 		node = node.nonLeafLeftChild
 
-		dimensionsReport.height++
+		dimensionsReport.Height++
 	}
 }
 

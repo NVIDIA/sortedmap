@@ -16,10 +16,10 @@ var OnDiskByteOrder = cstruct.LittleEndian
 type LayoutReport map[uint64]uint64
 
 type DimensionsReport struct {
-	minKeysPerNode uint64 // only applies to non-Root nodes
-	maxKeysPerNode uint64
-	items          uint64
-	height         uint64
+	MinKeysPerNode uint64 // only applies to non-Root nodes
+	MaxKeysPerNode uint64
+	Items          uint64
+	Height         uint64
 }
 
 // BPlusTree interface declares the available methods available for a B+Tree
