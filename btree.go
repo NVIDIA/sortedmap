@@ -1909,7 +1909,10 @@ func (tree *btreeTreeStruct) flushNode(node *btreeNodeStruct, andPurge bool) (er
 	}
 
 	if node.dirty {
-		tree.postNode(node) // will also mark node clean/used in LRU
+		err = tree.postNode(node) // will also mark node clean/used in LRU
+		if nil != err {
+			return
+		}
 	}
 
 	if andPurge {
