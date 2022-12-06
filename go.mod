@@ -1,5 +1,5 @@
 module github.com/NVIDIA/sortedmap
 
-go 1.17
+go 1.19
 
-require github.com/NVIDIA/cstruct v0.0.0-20210817223100-441a06a021c8
+require github.com/NVIDIA/cstruct v0.0.0-20221206222058-cbc877f192d5

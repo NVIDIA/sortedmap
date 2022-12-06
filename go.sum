@@ -1,4 +1,2 @@
-github.com/NVIDIA/cstruct v0.0.0-20210804235153-e02d4f5f012d h1:DSX7RxYXf0jevVSL+NbPdaMKNr8YADNcAFYvP1L10JE=
-github.com/NVIDIA/cstruct v0.0.0-20210804235153-e02d4f5f012d/go.mod h1:d68dR75IgEqHcodexLfWr6dEFVUs90ApRj5KSYkL59k=
-github.com/NVIDIA/cstruct v0.0.0-20210817223100-441a06a021c8 h1:hMAAyAeYB1T1DnxqdDZzjWeTDz/hL0ZGFhz3uQyH1nQ=
-github.com/NVIDIA/cstruct v0.0.0-20210817223100-441a06a021c8/go.mod h1:GPbuJvLD4QWiHPS6vivLzh+XMAx6va0Aucm6ipa5S0I=
+github.com/NVIDIA/cstruct v0.0.0-20221206222058-cbc877f192d5 h1:u9jQ3H8RSqtqTu7b+oACnChS7HsVpbV46/qBJPVCBjU=
+github.com/NVIDIA/cstruct v0.0.0-20221206222058-cbc877f192d5/go.mod h1:s/x+WQqgkcAbDPltLPIs0AwqxY7W6UG0RGhuMVy8tds=

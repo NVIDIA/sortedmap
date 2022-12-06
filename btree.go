@@ -2469,10 +2469,10 @@ func (tree *btreeTreeStruct) placeNodeOnStaleOnDiskReferenceList(node *btreeNode
 // ultimately require holding both that sync.Mutex and the associated btreeTreeStruct's
 // sync.Mutex in order to "evict" it. This will necessitate the following sequence:
 //
-//   1 - release the btreeNodeCacheStruct's sync.Mutex
-//   2 - obtain the selected btreeNodeStruct's btreeTreeStruct's sync.Mutex
-//   3 - verifying the selected btreeNodeStruct is still appropriate for eviction
-//   4 - performing the eviction
+//	1 - release the btreeNodeCacheStruct's sync.Mutex
+//	2 - obtain the selected btreeNodeStruct's btreeTreeStruct's sync.Mutex
+//	3 - verifying the selected btreeNodeStruct is still appropriate for eviction
+//	4 - performing the eviction
 //
 // Note also that non-leaf btreeNodeStruct's with loaded children cannot be evicted.
 // Instead, all loaded descendants that are themselves evictable, should first be evicted.
