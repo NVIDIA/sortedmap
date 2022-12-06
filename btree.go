@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/swiftstack/cstruct"
+	"github.com/NVIDIA/cstruct"
 )
 
 type btreeNodeCacheTag uint32
@@ -834,6 +834,48 @@ func (tree *btreeTreeStruct) FetchLayoutReport() (layoutReport LayoutReport, err
 	err = tree.updateLayoutReport(layoutReport, tree.root)
 
 	return
+}
+
+func (tree *btreeTreeStruct) FetchDimensionsReport() (dimensionsReport DimensionsReport, err error) {
+	var (
+		node *btreeNodeStruct
+	)
+
+	tree.Lock()
+	defer tree.Unlock()
+
+	node = tree.root
+
+	for {
+		if node.loaded {
+			tree.incCacheHits()
+			tree.markNodeUsed(node)
+		} else {
+			tree.incCacheMisses()
+			err = tree.loadNode(node) // will also mark node clean/used in LRU
+			if nil != err {
+				return
+			}
+		}
+
+		if node.root {
+			dimensionsReport = DimensionsReport{
+				MinKeysPerNode: tree.minKeysPerNode,
+				MaxKeysPerNode: tree.maxKeysPerNode,
+				Items:          node.items,
+				Height:         1,
+			}
+		}
+
+		if node.leaf {
+			err = nil
+			return
+		}
+
+		node = node.nonLeafLeftChild
+
+		dimensionsReport.Height++
+	}
 }
 
 func (tree *btreeTreeStruct) Flush(andPurge bool) (rootObjectNumber uint64, rootObjectOffset uint64, rootObjectLength uint64, err error) {
@@ -1867,7 +1909,10 @@ func (tree *btreeTreeStruct) flushNode(node *btreeNodeStruct, andPurge bool) (er
 	}
 
 	if node.dirty {
-		tree.postNode(node) // will also mark node clean/used in LRU
+		err = tree.postNode(node) // will also mark node clean/used in LRU
+		if nil != err {
+			return
+		}
 	}
 
 	if andPurge {
@@ -2424,10 +2469,10 @@ func (tree *btreeTreeStruct) placeNodeOnStaleOnDiskReferenceList(node *btreeNode
 // ultimately require holding both that sync.Mutex and the associated btreeTreeStruct's
 // sync.Mutex in order to "evict" it. This will necessitate the following sequence:
 //
-//   1 - release the btreeNodeCacheStruct's sync.Mutex
-//   2 - obtain the selected btreeNodeStruct's btreeTreeStruct's sync.Mutex
-//   3 - verifying the selected btreeNodeStruct is still appropriate for eviction
-//   4 - performing the eviction
+//	1 - release the btreeNodeCacheStruct's sync.Mutex
+//	2 - obtain the selected btreeNodeStruct's btreeTreeStruct's sync.Mutex
+//	3 - verifying the selected btreeNodeStruct is still appropriate for eviction
+//	4 - performing the eviction
 //
 // Note also that non-leaf btreeNodeStruct's with loaded children cannot be evicted.
 // Instead, all loaded descendants that are themselves evictable, should first be evicted.

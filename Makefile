@@ -1,12 +1,15 @@
 # Copyright (c) 2015-2021, NVIDIA CORPORATION.
 # SPDX-License-Identifier: Apache-2.0
 
-all: fmt install test vet
+all: fmt build test
 
-.PHONY: all bench clean cover fmt install test vet
+.PHONY: all bench build clean cover fmt test
 
 bench:
 	go test -bench .
+
+build:
+	go build .
 
 clean:
 	go clean -i .
@@ -17,11 +20,5 @@ cover:
 fmt:
 	go fmt .
 
-install:
-	go install .
-
 test:
 	go test .
-
-vet:
-	go vet .

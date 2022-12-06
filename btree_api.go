@@ -6,7 +6,7 @@ package sortedmap
 import (
 	"fmt"
 
-	"github.com/swiftstack/cstruct"
+	"github.com/NVIDIA/cstruct"
 )
 
 // OnDiskByteOrder specifies the endian-ness expected to be used to persist B+Tree data structures
@@ -15,11 +15,19 @@ var OnDiskByteOrder = cstruct.LittleEndian
 // LayoutReport is a map where key is an objectNumber and value is objectBytes used in that objectNumber
 type LayoutReport map[uint64]uint64
 
+type DimensionsReport struct {
+	MinKeysPerNode uint64 // only applies to non-Root nodes
+	MaxKeysPerNode uint64
+	Items          uint64
+	Height         uint64
+}
+
 // BPlusTree interface declares the available methods available for a B+Tree
 type BPlusTree interface {
 	SortedMap
 	FetchLocation() (rootObjectNumber uint64, rootObjectOffset uint64, rootObjectLength uint64)
 	FetchLayoutReport() (layoutReport LayoutReport, err error)
+	FetchDimensionsReport() (dimensionsReport DimensionsReport, err error)
 	Flush(andPurge bool) (rootObjectNumber uint64, rootObjectOffset uint64, rootObjectLength uint64, err error)
 	Purge(full bool) (err error)
 	Touch() (err error)
