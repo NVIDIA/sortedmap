@@ -809,7 +809,7 @@ func testKnuthShuffledIntSlice(n int) (intSlice []int, err error) {
 
 			swapTo = randSource.Int63n(swapFrom + 1)
 		} else {
-			swapFromPlusOneBigIntPtr := big.NewInt(int64(swapFrom + 1))
+			swapFromPlusOneBigIntPtr := big.NewInt(swapFrom + 1)
 
 			swapToBigIntPtr, nonShadowingErr := cryptoRand.Int(cryptoRand.Reader, swapFromPlusOneBigIntPtr)
 			if nil != nonShadowingErr {

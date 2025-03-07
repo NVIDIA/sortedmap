@@ -36,7 +36,7 @@ linters:
     # - staticcheck
     # - testpackage
     - typecheck
-    # - unconvert
+    - unconvert
     - unparam
     - unused
     - whitespace

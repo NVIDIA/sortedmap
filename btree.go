@@ -944,7 +944,7 @@ func (tree *btreeTreeStruct) TouchItem(thisItemIndexToTouch uint64) (nextItemInd
 		return
 	}
 
-	netIndex := uint64(thisItemIndexToTouch)
+	netIndex := thisItemIndexToTouch
 
 	for {
 		if node.loaded {
@@ -2584,7 +2584,7 @@ func (tree *btreeTreeStruct) touchLoadedNodeToRoot(node *btreeNodeStruct) {
 }
 
 func (tree *btreeTreeStruct) arrangePrefixSumTreeRecursively(prefixSumSlice []*btreeNodeStruct) (midPointNode *btreeNodeStruct) {
-	midPointIndex := int(len(prefixSumSlice) / 2)
+	midPointIndex := len(prefixSumSlice) / 2
 
 	midPointNode = prefixSumSlice[midPointIndex]
 
