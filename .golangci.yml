@@ -5,7 +5,7 @@ linters:
     - bodyclose
     - canonicalheader
     - copyloopvar
-    # - depguard
+    - depguard
     - dogsled
     # - dupl
     - durationcheck
@@ -33,7 +33,7 @@ linters:
     - protogetter
     - reassign
     - revive
-    # - staticcheck
+    - staticcheck
     # - testpackage
     - typecheck
     - unconvert

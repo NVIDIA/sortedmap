@@ -12,7 +12,7 @@ import (
 	cryptoRand "crypto/rand"
 	"fmt"
 	"math/big"
-	mathRand "math/rand"
+	mathRand "math/rand/v2"
 	"strconv"
 	"testing"
 )
@@ -20,8 +20,9 @@ import (
 const (
 	testHugeNumKeys = 5000
 
-	pseudoRandom     = false
-	pseudoRandomSeed = int64(0)
+	pseudoRandom      = false
+	pseudoRandomSeed1 = uint64(0)
+	pseudoRandomSeed2 = uint64(0)
 )
 
 var (
@@ -804,10 +805,10 @@ func testKnuthShuffledIntSlice(n int) (intSlice []int, err error) {
 	for swapFrom = int64(n - 1); swapFrom > int64(0); swapFrom-- {
 		if pseudoRandom {
 			if nil == randSource {
-				randSource = mathRand.New(mathRand.NewSource(pseudoRandomSeed))
+				randSource = mathRand.New(mathRand.NewPCG(pseudoRandomSeed1, pseudoRandomSeed2))
 			}
 
-			swapTo = randSource.Int63n(swapFrom + 1)
+			swapTo = randSource.Int64N(swapFrom + 1)
 		} else {
 			swapFromPlusOneBigIntPtr := big.NewInt(swapFrom + 1)
 
