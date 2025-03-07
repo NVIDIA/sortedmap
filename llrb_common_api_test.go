@@ -1,10 +1,11 @@
-// Copyright (c) 2015-2021, NVIDIA CORPORATION.
+// Copyright (c) 2015-2025, NVIDIA CORPORATION.
 // SPDX-License-Identifier: Apache-2.0
 
 package sortedmap
 
 import (
-	"fmt"
+	"errors"
+	"strconv"
 	"testing"
 )
 
@@ -22,7 +23,7 @@ func (context *commonLLRBTreeTestContextStruct) DumpKey(key Key) (keyAsString st
 	if !ok {
 		context.t.Fatalf("DumpKey() argument not an int")
 	}
-	keyAsString = fmt.Sprintf("%v", keyAsInt)
+	keyAsString = strconv.Itoa(keyAsInt)
 	err = nil
 	return
 }
@@ -41,13 +42,13 @@ type commonLLRBTreeBenchmarkContextStruct struct {
 	tree LLRBTree
 }
 
-func (context *commonLLRBTreeBenchmarkContextStruct) DumpKey(key Key) (keyAsString string, err error) {
-	err = fmt.Errorf("DumpKey() not implemented")
+func (*commonLLRBTreeBenchmarkContextStruct) DumpKey(_ Key) (keyAsString string, err error) {
+	err = errors.New("DumpKey() not implemented")
 	return
 }
 
-func (context *commonLLRBTreeBenchmarkContextStruct) DumpValue(value Value) (valueAsString string, err error) {
-	err = fmt.Errorf("DumpValue() not implemented")
+func (*commonLLRBTreeBenchmarkContextStruct) DumpValue(_ Value) (valueAsString string, err error) {
+	err = errors.New("DumpValue() not implemented")
 	return
 }
 

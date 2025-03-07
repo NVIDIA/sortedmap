@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2021, NVIDIA CORPORATION.
+// Copyright (c) 2015-2025, NVIDIA CORPORATION.
 // SPDX-License-Identifier: Apache-2.0
 
 package sortedmap
@@ -9,27 +9,27 @@ func (tree *btreeTreeStruct) Dump() (err error) {
 	tree.Lock()
 	defer tree.Unlock()
 
-	if nil != tree.nodeCache {
+	if tree.nodeCache != nil {
 		fmt.Printf("B+Tree @ %p has Node Cache @ %p\n", tree, tree.nodeCache)
 		fmt.Printf("  .evictLowLimit  = %v\n", tree.nodeCache.evictLowLimit)
 		fmt.Printf("  .evictHighLimit = %v\n", tree.nodeCache.evictHighLimit)
-		if nil == tree.nodeCache.cleanLRUHead {
+		if tree.nodeCache.cleanLRUHead == nil {
 			fmt.Printf("  .cleanLRUHead   = nil\n")
 		} else {
 			fmt.Printf("  .cleanLRUHead   = %p\n", tree.nodeCache.cleanLRUHead)
 		}
-		if nil == tree.nodeCache.cleanLRUTail {
+		if tree.nodeCache.cleanLRUTail == nil {
 			fmt.Printf("  .cleanLRUTail   = nil\n")
 		} else {
 			fmt.Printf("  .cleanLRUTail   = %p\n", tree.nodeCache.cleanLRUTail)
 		}
 		fmt.Printf("  .cleanLRUItems  = %v\n", tree.nodeCache.cleanLRUItems)
-		if nil == tree.nodeCache.dirtyLRUHead {
+		if tree.nodeCache.dirtyLRUHead == nil {
 			fmt.Printf("  .dirtyLRUHead   = nil\n")
 		} else {
 			fmt.Printf("  .dirtyLRUHead   = %p\n", tree.nodeCache.dirtyLRUHead)
 		}
-		if nil == tree.nodeCache.dirtyLRUTail {
+		if tree.nodeCache.dirtyLRUTail == nil {
 			fmt.Printf("  .dirtyLRUTail   = nil\n")
 		} else {
 			fmt.Printf("  .dirtyLRUTail   = %p\n", tree.nodeCache.dirtyLRUTail)
@@ -50,12 +50,12 @@ func (tree *btreeTreeStruct) Dump() (err error) {
 func (tree *btreeTreeStruct) dumpNode(node *btreeNodeStruct, indent string) (err error) {
 	if !node.loaded {
 		err = node.tree.loadNode(node)
-		if nil != err {
+		if err != nil {
 			return
 		}
 	}
 
-	if nil != tree.nodeCache {
+	if tree.nodeCache != nil {
 		switch node.btreeNodeCacheElement.btreeNodeCacheTag {
 		case noLRU:
 			fmt.Printf("%v  .btreeNodeCacheTag   = noLRU (%v)\n", indent, noLRU)
@@ -68,12 +68,12 @@ func (tree *btreeTreeStruct) dumpNode(node *btreeNodeStruct, indent string) (err
 		}
 
 		if noLRU != node.btreeNodeCacheElement.btreeNodeCacheTag {
-			if nil == node.btreeNodeCacheElement.nextBTreeNode {
+			if node.btreeNodeCacheElement.nextBTreeNode == nil {
 				fmt.Printf("%v  .nextBTreeNode       = nil\n", indent)
 			} else {
 				fmt.Printf("%v  .nextBTreeNode       = %p\n", indent, node.btreeNodeCacheElement.nextBTreeNode)
 			}
-			if nil == node.btreeNodeCacheElement.prevBTreeNode {
+			if node.btreeNodeCacheElement.prevBTreeNode == nil {
 				fmt.Printf("%v  .prevBTreeNode       = nil\n", indent)
 			} else {
 				fmt.Printf("%v  .prevBTreeNode       = %p\n", indent, node.btreeNodeCacheElement.prevBTreeNode)
@@ -90,14 +90,14 @@ func (tree *btreeTreeStruct) dumpNode(node *btreeNodeStruct, indent string) (err
 	fmt.Printf("%v  .root                = %v\n", indent, node.root)
 	fmt.Printf("%v  .leaf                = %v\n", indent, node.leaf)
 
-	if nil == node.parentNode {
+	if node.parentNode == nil {
 		fmt.Printf("%v  .parentNode          = nil\n", indent)
 	} else {
 		fmt.Printf("%v  .parentNode          = %p\n", indent, node.parentNode)
 	}
 
 	if !node.leaf {
-		if nil == node.rootPrefixSumChild {
+		if node.rootPrefixSumChild == nil {
 			fmt.Printf("%v  .rootPrefixSumChild  = nil\n", indent)
 		} else {
 			fmt.Printf("%v  .rootPrefixSumChild  = %p\n", indent, node.rootPrefixSumChild)
@@ -107,17 +107,17 @@ func (tree *btreeTreeStruct) dumpNode(node *btreeNodeStruct, indent string) (err
 	if !node.root {
 		fmt.Printf("%v  .prefixSumItems      = %v\n", indent, node.prefixSumItems)
 		fmt.Printf("%v  .prefixSumKVIndex    = %v\n", indent, node.prefixSumKVIndex)
-		if nil == node.prefixSumParent {
+		if node.prefixSumParent == nil {
 			fmt.Printf("%v  .prefixSumParent     = nil\n", indent)
 		} else {
 			fmt.Printf("%v  .prefixSumParent     = %p\n", indent, node.prefixSumParent)
 		}
-		if nil == node.prefixSumLeftChild {
+		if node.prefixSumLeftChild == nil {
 			fmt.Printf("%v  .prefixSumLeftChild  = nil\n", indent)
 		} else {
 			fmt.Printf("%v  .prefixSumLeftChild  = %p\n", indent, node.prefixSumLeftChild)
 		}
-		if nil == node.prefixSumRightChild {
+		if node.prefixSumRightChild == nil {
 			fmt.Printf("%v  .prefixSumRightChild = nil\n", indent)
 		} else {
 			fmt.Printf("%v  .prefixSumRightChild = %p\n", indent, node.prefixSumRightChild)
@@ -125,32 +125,32 @@ func (tree *btreeTreeStruct) dumpNode(node *btreeNodeStruct, indent string) (err
 	}
 
 	if !node.leaf {
-		if nil != node.nonLeafLeftChild {
+		if node.nonLeafLeftChild != nil {
 			fmt.Printf("%v  .nonLeafLeftChild    = %p\n", indent, node.nonLeafLeftChild)
 			tree.dumpNode(node.nonLeafLeftChild, "    "+indent)
 		}
 	}
 
 	numKVentries, lenErr := node.kvLLRB.Len()
-	if nil != lenErr {
+	if lenErr != nil {
 		err = lenErr
 		return
 	}
-	for i := 0; i < numKVentries; i++ {
+	for i := range numKVentries {
 		key, value, _, getByIndexErr := node.kvLLRB.GetByIndex(i)
-		if nil != getByIndexErr {
+		if getByIndexErr != nil {
 			err = getByIndexErr
 			return
 		}
 		keyAsString, nonShadowingErr := tree.DumpKey(key)
-		if nil != nonShadowingErr {
+		if nonShadowingErr != nil {
 			err = nonShadowingErr
 			return
 		}
 		fmt.Printf("%v  .kvLLRB[%v].Key       = %v\n", indent, i, keyAsString)
 		if node.leaf {
 			valueAsString, nonShadowingErr := tree.DumpValue(value)
-			if nil != nonShadowingErr {
+			if nonShadowingErr != nil {
 				err = nonShadowingErr
 				return
 			}

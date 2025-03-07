@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2021, NVIDIA CORPORATION.
+// Copyright (c) 2015-2025, NVIDIA CORPORATION.
 // SPDX-License-Identifier: Apache-2.0
 
 package sortedmap
@@ -15,28 +15,28 @@ func (tree *llrbTreeStruct) Validate() (err error) {
 }
 
 func (node *llrbNodeStruct) validate() (err error) {
-	if nil == node {
+	if node == nil {
 		return nil
 	}
 
 	computedHeight := 1
 
-	if nil != node.left {
+	if node.left != nil {
 		computedHeight += node.left.len
 
 		err = node.left.validate()
 
-		if nil != err {
+		if err != nil {
 			return
 		}
 	}
 
-	if nil != node.right {
+	if node.right != nil {
 		computedHeight += node.right.len
 
 		err = node.right.validate()
 
-		if nil != err {
+		if err != nil {
 			return
 		}
 	}

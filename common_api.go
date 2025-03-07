@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2021, NVIDIA CORPORATION.
+// Copyright (c) 2015-2025, NVIDIA CORPORATION.
 // SPDX-License-Identifier: Apache-2.0
 
 // Package sortedmap provides sorted maps implemented as either a Left-Leaning Red-Black Tree (in memory) or a B+Tree (pageable)
@@ -6,7 +6,7 @@ package sortedmap
 
 import (
 	"bytes"
-	"fmt"
+	"errors"
 	"strings"
 	"time"
 )
@@ -16,15 +16,15 @@ type Value interface{}
 
 type Compare func(key1 Key, key2 Key) (result int, err error) // returns <0 if key1 < key2, 0 if key1 == key2, >0 if key1 > key2
 
-func CompareInt(key1 Key, key2 Key) (result int, err error) {
+func CompareInt(key1, key2 Key) (result int, err error) {
 	key1Int, ok := key1.(int)
 	if !ok {
-		err = fmt.Errorf("CompareInt(non-int,) not supported")
+		err = errors.New("CompareInt(non-int,) not supported")
 		return
 	}
 	key2Int, ok := key2.(int)
 	if !ok {
-		err = fmt.Errorf("CompareInt(int, non-int) not supported")
+		err = errors.New("CompareInt(int, non-int) not supported")
 		return
 	}
 
@@ -34,23 +34,24 @@ func CompareInt(key1 Key, key2 Key) (result int, err error) {
 	return
 }
 
-func CompareUint16(key1 Key, key2 Key) (result int, err error) {
+func CompareUint16(key1, key2 Key) (result int, err error) {
 	key1Uint16, ok := key1.(uint16)
 	if !ok {
-		err = fmt.Errorf("CompareUint16(non-uint16,) not supported")
+		err = errors.New("CompareUint16(non-uint16,) not supported")
 		return
 	}
 	key2Uint16, ok := key2.(uint16)
 	if !ok {
-		err = fmt.Errorf("CompareUint16(uint16, non-uint16) not supported")
+		err = errors.New("CompareUint16(uint16, non-uint16) not supported")
 		return
 	}
 
-	if key1Uint16 < key2Uint16 {
+	switch {
+	case key1Uint16 < key2Uint16:
 		result = -1
-	} else if key1Uint16 == key2Uint16 {
+	case key1Uint16 == key2Uint16:
 		result = 0
-	} else { // key1Uint16 > key2Uint16
+	default: // key1Uint16 > key2Uint16
 		result = 1
 	}
 
@@ -59,23 +60,24 @@ func CompareUint16(key1 Key, key2 Key) (result int, err error) {
 	return
 }
 
-func CompareUint32(key1 Key, key2 Key) (result int, err error) {
+func CompareUint32(key1, key2 Key) (result int, err error) {
 	key1Uint32, ok := key1.(uint32)
 	if !ok {
-		err = fmt.Errorf("CompareUint32(non-uint32,) not supported")
+		err = errors.New("CompareUint32(non-uint32,) not supported")
 		return
 	}
 	key2Uint32, ok := key2.(uint32)
 	if !ok {
-		err = fmt.Errorf("CompareUint32(uint32, non-uint32) not supported")
+		err = errors.New("CompareUint32(uint32, non-uint32) not supported")
 		return
 	}
 
-	if key1Uint32 < key2Uint32 {
+	switch {
+	case key1Uint32 < key2Uint32:
 		result = -1
-	} else if key1Uint32 == key2Uint32 {
+	case key1Uint32 == key2Uint32:
 		result = 0
-	} else { // key1Uint32 > key2Uint32
+	default: // key1Uint32 > key2Uint32
 		result = 1
 	}
 
@@ -84,23 +86,24 @@ func CompareUint32(key1 Key, key2 Key) (result int, err error) {
 	return
 }
 
-func CompareUint64(key1 Key, key2 Key) (result int, err error) {
+func CompareUint64(key1, key2 Key) (result int, err error) {
 	key1Uint64, ok := key1.(uint64)
 	if !ok {
-		err = fmt.Errorf("CompareUint64(non-uint64,) not supported")
+		err = errors.New("CompareUint64(non-uint64,) not supported")
 		return
 	}
 	key2Uint64, ok := key2.(uint64)
 	if !ok {
-		err = fmt.Errorf("CompareUint64(uint64, non-uint64) not supported")
+		err = errors.New("CompareUint64(uint64, non-uint64) not supported")
 		return
 	}
 
-	if key1Uint64 < key2Uint64 {
+	switch {
+	case key1Uint64 < key2Uint64:
 		result = -1
-	} else if key1Uint64 == key2Uint64 {
+	case key1Uint64 == key2Uint64:
 		result = 0
-	} else { // key1Uint64 > key2Uint64
+	default: // key1Uint64 > key2Uint64
 		result = 1
 	}
 
@@ -109,15 +112,15 @@ func CompareUint64(key1 Key, key2 Key) (result int, err error) {
 	return
 }
 
-func CompareString(key1 Key, key2 Key) (result int, err error) {
+func CompareString(key1, key2 Key) (result int, err error) {
 	key1String, ok := key1.(string)
 	if !ok {
-		err = fmt.Errorf("CompareString(non-string,) not supported")
+		err = errors.New("CompareString(non-string,) not supported")
 		return
 	}
 	key2String, ok := key2.(string)
 	if !ok {
-		err = fmt.Errorf("CompareString(string, non-string) not supported")
+		err = errors.New("CompareString(string, non-string) not supported")
 		return
 	}
 
@@ -127,15 +130,15 @@ func CompareString(key1 Key, key2 Key) (result int, err error) {
 	return
 }
 
-func CompareByteSlice(key1 Key, key2 Key) (result int, err error) {
+func CompareByteSlice(key1, key2 Key) (result int, err error) {
 	key1Slice, ok := key1.([]byte)
 	if !ok {
-		err = fmt.Errorf("CompareByteSlice(non-[]byte,) not supported")
+		err = errors.New("CompareByteSlice(non-[]byte,) not supported")
 		return
 	}
 	key2Slice, ok := key2.([]byte)
 	if !ok {
-		err = fmt.Errorf("CompareByteSlice([]byte, non-[]byte) not supported")
+		err = errors.New("CompareByteSlice([]byte, non-[]byte) not supported")
 		return
 	}
 
@@ -145,23 +148,24 @@ func CompareByteSlice(key1 Key, key2 Key) (result int, err error) {
 	return
 }
 
-func CompareTime(key1 Key, key2 Key) (result int, err error) {
+func CompareTime(key1, key2 Key) (result int, err error) {
 	key1Time, ok := key1.(time.Time)
 	if !ok {
-		err = fmt.Errorf("CompareTime(non-time.Time,) not supported")
+		err = errors.New("CompareTime(non-time.Time,) not supported")
 		return
 	}
 	key2Time, ok := key2.(time.Time)
 	if !ok {
-		err = fmt.Errorf("CompareTime(time.Time, non-time.Time) not supported")
+		err = errors.New("CompareTime(time.Time, non-time.Time) not supported")
 		return
 	}
 
-	if key1Time.Before(key2Time) {
+	switch {
+	case key1Time.Before(key2Time):
 		result = -1
-	} else if key1Time.After(key2Time) {
+	case key1Time.After(key2Time):
 		result = 1
-	} else { // key1Time == key2Time
+	default: // key1Time == key2Time
 		result = 0
 	}
 

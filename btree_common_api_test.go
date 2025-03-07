@@ -1,11 +1,12 @@
-// Copyright (c) 2015-2021, NVIDIA CORPORATION.
+// Copyright (c) 2015-2025, NVIDIA CORPORATION.
 // SPDX-License-Identifier: Apache-2.0
 
 package sortedmap
 
 import (
 	"encoding/binary"
-	"fmt"
+	"errors"
+	"strconv"
 	"testing"
 )
 
@@ -23,18 +24,18 @@ type commonBPlusTreeTestContextStruct struct {
 	tree BPlusTree
 }
 
-func (context *commonBPlusTreeTestContextStruct) GetNode(objectNumber uint64, objectOffset uint64, objectLength uint64) (nodeByteSlice []byte, err error) {
-	err = fmt.Errorf("GetNode() not implemented")
+func (*commonBPlusTreeTestContextStruct) GetNode(_, _, _ uint64) (nodeByteSlice []byte, err error) {
+	err = errors.New("GetNode() not implemented")
 	return
 }
 
-func (context *commonBPlusTreeTestContextStruct) PutNode(nodeByteSlice []byte) (objectNumber uint64, objectOffset uint64, err error) {
-	err = fmt.Errorf("PutNode() not implemented")
+func (*commonBPlusTreeTestContextStruct) PutNode(_ []byte) (objectNumber, objectOffset uint64, err error) {
+	err = errors.New("PutNode() not implemented")
 	return
 }
 
-func (context *commonBPlusTreeTestContextStruct) DiscardNode(objectNumber uint64, objectOffset uint64, objectLength uint64) (err error) {
-	err = fmt.Errorf("DiscardNode() not implemented")
+func (*commonBPlusTreeTestContextStruct) DiscardNode(_, _, _ uint64) (err error) {
+	err = errors.New("DiscardNode() not implemented")
 	return
 }
 
@@ -43,7 +44,7 @@ func (context *commonBPlusTreeTestContextStruct) DumpKey(key Key) (keyAsString s
 	if !ok {
 		context.t.Fatalf("DumpKey() argument not an int")
 	}
-	keyAsString = fmt.Sprintf("%v", keyAsInt)
+	keyAsString = strconv.Itoa(keyAsInt)
 	err = nil
 	return
 }
@@ -60,7 +61,7 @@ func (context *commonBPlusTreeTestContextStruct) PackKey(key Key) (packedKey []b
 	return
 }
 
-func (context *commonBPlusTreeTestContextStruct) UnpackKey(payloadData []byte) (key Key, bytesConsumed uint64, err error) {
+func (context *commonBPlusTreeTestContextStruct) UnpackKey(_ []byte) (key Key, bytesConsumed uint64, err error) {
 	context.t.Fatalf("UnpackKey() not implemented")
 	return
 }
@@ -84,7 +85,7 @@ func (context *commonBPlusTreeTestContextStruct) PackValue(value Value) (packedV
 	return
 }
 
-func (context *commonBPlusTreeTestContextStruct) UnpackValue(payloadData []byte) (value Value, bytesConsumed uint64, err error) {
+func (context *commonBPlusTreeTestContextStruct) UnpackValue(_ []byte) (value Value, bytesConsumed uint64, err error) {
 	context.t.Fatalf("UnpackValue() not implemented")
 	return
 }
@@ -94,48 +95,48 @@ type commonBPlusTreeBenchmarkContextStruct struct {
 	tree BPlusTree
 }
 
-func (context *commonBPlusTreeBenchmarkContextStruct) GetNode(objectNumber uint64, objectOffset uint64, objectLength uint64) (nodeByteSlice []byte, err error) {
-	err = fmt.Errorf("GetNode() not implemented")
+func (*commonBPlusTreeBenchmarkContextStruct) GetNode(_, _, _ uint64) (nodeByteSlice []byte, err error) {
+	err = errors.New("GetNode() not implemented")
 	return
 }
 
-func (context *commonBPlusTreeBenchmarkContextStruct) PutNode(nodeByteSlice []byte) (objectNumber uint64, objectOffset uint64, err error) {
-	err = fmt.Errorf("PutNode() not implemented")
+func (*commonBPlusTreeBenchmarkContextStruct) PutNode(_ []byte) (objectNumber, objectOffset uint64, err error) {
+	err = errors.New("PutNode() not implemented")
 	return
 }
 
-func (context *commonBPlusTreeBenchmarkContextStruct) DiscardNode(objectNumber uint64, objectOffset uint64, objectLength uint64) (err error) {
-	err = fmt.Errorf("GetNode() not implemented")
+func (*commonBPlusTreeBenchmarkContextStruct) DiscardNode(_, _, _ uint64) (err error) {
+	err = errors.New("GetNode() not implemented")
 	return
 }
 
-func (context *commonBPlusTreeBenchmarkContextStruct) DumpKey(key Key) (keyAsString string, err error) {
-	err = fmt.Errorf("DumpKey() not implemented")
+func (*commonBPlusTreeBenchmarkContextStruct) DumpKey(_ Key) (keyAsString string, err error) {
+	err = errors.New("DumpKey() not implemented")
 	return
 }
 
-func (context *commonBPlusTreeBenchmarkContextStruct) PackKey(key Key) (packedKey []byte, err error) {
-	err = fmt.Errorf("PackKey() not implemented")
+func (*commonBPlusTreeBenchmarkContextStruct) PackKey(_ Key) (packedKey []byte, err error) {
+	err = errors.New("PackKey() not implemented")
 	return
 }
 
-func (context *commonBPlusTreeBenchmarkContextStruct) UnpackKey(payloadData []byte) (key Key, bytesConsumed uint64, err error) {
-	err = fmt.Errorf("UnpackKey() not implemented")
+func (*commonBPlusTreeBenchmarkContextStruct) UnpackKey(_ []byte) (key Key, bytesConsumed uint64, err error) {
+	err = errors.New("UnpackKey() not implemented")
 	return
 }
 
-func (context *commonBPlusTreeBenchmarkContextStruct) DumpValue(value Value) (valueAsString string, err error) {
-	err = fmt.Errorf("DumpValue() not implemented")
+func (*commonBPlusTreeBenchmarkContextStruct) DumpValue(_ Value) (valueAsString string, err error) {
+	err = errors.New("DumpValue() not implemented")
 	return
 }
 
-func (context *commonBPlusTreeBenchmarkContextStruct) PackValue(value Value) (packedValue []byte, err error) {
-	err = fmt.Errorf("PackValue() not implemented")
+func (*commonBPlusTreeBenchmarkContextStruct) PackValue(_ Value) (packedValue []byte, err error) {
+	err = errors.New("PackValue() not implemented")
 	return
 }
 
-func (context *commonBPlusTreeBenchmarkContextStruct) UnpackValue(payloadData []byte) (value Value, bytesConsumed uint64, err error) {
-	err = fmt.Errorf("UnpackValue() not implemented")
+func (*commonBPlusTreeBenchmarkContextStruct) UnpackValue(_ []byte) (value Value, bytesConsumed uint64, err error) {
+	err = errors.New("UnpackValue() not implemented")
 	return
 }
 

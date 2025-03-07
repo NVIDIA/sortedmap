@@ -1,11 +1,13 @@
-// Copyright (c) 2015-2021, NVIDIA CORPORATION.
+// Copyright (c) 2015-2025, NVIDIA CORPORATION.
 // SPDX-License-Identifier: Apache-2.0
 
 package sortedmap
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"testing"
 )
 
@@ -34,20 +36,20 @@ func TestBPlusTreeBalance(t *testing.T) {
 	tree = NewBPlusTree(maxKeysPerNode, CompareInt, treeContext, nil)
 
 	keysToPut, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("testKnuthShuffledIntSlice() [Case A] failed: %v", err)
 	}
 
 	for keyIndex, key = range keysToPut {
 		ok, err = tree.Put(key, struct{}{})
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.Put(%d,) [Case A] failed: %v", key, err)
 		}
 		if !ok {
 			t.Fatalf("tree.Put(%d,) [Case A] returned !ok", key)
 		}
 		treeLen, err = tree.Len()
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.Len() [Case A] failed: %v", err)
 		}
 		treeLenExpected = keyIndex + 1
@@ -55,26 +57,26 @@ func TestBPlusTreeBalance(t *testing.T) {
 			t.Fatalf("tree.Len() [Case A] returned %d...expected %d", treeLen, treeLenExpected)
 		}
 		err = tree.Validate()
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.Validate() [Case A] failed: %v", err)
 		}
 	}
 
 	keysToDelete, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("testKnuthShuffledIntSlice() [Case B] failed: %v", err)
 	}
 
 	for keyIndex, key = range keysToDelete {
 		ok, err = tree.DeleteByKey(key)
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.DeleteByKey(%d) failed: %v", key, err)
 		}
 		if !ok {
 			t.Fatalf("tree.DeleteByKey(%d) returned !ok", key)
 		}
 		treeLen, err = tree.Len()
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.Len() [Case B] failed: %v", err)
 		}
 		treeLenExpected = numKeys - keyIndex - 1
@@ -82,26 +84,26 @@ func TestBPlusTreeBalance(t *testing.T) {
 			t.Fatalf("tree.Len() [Case B] returned %d...expected %d", treeLen, treeLenExpected)
 		}
 		err = tree.Validate()
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.Validate() [Case B] failed: %v", err)
 		}
 	}
 
 	keysToPut, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("testKnuthShuffledIntSlice() [Case C] failed: %v", err)
 	}
 
 	for keyIndex, key = range keysToPut {
 		ok, err = tree.Put(key, struct{}{})
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.Put(%d,) [Case B] failed: %v", key, err)
 		}
 		if !ok {
 			t.Fatalf("tree.Put(%d,) [Case B] returned !ok", key)
 		}
 		treeLen, err = tree.Len()
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.Len() [Case C] failed: %v", err)
 		}
 		treeLenExpected = keyIndex + 1
@@ -109,21 +111,21 @@ func TestBPlusTreeBalance(t *testing.T) {
 			t.Fatalf("tree.Len() [Case C] returned %d...expected %d", treeLen, treeLenExpected)
 		}
 		err = tree.Validate()
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.Validate() [Case C] failed: %v", err)
 		}
 	}
 
 	for keyIndex = (numKeys - 1); keyIndex >= 0; keyIndex-- {
 		ok, err = tree.DeleteByIndex(keyIndex)
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.DeleteByIndex(%d) failed: %v", key, err)
 		}
 		if !ok {
 			t.Fatalf("tree.DeleteByIndex(%d) returned !ok", key)
 		}
 		treeLen, err = tree.Len()
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.Len() [Case D] failed: %v", err)
 		}
 		treeLenExpected = keyIndex
@@ -131,13 +133,13 @@ func TestBPlusTreeBalance(t *testing.T) {
 			t.Fatalf("tree.Len() [Case D] returned %d...expected %d", treeLen, treeLenExpected)
 		}
 		err = tree.Validate()
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.Validate() [Case D] failed: %v", err)
 		}
 	}
 }
 
-func (tree *balanceBPlusTreeTestContextStruct) DumpKey(key Key) (keyAsString string, err error) {
+func (*balanceBPlusTreeTestContextStruct) DumpKey(key Key) (keyAsString string, err error) {
 	var (
 		keyAsInt int
 		ok       bool
@@ -149,49 +151,49 @@ func (tree *balanceBPlusTreeTestContextStruct) DumpKey(key Key) (keyAsString str
 		return
 	}
 
-	keyAsString = fmt.Sprintf("%d", keyAsInt)
+	keyAsString = strconv.Itoa(keyAsInt)
 
 	err = nil
 	return
 }
 
-func (tree *balanceBPlusTreeTestContextStruct) DumpValue(value Value) (valueAsString string, err error) {
+func (*balanceBPlusTreeTestContextStruct) DumpValue(_ Value) (valueAsString string, err error) {
 	valueAsString = "<nil>"
 	err = nil
 	return
 }
 
-func (tree *balanceBPlusTreeTestContextStruct) GetNode(objectNumber uint64, objectOffset uint64, objectLength uint64) (nodeByteSlice []byte, err error) {
-	err = fmt.Errorf("GetNode() not supported")
+func (*balanceBPlusTreeTestContextStruct) GetNode(_, _, _ uint64) (nodeByteSlice []byte, err error) {
+	err = errors.New("GetNode() not supported")
 	return
 }
 
-func (tree *balanceBPlusTreeTestContextStruct) PutNode(nodeByteSlice []byte) (objectNumber uint64, objectOffset uint64, err error) {
-	err = fmt.Errorf("PutNode() not supported")
+func (*balanceBPlusTreeTestContextStruct) PutNode(_ []byte) (objectNumber, objectOffset uint64, err error) {
+	err = errors.New("PutNode() not supported")
 	return
 }
 
-func (tree *balanceBPlusTreeTestContextStruct) DiscardNode(objectNumber uint64, objectOffset uint64, objectLength uint64) (err error) {
-	err = fmt.Errorf("DiscardNode() not supported")
+func (*balanceBPlusTreeTestContextStruct) DiscardNode(_, _, _ uint64) (err error) {
+	err = errors.New("DiscardNode() not supported")
 	return
 }
 
-func (tree *balanceBPlusTreeTestContextStruct) PackKey(key Key) (packedKey []byte, err error) {
-	err = fmt.Errorf("PackKey() not supported")
+func (*balanceBPlusTreeTestContextStruct) PackKey(_ Key) (packedKey []byte, err error) {
+	err = errors.New("PackKey() not supported")
 	return
 }
 
-func (tree *balanceBPlusTreeTestContextStruct) UnpackKey(payloadData []byte) (key Key, bytesConsumed uint64, err error) {
-	err = fmt.Errorf("UnpackKey() not supported")
+func (*balanceBPlusTreeTestContextStruct) UnpackKey(_ []byte) (key Key, bytesConsumed uint64, err error) {
+	err = errors.New("UnpackKey() not supported")
 	return
 }
 
-func (tree *balanceBPlusTreeTestContextStruct) PackValue(value Value) (packedValue []byte, err error) {
-	err = fmt.Errorf("PackValue() not supported")
+func (*balanceBPlusTreeTestContextStruct) PackValue(_ Value) (packedValue []byte, err error) {
+	err = errors.New("PackValue() not supported")
 	return
 }
 
-func (tree *balanceBPlusTreeTestContextStruct) UnpackValue(payloadData []byte) (value Value, bytesConsumed uint64, err error) {
-	err = fmt.Errorf("UnpackValue() not supported")
+func (*balanceBPlusTreeTestContextStruct) UnpackValue(_ []byte) (value Value, bytesConsumed uint64, err error) {
+	err = errors.New("UnpackValue() not supported")
 	return
 }

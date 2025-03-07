@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2021, NVIDIA CORPORATION.
+// Copyright (c) 2015-2025, NVIDIA CORPORATION.
 // SPDX-License-Identifier: Apache-2.0
 
 package sortedmap
@@ -21,7 +21,7 @@ type cacheBPlusTreeTestContextStruct struct {
 	objectMap        map[uint64][]byte
 }
 
-func (tree *cacheBPlusTreeTestContextStruct) DumpKey(key Key) (keyAsString string, err error) {
+func (*cacheBPlusTreeTestContextStruct) DumpKey(key Key) (keyAsString string, err error) {
 	var (
 		keyAsUint16 uint16
 		ok          bool
@@ -39,7 +39,7 @@ func (tree *cacheBPlusTreeTestContextStruct) DumpKey(key Key) (keyAsString strin
 	return
 }
 
-func (tree *cacheBPlusTreeTestContextStruct) DumpValue(value Value) (valueAsString string, err error) {
+func (*cacheBPlusTreeTestContextStruct) DumpValue(value Value) (valueAsString string, err error) {
 	var (
 		ok            bool
 		valueAsUint32 uint32
@@ -57,7 +57,7 @@ func (tree *cacheBPlusTreeTestContextStruct) DumpValue(value Value) (valueAsStri
 	return
 }
 
-func (tree *cacheBPlusTreeTestContextStruct) GetNode(objectNumber uint64, objectOffset uint64, objectLength uint64) (nodeByteSlice []byte, err error) {
+func (tree *cacheBPlusTreeTestContextStruct) GetNode(objectNumber, objectOffset, objectLength uint64) (nodeByteSlice []byte, err error) {
 	var (
 		ok bool
 	)
@@ -83,7 +83,7 @@ func (tree *cacheBPlusTreeTestContextStruct) GetNode(objectNumber uint64, object
 	return
 }
 
-func (tree *cacheBPlusTreeTestContextStruct) PutNode(nodeByteSlice []byte) (objectNumber uint64, objectOffset uint64, err error) {
+func (tree *cacheBPlusTreeTestContextStruct) PutNode(nodeByteSlice []byte) (objectNumber, objectOffset uint64, err error) {
 	tree.Lock()
 	defer tree.Unlock()
 
@@ -97,7 +97,7 @@ func (tree *cacheBPlusTreeTestContextStruct) PutNode(nodeByteSlice []byte) (obje
 	return
 }
 
-func (tree *cacheBPlusTreeTestContextStruct) DiscardNode(objectNumber uint64, objectOffset uint64, objectLength uint64) (err error) {
+func (tree *cacheBPlusTreeTestContextStruct) DiscardNode(objectNumber, objectOffset, objectLength uint64) (err error) {
 	var (
 		ok            bool
 		nodeByteSlice []byte
@@ -124,7 +124,7 @@ func (tree *cacheBPlusTreeTestContextStruct) DiscardNode(objectNumber uint64, ob
 	return
 }
 
-func (tree *cacheBPlusTreeTestContextStruct) PackKey(key Key) (packedKey []byte, err error) {
+func (*cacheBPlusTreeTestContextStruct) PackKey(key Key) (packedKey []byte, err error) {
 	var (
 		ok          bool
 		keyAsUint16 uint16
@@ -144,7 +144,7 @@ func (tree *cacheBPlusTreeTestContextStruct) PackKey(key Key) (packedKey []byte,
 	return
 }
 
-func (tree *cacheBPlusTreeTestContextStruct) UnpackKey(payloadData []byte) (key Key, bytesConsumed uint64, err error) {
+func (*cacheBPlusTreeTestContextStruct) UnpackKey(payloadData []byte) (key Key, bytesConsumed uint64, err error) {
 	if len(payloadData) < 2 {
 		err = fmt.Errorf("UnpackKey() called for length %v... expected length of at least 2", len(payloadData))
 		return
@@ -158,7 +158,7 @@ func (tree *cacheBPlusTreeTestContextStruct) UnpackKey(payloadData []byte) (key 
 	return
 }
 
-func (tree *cacheBPlusTreeTestContextStruct) PackValue(value Value) (packedValue []byte, err error) {
+func (*cacheBPlusTreeTestContextStruct) PackValue(value Value) (packedValue []byte, err error) {
 	var (
 		ok            bool
 		valueAsUint32 uint32
@@ -180,7 +180,7 @@ func (tree *cacheBPlusTreeTestContextStruct) PackValue(value Value) (packedValue
 	return
 }
 
-func (tree *cacheBPlusTreeTestContextStruct) UnpackValue(payloadData []byte) (value Value, bytesConsumed uint64, err error) {
+func (*cacheBPlusTreeTestContextStruct) UnpackValue(payloadData []byte) (value Value, bytesConsumed uint64, err error) {
 	if len(payloadData) < 4 {
 		err = fmt.Errorf("UnpackValue() called for length %v... expected length of at least 4", len(payloadData))
 		return
@@ -218,28 +218,28 @@ func TestBPlusTreeCache(t *testing.T) {
 
 	_, _ = treeA.Put(uint16(0x0000), uint32(0x00000000))
 
-	if 0 != treeCacheStruct.cleanLRUItems {
+	if treeCacheStruct.cleanLRUItems != 0 {
 		t.Fatalf("Expected treeCacheStruct.cleanLRUItems to be 0 (was %v)", treeCacheStruct.cleanLRUItems)
 	}
-	if 1 != treeCacheStruct.dirtyLRUItems {
+	if treeCacheStruct.dirtyLRUItems != 1 {
 		t.Fatalf("Expected treeCacheStruct.dirtyLRUItems to be 1 (was %v)", treeCacheStruct.dirtyLRUItems)
 	}
 
 	treeA.Flush(false)
 
-	if 1 != treeCacheStruct.cleanLRUItems {
+	if treeCacheStruct.cleanLRUItems != 1 {
 		t.Fatalf("Expected treeCacheStruct.cleanLRUItems to be 1 (was %v)", treeCacheStruct.cleanLRUItems)
 	}
-	if 0 != treeCacheStruct.dirtyLRUItems {
+	if treeCacheStruct.dirtyLRUItems != 0 {
 		t.Fatalf("Expected treeCacheStruct.dirtyLRUItems to be 0 (was %v)", treeCacheStruct.dirtyLRUItems)
 	}
 
 	treeA.Flush(true)
 
-	if 0 != treeCacheStruct.cleanLRUItems {
+	if treeCacheStruct.cleanLRUItems != 0 {
 		t.Fatalf("Expected treeCacheStruct.cleanLRUItems to be 0 (was %v)", treeCacheStruct.cleanLRUItems)
 	}
-	if 0 != treeCacheStruct.dirtyLRUItems {
+	if treeCacheStruct.dirtyLRUItems != 0 {
 		t.Fatalf("Expected treeCacheStruct.dirtyLRUItems to be 0 (was %v)", treeCacheStruct.dirtyLRUItems)
 	}
 
@@ -255,28 +255,28 @@ func TestBPlusTreeCache(t *testing.T) {
 	_, _ = treeB.Put(uint16(0x0005), uint32(0x00000005))
 	_, _ = treeB.Put(uint16(0x0006), uint32(0x00000006))
 
-	if 0 != treeCacheStruct.cleanLRUItems {
+	if treeCacheStruct.cleanLRUItems != 0 {
 		t.Fatalf("Expected treeCacheStruct.cleanLRUItems to be 0 (was %v)", treeCacheStruct.cleanLRUItems)
 	}
-	if 4 != treeCacheStruct.dirtyLRUItems {
+	if treeCacheStruct.dirtyLRUItems != 4 {
 		t.Fatalf("Expected treeCacheStruct.dirtyLRUItems to be 4 (was %v)", treeCacheStruct.dirtyLRUItems)
 	}
 
 	treeB.Flush(false)
 
-	if 4 != treeCacheStruct.cleanLRUItems {
+	if treeCacheStruct.cleanLRUItems != 4 {
 		t.Fatalf("Expected treeCacheStruct.cleanLRUItems to be 4 (was %v)", treeCacheStruct.cleanLRUItems)
 	}
-	if 0 != treeCacheStruct.dirtyLRUItems {
+	if treeCacheStruct.dirtyLRUItems != 0 {
 		t.Fatalf("Expected treeCacheStruct.dirtyLRUItems to be 0 (was %v)", treeCacheStruct.dirtyLRUItems)
 	}
 
 	treeB.Flush(true)
 
-	if 0 != treeCacheStruct.cleanLRUItems {
+	if treeCacheStruct.cleanLRUItems != 0 {
 		t.Fatalf("Expected treeCacheStruct.cleanLRUItems to be 0 (was %v)", treeCacheStruct.cleanLRUItems)
 	}
-	if 0 != treeCacheStruct.dirtyLRUItems {
+	if treeCacheStruct.dirtyLRUItems != 0 {
 		t.Fatalf("Expected treeCacheStruct.dirtyLRUItems to be 0 (was %v)", treeCacheStruct.dirtyLRUItems)
 	}
 
@@ -290,10 +290,10 @@ func TestBPlusTreeCache(t *testing.T) {
 	_, _, _ = treeB.GetByKey(uint16(0x0005))
 	_, _, _ = treeB.GetByKey(uint16(0x0006))
 
-	if 4 != treeCacheStruct.cleanLRUItems {
+	if treeCacheStruct.cleanLRUItems != 4 {
 		t.Fatalf("Expected treeCacheStruct.cleanLRUItems to be 4 (was %v)", treeCacheStruct.cleanLRUItems)
 	}
-	if 0 != treeCacheStruct.dirtyLRUItems {
+	if treeCacheStruct.dirtyLRUItems != 0 {
 		t.Fatalf("Expected treeCacheStruct.dirtyLRUItems to be 0 (was %v)", treeCacheStruct.dirtyLRUItems)
 	}
 
@@ -305,10 +305,10 @@ func TestBPlusTreeCache(t *testing.T) {
 		time.Sleep(testBPlusTreeCacheDelay)
 	}
 
-	if 1 != treeCacheStruct.cleanLRUItems {
+	if treeCacheStruct.cleanLRUItems != 1 {
 		t.Fatalf("Expected treeCacheStruct.cleanLRUItems to be 1 (was %v)", treeCacheStruct.cleanLRUItems)
 	}
-	if 0 != treeCacheStruct.dirtyLRUItems {
+	if treeCacheStruct.dirtyLRUItems != 0 {
 		t.Fatalf("Expected treeCacheStruct.dirtyLRUItems to be 0 (was %v)", treeCacheStruct.dirtyLRUItems)
 	}
 
@@ -316,22 +316,22 @@ func TestBPlusTreeCache(t *testing.T) {
 
 	treeCacheStats = treeCacheStruct.Stats()
 
-	if 1 != treeCacheStats.EvictLowLimit {
+	if treeCacheStats.EvictLowLimit != 1 {
 		t.Fatalf("Expected EvictLowLimit to be 1 (was %v)", treeCacheStats.EvictLowLimit)
 	}
-	if 4 != treeCacheStats.EvictHighLimit {
+	if treeCacheStats.EvictHighLimit != 4 {
 		t.Fatalf("Expected EvictHighLimit to be 4 (was %v)", treeCacheStats.EvictHighLimit)
 	}
-	if 1 != treeCacheStats.CleanLRUItems {
+	if treeCacheStats.CleanLRUItems != 1 {
 		t.Fatalf("Expected CleanLRUItems to be 1 (was %v)", treeCacheStats.CleanLRUItems)
 	}
-	if 0 != treeCacheStats.DirtyLRUItems {
+	if treeCacheStats.DirtyLRUItems != 0 {
 		t.Fatalf("Expected DirtyLRUItems to be 0 (was %v)", treeCacheStats.DirtyLRUItems)
 	}
-	if 20 != treeCacheStats.CacheHits {
+	if treeCacheStats.CacheHits != 20 {
 		t.Fatalf("Expected CacheHits to be 20 (was %v)", treeCacheStats.CacheHits)
 	}
-	if 5 != treeCacheStats.CacheMisses {
+	if treeCacheStats.CacheMisses != 5 {
 		t.Fatalf("Expected CacheMisses to be 5 (was %v)", treeCacheStats.CacheMisses)
 	}
 }
