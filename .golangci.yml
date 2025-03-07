@@ -20,7 +20,7 @@ linters:
     - gomoddirectives
     - goprintffuncname
     - gosec
-    # - gosimple
+    - gosimple
     # - govet
     - importas
     # - ineffassign

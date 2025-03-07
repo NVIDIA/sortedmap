@@ -696,7 +696,8 @@ func isRed(node *llrbNodeStruct) bool {
 		return false
 	}
 
-	return (RED == node.color)
+	// return (RED == node.color)
+	return node.color
 }
 
 func isBlack(node *llrbNodeStruct) bool {
@@ -704,7 +705,8 @@ func isBlack(node *llrbNodeStruct) bool {
 		return true
 	}
 
-	return (BLACK == node.color)
+	// return (BLACK == node.color)
+	return !node.color
 }
 
 func colorFlip(node *llrbNodeStruct) {

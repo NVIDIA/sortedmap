@@ -55,7 +55,8 @@ func (tree *llrbTreeStruct) dumpInFlatForm(node *llrbNodeStruct) (err error) {
 	}
 
 	var colorString string
-	if RED == node.color {
+	// if RED == node.color {
+	if node.color {
 		colorString = "RED"
 	} else { // BLACK == node.color
 		colorString = "BLACK"
