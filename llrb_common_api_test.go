@@ -41,12 +41,12 @@ type commonLLRBTreeBenchmarkContextStruct struct {
 	tree LLRBTree
 }
 
-func (context *commonLLRBTreeBenchmarkContextStruct) DumpKey(key Key) (keyAsString string, err error) {
+func (*commonLLRBTreeBenchmarkContextStruct) DumpKey(_ Key) (keyAsString string, err error) {
 	err = fmt.Errorf("DumpKey() not implemented")
 	return
 }
 
-func (context *commonLLRBTreeBenchmarkContextStruct) DumpValue(value Value) (valueAsString string, err error) {
+func (*commonLLRBTreeBenchmarkContextStruct) DumpValue(_ Value) (valueAsString string, err error) {
 	err = fmt.Errorf("DumpValue() not implemented")
 	return
 }

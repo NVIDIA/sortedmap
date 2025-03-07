@@ -64,7 +64,7 @@ func (tree *llrbTreeStruct) BisectLeft(key Key) (index int, found bool, err erro
 		return
 	}
 
-	for 0 != compareResult {
+	for compareResult != 0 {
 		if compareResult < 0 { // key < node.Key
 			node = node.left
 
@@ -76,12 +76,14 @@ func (tree *llrbTreeStruct) BisectLeft(key Key) (index int, found bool, err erro
 				err = nil
 
 				return
-			} else { // nil != node, so recurse from here
-				if nil == node.right {
-					nodeIndex = nodeIndex - 1
-				} else { // nil != node.right
-					nodeIndex = nodeIndex - node.right.len - 1
-				}
+			}
+
+			// nil != node, so recurse from here
+
+			if nil == node.right {
+				nodeIndex = nodeIndex - 1
+			} else { // nil != node.right
+				nodeIndex = nodeIndex - node.right.len - 1
 			}
 		} else { // compareResult > 0 (key > node.Key)
 			node = node.right
@@ -94,12 +96,14 @@ func (tree *llrbTreeStruct) BisectLeft(key Key) (index int, found bool, err erro
 				err = nil
 
 				return
-			} else { // nil != node, so recurse from here
-				if nil == node.left {
-					nodeIndex = nodeIndex + 1
-				} else { // nil != node.left
-					nodeIndex = nodeIndex + node.left.len + 1
-				}
+			}
+
+			// nil != node, so recurse from here
+
+			if nil == node.left {
+				nodeIndex = nodeIndex + 1
+			} else { // nil != node.left
+				nodeIndex = nodeIndex + node.left.len + 1
 			}
 		}
 
@@ -144,7 +148,7 @@ func (tree *llrbTreeStruct) BisectRight(key Key) (index int, found bool, err err
 		return
 	}
 
-	for 0 != compareResult {
+	for compareResult != 0 {
 		if compareResult < 0 { // key < node.Key
 			node = node.left
 
@@ -156,12 +160,14 @@ func (tree *llrbTreeStruct) BisectRight(key Key) (index int, found bool, err err
 				err = nil
 
 				return
-			} else { // nil != node, so recurse from here
-				if nil == node.right {
-					nodeIndex = nodeIndex - 1
-				} else { // nil != node.right
-					nodeIndex = nodeIndex - node.right.len - 1
-				}
+			}
+
+			// nil != node, so recurse from here
+
+			if nil == node.right {
+				nodeIndex = nodeIndex - 1
+			} else { // nil != node.right
+				nodeIndex = nodeIndex - node.right.len - 1
 			}
 		} else { // compareResult > 0 (key > node.Key)
 			node = node.right
@@ -174,12 +180,14 @@ func (tree *llrbTreeStruct) BisectRight(key Key) (index int, found bool, err err
 				err = nil
 
 				return
-			} else { // nil != node, so recurse from here
-				if nil == node.left {
-					nodeIndex = nodeIndex + 1
-				} else { // nil != node.left
-					nodeIndex = nodeIndex + node.left.len + 1
-				}
+			}
+
+			// nil != node, so recurse from here
+
+			if nil == node.left {
+				nodeIndex = nodeIndex + 1
+			} else { // nil != node.left
+				nodeIndex = nodeIndex + node.left.len + 1
 			}
 		}
 
@@ -485,28 +493,24 @@ func (tree *llrbTreeStruct) insert(oldNexusNode *llrbNodeStruct, key Key, value 
 			err = insertErr
 			return
 		}
-		if nonShadowingOk {
-			newNexusNode.left = updatedNewNexusNodeLeft
-		} else { // !nonShadowingOk
+		if !nonShadowingOk {
 			ok = false
 			err = nil
-
 			return
 		}
+		newNexusNode.left = updatedNewNexusNodeLeft
 	case compareResult > 0: // key > newNexusNode.Key
 		updatedNewNexusNodeRight, nonShadowingOk, insertErr := tree.insert(newNexusNode.right, key, value)
 		if nil != insertErr {
 			err = insertErr
 			return
 		}
-		if nonShadowingOk {
-			newNexusNode.right = updatedNewNexusNodeRight
-		} else { // !nonShadowingOk
+		if !nonShadowingOk {
 			ok = false
 			err = nil
-
 			return
 		}
+		newNexusNode.right = updatedNewNexusNodeRight
 	default: // compareResult == 0 (key == newNexusNode.Key)
 		ok = false // Duplicate Key not supported
 		err = nil
@@ -634,7 +638,7 @@ func (tree *llrbTreeStruct) delete(oldNexusNode *llrbNodeStruct, key Key) (newNe
 				return
 			}
 		}
-		if (0 == compareResult) && (nil == newNexusNode.right) {
+		if (compareResult == 0) && (newNexusNode.right == nil) {
 			newNexusNode = nil
 			err = nil
 
@@ -649,9 +653,9 @@ func (tree *llrbTreeStruct) delete(oldNexusNode *llrbNodeStruct, key Key) (newNe
 				return
 			}
 		}
-		if 0 == compareResult {
+		if compareResult == 0 {
 			newNexusNode.right, newNexusNode.Key, newNexusNode.Value = tree.deleteMin(newNexusNode.right)
-		} else { // 0 != compareResult
+		} else { // compareResult != 0
 			newNexusNode.right, err = tree.delete(newNexusNode.right, key)
 			if nil != err {
 				return
@@ -715,7 +719,7 @@ func colorFlip(node *llrbNodeStruct) {
 	node.right.color = !node.right.color
 }
 
-func (tree *llrbTreeStruct) rotateLeft(oldParentNode *llrbNodeStruct) (newParentNode *llrbNodeStruct) {
+func (*llrbTreeStruct) rotateLeft(oldParentNode *llrbNodeStruct) (newParentNode *llrbNodeStruct) {
 	// Adjust children fields
 
 	newParentNode = oldParentNode.right
@@ -742,7 +746,7 @@ func (tree *llrbTreeStruct) rotateLeft(oldParentNode *llrbNodeStruct) (newParent
 	return
 }
 
-func (tree *llrbTreeStruct) rotateRight(oldParentNode *llrbNodeStruct) (newParentNode *llrbNodeStruct) {
+func (*llrbTreeStruct) rotateRight(oldParentNode *llrbNodeStruct) (newParentNode *llrbNodeStruct) {
 	// Adjust children fields
 
 	newParentNode = oldParentNode.left

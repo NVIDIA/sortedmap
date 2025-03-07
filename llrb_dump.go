@@ -16,14 +16,14 @@ func (tree *llrbTreeStruct) Dump() (err error) {
 
 	err = tree.dumpInFlatForm(tree.root)
 	if nil != err {
-		err = fmt.Errorf("dumpInFlatForm() failed: %v\n", err)
+		err = fmt.Errorf("dumpInFlatForm() failed: %v", err)
 		fmt.Printf("\n%v\n", err)
 		return
 	}
 
 	err = tree.dumpInTreeForm()
 	if nil != err {
-		err = fmt.Errorf("dumpInTreeForm() failed: %v\n", err)
+		err = fmt.Errorf("dumpInTreeForm() failed: %v", err)
 		fmt.Printf("\n%v\n", err)
 		return
 	}

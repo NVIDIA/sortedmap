@@ -137,7 +137,7 @@ func TestBPlusTreeBalance(t *testing.T) {
 	}
 }
 
-func (tree *balanceBPlusTreeTestContextStruct) DumpKey(key Key) (keyAsString string, err error) {
+func (*balanceBPlusTreeTestContextStruct) DumpKey(key Key) (keyAsString string, err error) {
 	var (
 		keyAsInt int
 		ok       bool
@@ -155,43 +155,43 @@ func (tree *balanceBPlusTreeTestContextStruct) DumpKey(key Key) (keyAsString str
 	return
 }
 
-func (tree *balanceBPlusTreeTestContextStruct) DumpValue(value Value) (valueAsString string, err error) {
+func (*balanceBPlusTreeTestContextStruct) DumpValue(_ Value) (valueAsString string, err error) {
 	valueAsString = "<nil>"
 	err = nil
 	return
 }
 
-func (tree *balanceBPlusTreeTestContextStruct) GetNode(objectNumber uint64, objectOffset uint64, objectLength uint64) (nodeByteSlice []byte, err error) {
+func (*balanceBPlusTreeTestContextStruct) GetNode(_, _, _ uint64) (nodeByteSlice []byte, err error) {
 	err = fmt.Errorf("GetNode() not supported")
 	return
 }
 
-func (tree *balanceBPlusTreeTestContextStruct) PutNode(nodeByteSlice []byte) (objectNumber uint64, objectOffset uint64, err error) {
+func (*balanceBPlusTreeTestContextStruct) PutNode(_ []byte) (objectNumber uint64, objectOffset uint64, err error) {
 	err = fmt.Errorf("PutNode() not supported")
 	return
 }
 
-func (tree *balanceBPlusTreeTestContextStruct) DiscardNode(objectNumber uint64, objectOffset uint64, objectLength uint64) (err error) {
+func (*balanceBPlusTreeTestContextStruct) DiscardNode(_, _, _ uint64) (err error) {
 	err = fmt.Errorf("DiscardNode() not supported")
 	return
 }
 
-func (tree *balanceBPlusTreeTestContextStruct) PackKey(key Key) (packedKey []byte, err error) {
+func (*balanceBPlusTreeTestContextStruct) PackKey(_ Key) (packedKey []byte, err error) {
 	err = fmt.Errorf("PackKey() not supported")
 	return
 }
 
-func (tree *balanceBPlusTreeTestContextStruct) UnpackKey(payloadData []byte) (key Key, bytesConsumed uint64, err error) {
+func (*balanceBPlusTreeTestContextStruct) UnpackKey(_ []byte) (key Key, bytesConsumed uint64, err error) {
 	err = fmt.Errorf("UnpackKey() not supported")
 	return
 }
 
-func (tree *balanceBPlusTreeTestContextStruct) PackValue(value Value) (packedValue []byte, err error) {
+func (*balanceBPlusTreeTestContextStruct) PackValue(_ Value) (packedValue []byte, err error) {
 	err = fmt.Errorf("PackValue() not supported")
 	return
 }
 
-func (tree *balanceBPlusTreeTestContextStruct) UnpackValue(payloadData []byte) (value Value, bytesConsumed uint64, err error) {
+func (*balanceBPlusTreeTestContextStruct) UnpackValue(_ []byte) (value Value, bytesConsumed uint64, err error) {
 	err = fmt.Errorf("UnpackValue() not supported")
 	return
 }

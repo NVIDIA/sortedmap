@@ -21,7 +21,7 @@ type cacheBPlusTreeTestContextStruct struct {
 	objectMap        map[uint64][]byte
 }
 
-func (tree *cacheBPlusTreeTestContextStruct) DumpKey(key Key) (keyAsString string, err error) {
+func (*cacheBPlusTreeTestContextStruct) DumpKey(key Key) (keyAsString string, err error) {
 	var (
 		keyAsUint16 uint16
 		ok          bool
@@ -39,7 +39,7 @@ func (tree *cacheBPlusTreeTestContextStruct) DumpKey(key Key) (keyAsString strin
 	return
 }
 
-func (tree *cacheBPlusTreeTestContextStruct) DumpValue(value Value) (valueAsString string, err error) {
+func (*cacheBPlusTreeTestContextStruct) DumpValue(value Value) (valueAsString string, err error) {
 	var (
 		ok            bool
 		valueAsUint32 uint32
@@ -124,7 +124,7 @@ func (tree *cacheBPlusTreeTestContextStruct) DiscardNode(objectNumber uint64, ob
 	return
 }
 
-func (tree *cacheBPlusTreeTestContextStruct) PackKey(key Key) (packedKey []byte, err error) {
+func (*cacheBPlusTreeTestContextStruct) PackKey(key Key) (packedKey []byte, err error) {
 	var (
 		ok          bool
 		keyAsUint16 uint16
@@ -144,7 +144,7 @@ func (tree *cacheBPlusTreeTestContextStruct) PackKey(key Key) (packedKey []byte,
 	return
 }
 
-func (tree *cacheBPlusTreeTestContextStruct) UnpackKey(payloadData []byte) (key Key, bytesConsumed uint64, err error) {
+func (*cacheBPlusTreeTestContextStruct) UnpackKey(payloadData []byte) (key Key, bytesConsumed uint64, err error) {
 	if len(payloadData) < 2 {
 		err = fmt.Errorf("UnpackKey() called for length %v... expected length of at least 2", len(payloadData))
 		return
@@ -158,7 +158,7 @@ func (tree *cacheBPlusTreeTestContextStruct) UnpackKey(payloadData []byte) (key 
 	return
 }
 
-func (tree *cacheBPlusTreeTestContextStruct) PackValue(value Value) (packedValue []byte, err error) {
+func (*cacheBPlusTreeTestContextStruct) PackValue(value Value) (packedValue []byte, err error) {
 	var (
 		ok            bool
 		valueAsUint32 uint32
@@ -180,7 +180,7 @@ func (tree *cacheBPlusTreeTestContextStruct) PackValue(value Value) (packedValue
 	return
 }
 
-func (tree *cacheBPlusTreeTestContextStruct) UnpackValue(payloadData []byte) (value Value, bytesConsumed uint64, err error) {
+func (*cacheBPlusTreeTestContextStruct) UnpackValue(payloadData []byte) (value Value, bytesConsumed uint64, err error) {
 	if len(payloadData) < 4 {
 		err = fmt.Errorf("UnpackValue() called for length %v... expected length of at least 4", len(payloadData))
 		return

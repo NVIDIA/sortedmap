@@ -772,14 +772,13 @@ func (tree *btreeTreeStruct) Put(key Key, value Value) (ok bool, err error) {
 				return
 			}
 
-			if keyAlreadyPresent {
-				ok = false
-			} else {
+			if !keyAlreadyPresent {
 				err = tree.insertHere(node, key, value) // will also mark affected nodes dirty/used in LRU
 				ok = true
 				return
 			}
 
+			ok = false
 			err = nil
 			return
 		}
@@ -1215,7 +1214,7 @@ func (tree *btreeTreeStruct) insertHere(insertNode *btreeNodeStruct, key Key, va
 				return
 			}
 			if !ok {
-				err = fmt.Errorf("Logic error: insertHere() failed to put newRightSiblingNode's splitKey:splitValue")
+				err = errors.New("logic error: insertHere() failed to put newRightSiblingNode's splitKey:splitValue")
 				return
 			}
 
@@ -1232,17 +1231,16 @@ func (tree *btreeTreeStruct) insertHere(insertNode *btreeNodeStruct, key Key, va
 
 			if tree.minKeysPerNode == uint64(llrbLen) {
 				newRightSiblingNode.nonLeafLeftChild = splitValue.(*btreeNodeStruct)
-
 				break
-			} else {
-				ok, err = newRightSiblingNode.kvLLRB.Put(splitKey, splitValue)
-				if nil != err {
-					return
-				}
-				if !ok {
-					err = fmt.Errorf("Logic error: insertHere() failed to put newRightSiblingNode's splitKey:splitValue")
-					return
-				}
+			}
+
+			ok, err = newRightSiblingNode.kvLLRB.Put(splitKey, splitValue)
+			if nil != err {
+				return
+			}
+			if !ok {
+				err = errors.New("logic error: insertHere() failed to put newRightSiblingNode's splitKey:splitValue")
+				return
 			}
 		}
 	}
@@ -2685,9 +2683,9 @@ func (tree *btreeTreeStruct) updatePrefixSumTreeLeafToRootRecursively(updatedChi
 
 		if nil == prefixSumNode.prefixSumParent {
 			break
-		} else {
-			prefixSumNode = prefixSumNode.prefixSumParent
 		}
+
+		prefixSumNode = prefixSumNode.prefixSumParent
 	}
 
 	tree.updatePrefixSumTreeLeafToRootRecursively(updatedChildNode.parentNode, delta)

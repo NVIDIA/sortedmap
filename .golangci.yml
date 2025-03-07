@@ -32,7 +32,7 @@ linters:
     - prealloc
     - protogetter
     - reassign
-    # - revive
+    - revive
     # - staticcheck
     # - testpackage
     - typecheck
