@@ -7,7 +7,7 @@ linters:
     - copyloopvar
     - depguard
     - dogsled
-    # - dupl
+    - dupl
     - durationcheck
     - errcheck
     - fatcontext
@@ -46,7 +46,7 @@ linters-settings:
   dogsled:
     max-blank-identifiers: 3
   dupl:
-    threshold: 250
+    threshold: 10000
   revive:
     ignore-generated-header: true
     severity: warning
