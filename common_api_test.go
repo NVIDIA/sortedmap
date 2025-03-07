@@ -798,7 +798,7 @@ func testKnuthShuffledIntSlice(n int) (intSlice []int, err error) {
 		swapTo   int64
 	)
 	intSlice = make([]int, n)
-	for i := 0; i < n; i++ {
+	for i := range n {
 		intSlice[i] = i
 	}
 	for swapFrom = int64(n - 1); swapFrom > int64(0); swapFrom-- {
@@ -1496,7 +1496,7 @@ func metaTestBisect(t *testing.T, tree SortedMap) {
 		t.Fatalf("Len() returned %v... expected %v", treeLen, testHugeNumKeys)
 	}
 
-	for keyIndex = int(0); keyIndex < testHugeNumKeys; keyIndex++ {
+	for keyIndex = range testHugeNumKeys {
 		keyExpected = (2 * keyIndex) + 1
 		keyAsKey, _, ok, err = tree.GetByIndex(keyIndex)
 		if nil != err {
@@ -1512,7 +1512,7 @@ func metaTestBisect(t *testing.T, tree SortedMap) {
 	}
 
 	// Verify Bisect{Left|Right}() on each of these keys returns correct index & found == true
-	for keyIndex = int(0); keyIndex < testHugeNumKeys; keyIndex++ {
+	for keyIndex = range testHugeNumKeys {
 		bisectKey = (2 * keyIndex) + 1
 
 		bisectIndex, found, err = tree.BisectLeft(bisectKey)
@@ -1562,7 +1562,7 @@ func metaTestBisect(t *testing.T, tree SortedMap) {
 	}
 
 	// Verify Bisect{Left|Right}() on each of these keys plus 1 (the following even ints) returns correct index & found == false
-	for keyIndex = int(0); keyIndex < testHugeNumKeys; keyIndex++ {
+	for keyIndex = range testHugeNumKeys {
 		bisectKey = (2 * keyIndex) + 1 + 1
 
 		bisectIndex, found, err = tree.BisectLeft(bisectKey)

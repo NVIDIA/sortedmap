@@ -175,7 +175,7 @@ func (context *specificBPlusTreeTestContextStruct) UnpackValue(packedValue []byt
 func uint32To8ReplicaByteArray(u32 uint32) (b8 [8]byte) {
 	// Assumes u32 < 0x100
 
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		b8[i] = byte(u32)
 	}
 

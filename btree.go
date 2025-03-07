@@ -1114,14 +1114,14 @@ func (tree *btreeTreeStruct) discardNode(node *btreeNodeStruct) (err error) {
 			return
 		}
 
-		for i := 0; i < numIndices; i++ {
+		for i := range numIndices {
 			_, childNodeAsValue, ok, nonShadowingErr := node.kvLLRB.GetByIndex(i)
 			if nil != nonShadowingErr {
 				err = nonShadowingErr
 				return
 			}
 			if !ok {
-				err = fmt.Errorf("Logic error: discardNode() had indexing problem in kvLLRB")
+				err = errors.New("logic error: discardNode() had indexing problem in kvLLRB")
 				return
 			}
 			childNode := childNodeAsValue.(*btreeNodeStruct)
@@ -1696,7 +1696,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 		if nil != err {
 			return
 		}
-		for i = 0; i < numItemsToMove; i++ {
+		for i = range numItemsToMove {
 			movedKeyFromSibling, movedValueFromSibling, ok, err = rebalanceNode.kvLLRB.GetByIndex(i)
 			if nil != err {
 				return
@@ -1714,7 +1714,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 				return
 			}
 			if !ok {
-				err = fmt.Errorf("Logic error: rebalanceHere() failed to put leftSiblingNode's movedKeyFromSibling:movedValueFromSibling")
+				err = errors.New("logic error: rebalanceHere() failed to put leftSiblingNode's movedKeyFromSibling:movedValueFromSibling")
 				return
 			}
 		}
@@ -1724,7 +1724,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 			return
 		}
 
-		if parentNode.root && (1 == llrbLen) {
+		if parentNode.root && (llrbLen == 1) {
 			// height will reduce by one, so make leftSiblingNode the new root
 
 			tree.markNodeToBeDiscarded(tree.root)
@@ -1745,7 +1745,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 				return
 			}
 			if !ok {
-				err = fmt.Errorf("Logic error: rebalanceHere() failed to delete parentNode's oldSplitKey")
+				err = errors.New("logic error: rebalanceHere() failed to delete parentNode's oldSplitKey")
 				return
 			}
 
@@ -1773,7 +1773,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 			return
 		}
 		if !ok {
-			err = fmt.Errorf("Logic error: rebalanceHere() failed to fetch oldSplitKey from parentNode")
+			err = errors.New("logic error: rebalanceHere() failed to fetch oldSplitKey from parentNode")
 			return
 		}
 		if !rebalanceNode.leaf {
@@ -1783,7 +1783,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 				return
 			}
 			if !ok {
-				err = fmt.Errorf("Logic error: rebalanceHere() failed to put rebalanceNode's oldSplitKey:rightSiblingNode.nonLeafLeftChild")
+				err = errors.New("logic error: rebalanceHere() failed to put rebalanceNode's oldSplitKey:rightSiblingNode.nonLeafLeftChild")
 				return
 			}
 		}
@@ -1791,13 +1791,13 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 		if nil != err {
 			return
 		}
-		for i = 0; i < numItemsToMove; i++ {
+		for i = range numItemsToMove {
 			movedKeyFromSibling, movedValueFromSibling, ok, err = rightSiblingNode.kvLLRB.GetByIndex(i)
 			if nil != err {
 				return
 			}
 			if !ok {
-				err = fmt.Errorf("Logic error: rebalanceHere() failed to fetch movedKeyFromSibling:movedValueFromSibling from rightSiblingNode")
+				err = errors.New("logic error: rebalanceHere() failed to fetch movedKeyFromSibling:movedValueFromSibling from rightSiblingNode")
 				return
 			}
 			movedNodeFromSibling, ok = movedValueFromSibling.(*btreeNodeStruct)
@@ -1809,7 +1809,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 				return
 			}
 			if !ok {
-				err = fmt.Errorf("Logic error: rebalanceHere() failed to put rebalanceNode's movedKeyFromSibling:movedValueFromSibling")
+				err = errors.New("logic error: rebalanceHere() failed to put rebalanceNode's movedKeyFromSibling:movedValueFromSibling")
 				return
 			}
 		}
@@ -1819,7 +1819,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 			return
 		}
 
-		if parentNode.root && (1 == llrbLen) {
+		if parentNode.root && (llrbLen == 1) {
 			// height will reduce by one, so make rebalanceNode the new root
 
 			tree.markNodeToBeDiscarded(tree.root)
@@ -1840,7 +1840,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 				return
 			}
 			if !ok {
-				err = fmt.Errorf("Logic error: rebalanceHere() failed to delete parentNode's oldSplitKey")
+				err = errors.New("logic error: rebalanceHere() failed to delete parentNode's oldSplitKey")
 				return
 			}
 
@@ -1862,7 +1862,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 		// since non-root minKeysPerNode >= 2, this node was required to have had a sibling,
 		// so if we reach here, we have a logic problem
 
-		err = fmt.Errorf("Logic error: rebalanceHere() found non-leaf node with no sibling in parentNode.kvLLRB")
+		err = errors.New("logic error: rebalanceHere() found non-leaf node with no sibling in parentNode.kvLLRB")
 		return
 	}
 
@@ -1890,14 +1890,14 @@ func (tree *btreeTreeStruct) flushNode(node *btreeNodeStruct, andPurge bool) (er
 			return
 		}
 
-		for i := 0; i < numIndices; i++ {
+		for i := range numIndices {
 			_, childNodeAsValue, ok, nonShadowingErr := node.kvLLRB.GetByIndex(i)
 			if nil != nonShadowingErr {
 				err = nonShadowingErr
 				return
 			}
 			if !ok {
-				err = fmt.Errorf("Logic error: flushNode() had indexing problem in kvLLRB")
+				err = errors.New("logic error: flushNode() had indexing problem in kvLLRB")
 				return
 			}
 			childNode := childNodeAsValue.(*btreeNodeStruct)
@@ -1937,7 +1937,7 @@ func (tree *btreeTreeStruct) purgeNode(node *btreeNodeStruct, full bool) (err er
 	}
 
 	if full && node.dirty {
-		err = fmt.Errorf("Logic error: purgeNode(,full==true) shouldn't have found a dirty node")
+		err = errors.New("logic error: purgeNode(,full==true) shouldn't have found a dirty node")
 		return
 	}
 
@@ -1955,7 +1955,7 @@ func (tree *btreeTreeStruct) purgeNode(node *btreeNodeStruct, full bool) (err er
 			return
 		}
 
-		for i := 0; i < numIndices; i++ {
+		for i := range numIndices {
 			_, childNodeAsValue, ok, nonShadowingErr := node.kvLLRB.GetByIndex(i)
 			if nil != nonShadowingErr {
 				err = nonShadowingErr
@@ -2078,7 +2078,7 @@ func (tree *btreeTreeStruct) markNodeClean(node *btreeNodeStruct) {
 		switch node.btreeNodeCacheTag {
 		case noLRU:
 			// Place node at the MRU end of tree.nodeCache's cleanLRU
-			if 0 == tree.nodeCache.cleanLRUItems {
+			if tree.nodeCache.cleanLRUItems == 0 {
 				tree.nodeCache.cleanLRUHead = node
 				tree.nodeCache.cleanLRUTail = node
 				tree.nodeCache.cleanLRUItems = 1
@@ -2269,7 +2269,7 @@ func (tree *btreeTreeStruct) markNodeEvicted(node *btreeNodeStruct) {
 		tree.nodeCache.Lock()
 		switch node.btreeNodeCacheTag {
 		case noLRU:
-			err := fmt.Errorf("Logic error in markNodeEvicted() with node.btreeNodeCacheTag == noLRU (%v)", noLRU)
+			err := fmt.Errorf("logic error in markNodeEvicted() with node.btreeNodeCacheTag == noLRU (%v)", noLRU)
 			panic(err)
 		case cleanLRU:
 			// Remove node from tree.nodeCache's cleanLRU
@@ -2548,14 +2548,14 @@ func (tree *btreeTreeStruct) touchNode(node *btreeNodeStruct) (err error) {
 			return
 		}
 
-		for i := 0; i < numIndices; i++ {
+		for i := range numIndices {
 			_, childNodeAsValue, ok, nonShadowingErr := node.kvLLRB.GetByIndex(i)
 			if nil != nonShadowingErr {
 				err = nonShadowingErr
 				return
 			}
 			if !ok {
-				err = fmt.Errorf("Logic error: touchNode() had indexing problem in kvLLRB")
+				err = errors.New("logic error: touchNode() had indexing problem in kvLLRB")
 				return
 			}
 			childNode := childNodeAsValue.(*btreeNodeStruct)
@@ -2618,14 +2618,14 @@ func (tree *btreeTreeStruct) arrangePrefixSumTree(node *btreeNodeStruct) (err er
 
 	prefixSumSlice[0] = node.nonLeafLeftChild
 
-	for i := 0; i < numChildrenInLLRB; i++ {
+	for i := range numChildrenInLLRB {
 		_, childNodeAsValue, ok, nonShadowingErr := node.kvLLRB.GetByIndex(i)
 		if nil != nonShadowingErr {
 			err = nonShadowingErr
 			return
 		}
 		if !ok {
-			err = fmt.Errorf("Logic error: arrangePrefixSumTree() had indexing problem in kvLLRB")
+			err = errors.New("logic error: arrangePrefixSumTree() had indexing problem in kvLLRB")
 			return
 		}
 		childNode := childNodeAsValue.(*btreeNodeStruct)
@@ -2763,7 +2763,7 @@ func (tree *btreeTreeStruct) loadNode(node *btreeNodeStruct) (err error) {
 		}
 
 		payload = payload[bytesConsumed:]
-		for i := uint64(0); i < numKeysStruct.U64; i++ {
+		for range numKeysStruct.U64 {
 			key, bytesConsumed, unpackKeyErr := tree.BPlusTreeCallbacks.UnpackKey(payload)
 			if nil != unpackKeyErr {
 				err = unpackKeyErr
@@ -2783,7 +2783,7 @@ func (tree *btreeTreeStruct) loadNode(node *btreeNodeStruct) (err error) {
 				return
 			}
 			if !ok {
-				err = fmt.Errorf("Logic error: loadNode() call to Put() should have worked")
+				err = errors.New("logic error: loadNode() call to Put() should have worked")
 				return
 			}
 		}
@@ -2798,7 +2798,7 @@ func (tree *btreeTreeStruct) loadNode(node *btreeNodeStruct) (err error) {
 
 		payload = payload[bytesConsumed:]
 
-		if 0 == numChildrenStruct.U64 {
+		if numChildrenStruct.U64 == 0 {
 			node.nonLeafLeftChild = nil
 		} else {
 			bytesConsumed, unpackErr := cstruct.Unpack(payload, &onDiskReferenceToNode, OnDiskByteOrder)
@@ -2861,8 +2861,8 @@ func (tree *btreeTreeStruct) loadNode(node *btreeNodeStruct) (err error) {
 		}
 	}
 
-	if 0 != len(payload) {
-		err = fmt.Errorf("Logic error: load() should have exhausted payload")
+	if len(payload) != 0 {
+		err = errors.New("logic error: load() should have exhausted payload")
 		return
 	}
 
@@ -2921,14 +2921,14 @@ func (tree *btreeTreeStruct) postNode(node *btreeNodeStruct) (err error) {
 
 		onDiskNode.Payload = append(onDiskNode.Payload, kvLLRBLenBuf...)
 
-		for i := 0; i < kvLLRBLen; i++ {
+		for i := range kvLLRBLen {
 			key, value, ok, nonShadowingErr := node.kvLLRB.GetByIndex(i)
 			if nil != nonShadowingErr {
 				err = nonShadowingErr
 				return
 			}
 			if !ok {
-				err = fmt.Errorf("Logic error: postNode() call to GetByIndex() should have worked")
+				err = errors.New("logic error: postNode() call to GetByIndex() should have worked")
 				return
 			}
 
@@ -2955,8 +2955,8 @@ func (tree *btreeTreeStruct) postNode(node *btreeNodeStruct) (err error) {
 		if nil == node.nonLeafLeftChild {
 			numChildren = 0
 
-			if 0 != llrbLen {
-				err = fmt.Errorf("Logic error: postNode() found no nonLeafLeftChild but elements in kvLLRB")
+			if llrbLen != 0 {
+				err = errors.New("logic error: postNode() found no nonLeafLeftChild but elements in kvLLRB")
 				return
 			}
 		} else {
@@ -2973,10 +2973,10 @@ func (tree *btreeTreeStruct) postNode(node *btreeNodeStruct) (err error) {
 
 		onDiskNode.Payload = append(onDiskNode.Payload, numChildrenBuf...)
 
-		for i := 0; i < numChildren; i++ {
-			if 0 == i {
+		for i := range numChildren {
+			if i == 0 {
 				if node.nonLeafLeftChild.dirty {
-					err = fmt.Errorf("Logic error: postNode() found nonLeafLeftChild dirty")
+					err = errors.New("logic error: postNode() found nonLeafLeftChild dirty")
 					return
 				}
 
@@ -2999,7 +2999,7 @@ func (tree *btreeTreeStruct) postNode(node *btreeNodeStruct) (err error) {
 					return
 				}
 				if !ok {
-					err = fmt.Errorf("Logic error: postNode() call to GetByIndex() should have worked")
+					err = errors.New("logic error: postNode() call to GetByIndex() should have worked")
 					return
 				}
 
@@ -3013,7 +3013,7 @@ func (tree *btreeTreeStruct) postNode(node *btreeNodeStruct) (err error) {
 				childNode := value.(*btreeNodeStruct)
 
 				if childNode.dirty {
-					err = fmt.Errorf("Logic error: postNode() found childNode dirty")
+					err = errors.New("logic error: postNode() found childNode dirty")
 					return
 				}
 
@@ -3063,7 +3063,7 @@ func (tree *btreeTreeStruct) updateLayoutReport(layoutReport LayoutReport, node 
 		}
 	}
 
-	if 0 != node.objectNumber {
+	if node.objectNumber != 0 {
 		prevObjectBytes, ok := layoutReport[node.objectNumber]
 		if !ok {
 			prevObjectBytes = 0
@@ -3073,7 +3073,7 @@ func (tree *btreeTreeStruct) updateLayoutReport(layoutReport LayoutReport, node 
 
 	if !node.leaf {
 		if nil == node.nonLeafLeftChild {
-			err = fmt.Errorf("Logic error: non-Leaf node found to not have a nonLeafLeftChild")
+			err = errors.New("logic error: non-Leaf node found to not have a nonLeafLeftChild")
 			return
 		}
 
@@ -3088,7 +3088,7 @@ func (tree *btreeTreeStruct) updateLayoutReport(layoutReport LayoutReport, node 
 			return
 		}
 
-		for i := 0; i < llrbLen; i++ {
+		for i := range llrbLen {
 			_, childNodeAsValue, ok, nonShadowingErr := node.kvLLRB.GetByIndex(i)
 			if nil != nonShadowingErr {
 				err = nonShadowingErr

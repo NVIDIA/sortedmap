@@ -24,7 +24,7 @@ linters:
     - govet
     - importas
     - ineffassign
-    # - intrange
+    - intrange
     - misspell
     - nilnesserr
     - nolintlint

@@ -136,7 +136,7 @@ func (tree *btreeTreeStruct) dumpNode(node *btreeNodeStruct, indent string) (err
 		err = lenErr
 		return
 	}
-	for i := 0; i < numKVentries; i++ {
+	for i := range numKVentries {
 		key, value, _, getByIndexErr := node.kvLLRB.GetByIndex(i)
 		if nil != getByIndexErr {
 			err = getByIndexErr

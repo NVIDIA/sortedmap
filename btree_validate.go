@@ -84,7 +84,7 @@ func (node *btreeNodeStruct) validate() (err error) {
 			return
 		}
 
-		for i := 0; i < numChildrenInLLRB; i++ {
+		for i := range numChildrenInLLRB {
 			_, childNodeAsValue, ok, nonShadowingErr := node.kvLLRB.GetByIndex(i)
 			if nil != nonShadowingErr {
 				err = nonShadowingErr
