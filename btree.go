@@ -928,7 +928,7 @@ func (tree *btreeTreeStruct) TouchItem(thisItemIndexToTouch uint64) (nextItemInd
 
 	node := tree.root
 
-	if 0 == node.items {
+	if node.items == 0 {
 		// Special case where tree is empty... just return
 		nextItemIndexToTouch = 0
 		err = nil
@@ -939,7 +939,7 @@ func (tree *btreeTreeStruct) TouchItem(thisItemIndexToTouch uint64) (nextItemInd
 		// Apparently tree has shrunk since last TouchItem() call,
 		//   so simply wrap back to the zeroth element and return
 		//   immmediately (indicating that caller has reached the end)
-		thisItemIndexToTouch = 0
+		nextItemIndexToTouch = 0
 		err = nil
 		return
 	}

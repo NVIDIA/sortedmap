@@ -153,6 +153,9 @@ func (node *btreeNodeStruct) validatePrefixSum() (err error) {
 		}
 
 		err = node.prefixSumLeftChild.validatePrefixSum()
+		if nil != err {
+			return
+		}
 	}
 
 	if nil != node.prefixSumRightChild {

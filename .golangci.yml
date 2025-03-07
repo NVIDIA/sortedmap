@@ -23,7 +23,7 @@ linters:
     - gosimple
     - govet
     - importas
-    # - ineffassign
+    - ineffassign
     # - intrange
     - misspell
     - nilnesserr
