@@ -62,7 +62,7 @@ type BPlusTreeCache interface {
 	UpdateLimits(evictLowLimit uint64, evictHighLimit uint64)
 }
 
-func NewBPlusTreeCache(evictLowLimit uint64, evictHighLimit uint64) (bPlusTreeCache BPlusTreeCache) {
+func NewBPlusTreeCache(evictLowLimit, evictHighLimit uint64) (bPlusTreeCache BPlusTreeCache) {
 	bPlusTreeCache = &btreeNodeCacheStruct{
 		evictLowLimit:  evictLowLimit,
 		evictHighLimit: evictHighLimit,
@@ -128,7 +128,7 @@ func NewBPlusTree(maxKeysPerNode uint64, compare Compare, callbacks BPlusTreeCal
 		staleOnDiskReferencesList: nil,
 	}
 
-	if nil == bPlusTreeCache {
+	if bPlusTreeCache == nil {
 		treePtr.nodeCache = nil
 	} else {
 		treePtr.nodeCache = bPlusTreeCache.(*btreeNodeCacheStruct)
@@ -145,7 +145,7 @@ func NewBPlusTree(maxKeysPerNode uint64, compare Compare, callbacks BPlusTreeCal
 }
 
 // OldBPlusTree is used to re-construct a B+Tree previously persisted
-func OldBPlusTree(rootObjectNumber uint64, rootObjectOffset uint64, rootObjectLength uint64, compare Compare, callbacks BPlusTreeCallbacks, bPlusTreeCache BPlusTreeCache) (tree BPlusTree, err error) {
+func OldBPlusTree(rootObjectNumber, rootObjectOffset, rootObjectLength uint64, compare Compare, callbacks BPlusTreeCallbacks, bPlusTreeCache BPlusTreeCache) (tree BPlusTree, err error) {
 	rootNode := &btreeNodeStruct{
 		objectNumber:        rootObjectNumber,
 		objectOffset:        rootObjectOffset,
@@ -177,7 +177,7 @@ func OldBPlusTree(rootObjectNumber uint64, rootObjectOffset uint64, rootObjectLe
 		staleOnDiskReferencesList: nil,
 	}
 
-	if nil == bPlusTreeCache {
+	if bPlusTreeCache == nil {
 		treePtr.nodeCache = nil
 	} else {
 		treePtr.nodeCache = bPlusTreeCache.(*btreeNodeCacheStruct)

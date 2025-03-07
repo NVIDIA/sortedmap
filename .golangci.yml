@@ -13,7 +13,7 @@ linters:
     - fatcontext
     - gci
     - gochecksumtype
-    # - gocritic
+    - gocritic
     - gofmt
     - goheader
     - goimports

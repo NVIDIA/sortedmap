@@ -29,7 +29,7 @@ func (*commonBPlusTreeTestContextStruct) GetNode(_, _, _ uint64) (nodeByteSlice 
 	return
 }
 
-func (*commonBPlusTreeTestContextStruct) PutNode(_ []byte) (objectNumber uint64, objectOffset uint64, err error) {
+func (*commonBPlusTreeTestContextStruct) PutNode(_ []byte) (objectNumber, objectOffset uint64, err error) {
 	err = errors.New("PutNode() not implemented")
 	return
 }
@@ -100,7 +100,7 @@ func (*commonBPlusTreeBenchmarkContextStruct) GetNode(_, _, _ uint64) (nodeByteS
 	return
 }
 
-func (*commonBPlusTreeBenchmarkContextStruct) PutNode(_ []byte) (objectNumber uint64, objectOffset uint64, err error) {
+func (*commonBPlusTreeBenchmarkContextStruct) PutNode(_ []byte) (objectNumber, objectOffset uint64, err error) {
 	err = errors.New("PutNode() not implemented")
 	return
 }

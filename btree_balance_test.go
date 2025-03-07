@@ -36,20 +36,20 @@ func TestBPlusTreeBalance(t *testing.T) {
 	tree = NewBPlusTree(maxKeysPerNode, CompareInt, treeContext, nil)
 
 	keysToPut, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("testKnuthShuffledIntSlice() [Case A] failed: %v", err)
 	}
 
 	for keyIndex, key = range keysToPut {
 		ok, err = tree.Put(key, struct{}{})
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.Put(%d,) [Case A] failed: %v", key, err)
 		}
 		if !ok {
 			t.Fatalf("tree.Put(%d,) [Case A] returned !ok", key)
 		}
 		treeLen, err = tree.Len()
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.Len() [Case A] failed: %v", err)
 		}
 		treeLenExpected = keyIndex + 1
@@ -57,26 +57,26 @@ func TestBPlusTreeBalance(t *testing.T) {
 			t.Fatalf("tree.Len() [Case A] returned %d...expected %d", treeLen, treeLenExpected)
 		}
 		err = tree.Validate()
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.Validate() [Case A] failed: %v", err)
 		}
 	}
 
 	keysToDelete, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("testKnuthShuffledIntSlice() [Case B] failed: %v", err)
 	}
 
 	for keyIndex, key = range keysToDelete {
 		ok, err = tree.DeleteByKey(key)
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.DeleteByKey(%d) failed: %v", key, err)
 		}
 		if !ok {
 			t.Fatalf("tree.DeleteByKey(%d) returned !ok", key)
 		}
 		treeLen, err = tree.Len()
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.Len() [Case B] failed: %v", err)
 		}
 		treeLenExpected = numKeys - keyIndex - 1
@@ -84,26 +84,26 @@ func TestBPlusTreeBalance(t *testing.T) {
 			t.Fatalf("tree.Len() [Case B] returned %d...expected %d", treeLen, treeLenExpected)
 		}
 		err = tree.Validate()
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.Validate() [Case B] failed: %v", err)
 		}
 	}
 
 	keysToPut, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("testKnuthShuffledIntSlice() [Case C] failed: %v", err)
 	}
 
 	for keyIndex, key = range keysToPut {
 		ok, err = tree.Put(key, struct{}{})
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.Put(%d,) [Case B] failed: %v", key, err)
 		}
 		if !ok {
 			t.Fatalf("tree.Put(%d,) [Case B] returned !ok", key)
 		}
 		treeLen, err = tree.Len()
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.Len() [Case C] failed: %v", err)
 		}
 		treeLenExpected = keyIndex + 1
@@ -111,21 +111,21 @@ func TestBPlusTreeBalance(t *testing.T) {
 			t.Fatalf("tree.Len() [Case C] returned %d...expected %d", treeLen, treeLenExpected)
 		}
 		err = tree.Validate()
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.Validate() [Case C] failed: %v", err)
 		}
 	}
 
 	for keyIndex = (numKeys - 1); keyIndex >= 0; keyIndex-- {
 		ok, err = tree.DeleteByIndex(keyIndex)
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.DeleteByIndex(%d) failed: %v", key, err)
 		}
 		if !ok {
 			t.Fatalf("tree.DeleteByIndex(%d) returned !ok", key)
 		}
 		treeLen, err = tree.Len()
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.Len() [Case D] failed: %v", err)
 		}
 		treeLenExpected = keyIndex
@@ -133,7 +133,7 @@ func TestBPlusTreeBalance(t *testing.T) {
 			t.Fatalf("tree.Len() [Case D] returned %d...expected %d", treeLen, treeLenExpected)
 		}
 		err = tree.Validate()
-		if nil != err {
+		if err != nil {
 			t.Fatalf("tree.Validate() [Case D] failed: %v", err)
 		}
 	}
@@ -168,7 +168,7 @@ func (*balanceBPlusTreeTestContextStruct) GetNode(_, _, _ uint64) (nodeByteSlice
 	return
 }
 
-func (*balanceBPlusTreeTestContextStruct) PutNode(_ []byte) (objectNumber uint64, objectOffset uint64, err error) {
+func (*balanceBPlusTreeTestContextStruct) PutNode(_ []byte) (objectNumber, objectOffset uint64, err error) {
 	err = errors.New("PutNode() not supported")
 	return
 }

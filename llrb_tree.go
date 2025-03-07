@@ -45,7 +45,7 @@ func (tree *llrbTreeStruct) BisectLeft(key Key) (index int, found bool, err erro
 
 	node := tree.root
 
-	if nil == node {
+	if node == nil {
 		index = -1
 		found = false
 		err = nil
@@ -54,12 +54,12 @@ func (tree *llrbTreeStruct) BisectLeft(key Key) (index int, found bool, err erro
 	}
 
 	nodeIndex := 0 // computed index of current node
-	if nil != node.left {
+	if node.left != nil {
 		nodeIndex = node.left.len
 	}
 
 	compareResult, compareErr := tree.Compare(key, node.Key) // Pre-load recursion test value
-	if nil != compareErr {
+	if compareErr != nil {
 		err = compareErr
 		return
 	}
@@ -68,7 +68,7 @@ func (tree *llrbTreeStruct) BisectLeft(key Key) (index int, found bool, err erro
 		if compareResult < 0 { // key < node.Key
 			node = node.left
 
-			if nil == node {
+			if node == nil {
 				// key not found, nodeIndex points to key:value just after where key would go
 
 				index = nodeIndex - 1
@@ -80,15 +80,15 @@ func (tree *llrbTreeStruct) BisectLeft(key Key) (index int, found bool, err erro
 
 			// nil != node, so recurse from here
 
-			if nil == node.right {
-				nodeIndex = nodeIndex - 1
-			} else { // nil != node.right
-				nodeIndex = nodeIndex - node.right.len - 1
+			if node.right == nil {
+				nodeIndex--
+			} else { // node.right != nil
+				nodeIndex -= node.right.len + 1
 			}
 		} else { // compareResult > 0 (key > node.Key)
 			node = node.right
 
-			if nil == node {
+			if node == nil {
 				// key not found, nodeIndex points to key:value just before where key would go
 
 				index = nodeIndex
@@ -100,15 +100,15 @@ func (tree *llrbTreeStruct) BisectLeft(key Key) (index int, found bool, err erro
 
 			// nil != node, so recurse from here
 
-			if nil == node.left {
-				nodeIndex = nodeIndex + 1
-			} else { // nil != node.left
-				nodeIndex = nodeIndex + node.left.len + 1
+			if node.left == nil {
+				nodeIndex++
+			} else { // node.left != nil
+				nodeIndex += node.left.len + 1
 			}
 		}
 
 		compareResult, compareErr = tree.Compare(key, node.Key) // next recursion step's test value
-		if nil != compareErr {
+		if compareErr != nil {
 			err = compareErr
 			return
 		}
@@ -129,7 +129,7 @@ func (tree *llrbTreeStruct) BisectRight(key Key) (index int, found bool, err err
 
 	node := tree.root
 
-	if nil == node {
+	if node == nil {
 		index = 0
 		found = false
 		err = nil
@@ -138,12 +138,12 @@ func (tree *llrbTreeStruct) BisectRight(key Key) (index int, found bool, err err
 	}
 
 	nodeIndex := 0 // computed index of current node
-	if nil != node.left {
+	if node.left != nil {
 		nodeIndex = node.left.len
 	}
 
 	compareResult, compareErr := tree.Compare(key, node.Key) // Pre-load recursion test value
-	if nil != compareErr {
+	if compareErr != nil {
 		err = compareErr
 		return
 	}
@@ -152,7 +152,7 @@ func (tree *llrbTreeStruct) BisectRight(key Key) (index int, found bool, err err
 		if compareResult < 0 { // key < node.Key
 			node = node.left
 
-			if nil == node {
+			if node == nil {
 				// key not found, nodeIndex points to key:value just after where key would go
 
 				index = nodeIndex
@@ -162,17 +162,17 @@ func (tree *llrbTreeStruct) BisectRight(key Key) (index int, found bool, err err
 				return
 			}
 
-			// nil != node, so recurse from here
+			// node != nil, so recurse from here
 
-			if nil == node.right {
-				nodeIndex = nodeIndex - 1
-			} else { // nil != node.right
-				nodeIndex = nodeIndex - node.right.len - 1
+			if node.right == nil {
+				nodeIndex--
+			} else { // node.right != nil
+				nodeIndex -= node.right.len + 1
 			}
 		} else { // compareResult > 0 (key > node.Key)
 			node = node.right
 
-			if nil == node {
+			if node == nil {
 				// key not found, nodeIndex points to key:value just before where key would go
 
 				index = nodeIndex + 1
@@ -182,17 +182,17 @@ func (tree *llrbTreeStruct) BisectRight(key Key) (index int, found bool, err err
 				return
 			}
 
-			// nil != node, so recurse from here
+			// node != nil, so recurse from here
 
-			if nil == node.left {
-				nodeIndex = nodeIndex + 1
-			} else { // nil != node.left
-				nodeIndex = nodeIndex + node.left.len + 1
+			if node.left == nil {
+				nodeIndex++
+			} else { // node.left != nil
+				nodeIndex += node.left.len + 1
 			}
 		}
 
 		compareResult, compareErr = tree.Compare(key, node.Key) // next recursion step's test value
-		if nil != compareErr {
+		if compareErr != nil {
 			err = compareErr
 			return
 		}
@@ -211,7 +211,7 @@ func (tree *llrbTreeStruct) DeleteByIndex(index int) (ok bool, err error) {
 	tree.Lock()
 	defer tree.Unlock()
 
-	if (index < 0) || (nil == tree.root) || (index >= tree.root.len) {
+	if (index < 0) || (tree.root == nil) || (index >= tree.root.len) {
 		ok = false
 		err = nil
 
@@ -223,11 +223,11 @@ func (tree *llrbTreeStruct) DeleteByIndex(index int) (ok bool, err error) {
 	key := tree.preDeleteByIndexAdjustLen(tree.root, index)
 
 	tree.root, err = tree.delete(tree.root, key)
-	if nil != err {
+	if err != nil {
 		return
 	}
 
-	if nil != tree.root {
+	if tree.root != nil {
 		tree.root.color = BLACK
 	}
 
@@ -241,7 +241,7 @@ func (tree *llrbTreeStruct) DeleteByKey(key Key) (ok bool, err error) {
 	defer tree.Unlock()
 
 	ok, err = tree.preDeleteByKeyAdjustLen(tree.root, key)
-	if nil != err {
+	if err != nil {
 		return
 	}
 	if !ok {
@@ -250,10 +250,10 @@ func (tree *llrbTreeStruct) DeleteByKey(key Key) (ok bool, err error) {
 	}
 
 	tree.root, err = tree.delete(tree.root, key)
-	if nil != err {
+	if err != nil {
 		return
 	}
-	if nil != tree.root {
+	if tree.root != nil {
 		tree.root.color = BLACK
 	}
 
@@ -268,7 +268,7 @@ func (tree *llrbTreeStruct) GetByIndex(index int) (key Key, value Value, ok bool
 
 	node := tree.root
 
-	if (index < 0) || (nil == node) || (index >= node.len) {
+	if (index < 0) || (node == nil) || (index >= node.len) {
 		key = nil
 		value = nil
 		ok = false
@@ -279,7 +279,7 @@ func (tree *llrbTreeStruct) GetByIndex(index int) (key Key, value Value, ok bool
 	ok = true // index is within [0,# nodes), so we know we will succeed
 
 	nodeIndex := 0 // computed index of current node
-	if nil != node.left {
+	if node.left != nil {
 		nodeIndex = node.left.len
 	}
 
@@ -287,18 +287,18 @@ func (tree *llrbTreeStruct) GetByIndex(index int) (key Key, value Value, ok bool
 		if nodeIndex > index {
 			node = node.left
 
-			if nil == node.right {
-				nodeIndex = nodeIndex - 1
-			} else { // nil != node.right
-				nodeIndex = nodeIndex - node.right.len - 1
+			if node.right == nil {
+				nodeIndex--
+			} else { // node.right != nil
+				nodeIndex -= node.right.len + 1
 			}
 		} else { // nodeIndex < index
 			node = node.right
 
-			if nil == node.left {
-				nodeIndex = nodeIndex + 1
-			} else { // nil != node.left
-				nodeIndex = nodeIndex + node.left.len + 1
+			if node.left == nil {
+				nodeIndex++
+			} else { // node.left != nil
+				nodeIndex += node.left.len + 1
 			}
 		}
 	}
@@ -315,9 +315,9 @@ func (tree *llrbTreeStruct) GetByKey(key Key) (value Value, ok bool, err error) 
 
 	node := tree.root
 
-	for nil != node {
+	for node != nil {
 		compareResult, compareErr := tree.Compare(key, node.Key)
-		if nil != compareErr {
+		if compareErr != nil {
 			err = compareErr
 			return
 		}
@@ -351,7 +351,7 @@ func (tree *llrbTreeStruct) Len() (numberOfItems int, err error) {
 
 	err = nil
 
-	if nil == tree.root {
+	if tree.root == nil {
 		numberOfItems = 0
 	} else {
 		numberOfItems = tree.root.len
@@ -368,7 +368,7 @@ func (tree *llrbTreeStruct) PatchByIndex(index int, value Value) (ok bool, err e
 
 	node := tree.root
 
-	if (index < 0) || (nil == node) || (index >= node.len) {
+	if (index < 0) || (node == nil) || (index >= node.len) {
 		ok = false
 
 		return
@@ -377,7 +377,7 @@ func (tree *llrbTreeStruct) PatchByIndex(index int, value Value) (ok bool, err e
 	ok = true // index is within [0,# nodes), so we know we will succeed
 
 	nodeIndex := 0 // computed index of current node
-	if nil != node.left {
+	if node.left != nil {
 		nodeIndex = node.left.len
 	}
 
@@ -385,18 +385,18 @@ func (tree *llrbTreeStruct) PatchByIndex(index int, value Value) (ok bool, err e
 		if nodeIndex > index {
 			node = node.left
 
-			if nil == node.right {
-				nodeIndex = nodeIndex - 1
-			} else { // nil != node.right
-				nodeIndex = nodeIndex - node.right.len - 1
+			if node.right == nil {
+				nodeIndex--
+			} else { // node.right != nil
+				nodeIndex -= node.right.len + 1
 			}
 		} else { // nodeIndex < index
 			node = node.right
 
-			if nil == node.left {
-				nodeIndex = nodeIndex + 1
-			} else { // nil != node.left
-				nodeIndex = nodeIndex + node.left.len + 1
+			if node.left == nil {
+				nodeIndex++
+			} else { // node.left != nil
+				nodeIndex += node.left.len + 1
 			}
 		}
 	}
@@ -412,9 +412,9 @@ func (tree *llrbTreeStruct) PatchByKey(key Key, value Value) (ok bool, err error
 
 	node := tree.root
 
-	for nil != node {
+	for node != nil {
 		compareResult, compareErr := tree.Compare(key, node.Key)
-		if nil != compareErr {
+		if compareErr != nil {
 			err = compareErr
 			return
 		}
@@ -446,7 +446,7 @@ func (tree *llrbTreeStruct) Put(key Key, value Value) (ok bool, err error) {
 	defer tree.Unlock()
 
 	updatedRoot, ok, err := tree.insert(tree.root, key, value)
-	if nil != err {
+	if err != nil {
 		return
 	}
 
@@ -468,7 +468,7 @@ func (tree *llrbTreeStruct) Reset() {
 // Recursive functions
 
 func (tree *llrbTreeStruct) insert(oldNexusNode *llrbNodeStruct, key Key, value Value) (newNexusNode *llrbNodeStruct, ok bool, err error) {
-	if nil == oldNexusNode {
+	if oldNexusNode == nil {
 		// Add new leaf node - .len will be updated by later call to postInsertAdjustLen()
 
 		newNexusNode = &llrbNodeStruct{Key: key, Value: value, left: nil, right: nil, color: RED, len: 0}
@@ -481,7 +481,7 @@ func (tree *llrbTreeStruct) insert(oldNexusNode *llrbNodeStruct, key Key, value 
 	newNexusNode = oldNexusNode
 
 	compareResult, compareErr := tree.Compare(key, newNexusNode.Key)
-	if nil != compareErr {
+	if compareErr != nil {
 		err = compareErr
 		return
 	}
@@ -489,7 +489,7 @@ func (tree *llrbTreeStruct) insert(oldNexusNode *llrbNodeStruct, key Key, value 
 	switch {
 	case compareResult < 0: // key < newNexusNode.Key
 		updatedNewNexusNodeLeft, nonShadowingOk, insertErr := tree.insert(newNexusNode.left, key, value)
-		if nil != insertErr {
+		if insertErr != nil {
 			err = insertErr
 			return
 		}
@@ -501,7 +501,7 @@ func (tree *llrbTreeStruct) insert(oldNexusNode *llrbNodeStruct, key Key, value 
 		newNexusNode.left = updatedNewNexusNodeLeft
 	case compareResult > 0: // key > newNexusNode.Key
 		updatedNewNexusNodeRight, nonShadowingOk, insertErr := tree.insert(newNexusNode.right, key, value)
-		if nil != insertErr {
+		if insertErr != nil {
 			err = insertErr
 			return
 		}
@@ -530,7 +530,7 @@ func (tree *llrbTreeStruct) postInsertAdjustLen(node *llrbNodeStruct, key Key) (
 	node.len++
 
 	compareResult, compareErr := tree.Compare(key, node.Key)
-	if nil != compareErr {
+	if compareErr != nil {
 		err = compareErr
 		return
 	}
@@ -553,7 +553,7 @@ func (tree *llrbTreeStruct) preDeleteByIndexAdjustLen(node *llrbNodeStruct, inde
 	node.len--
 
 	nodesOnLeft := 0
-	if nil != node.left {
+	if node.left != nil {
 		nodesOnLeft = node.left.len
 	}
 
@@ -570,7 +570,7 @@ func (tree *llrbTreeStruct) preDeleteByIndexAdjustLen(node *llrbNodeStruct, inde
 }
 
 func (tree *llrbTreeStruct) preDeleteByKeyAdjustLen(node *llrbNodeStruct, key Key) (ok bool, err error) {
-	if nil == node {
+	if node == nil {
 		ok = false
 		err = nil
 
@@ -578,7 +578,7 @@ func (tree *llrbTreeStruct) preDeleteByKeyAdjustLen(node *llrbNodeStruct, key Ke
 	}
 
 	compareResult, compareErr := tree.Compare(key, node.Key)
-	if nil != compareErr {
+	if compareErr != nil {
 		err = compareErr
 		return
 	}
@@ -586,7 +586,7 @@ func (tree *llrbTreeStruct) preDeleteByKeyAdjustLen(node *llrbNodeStruct, key Ke
 	switch {
 	case compareResult < 0: // key < node.Key
 		ok, err = tree.preDeleteByKeyAdjustLen(node.left, key)
-		if nil != err {
+		if err != nil {
 			return
 		}
 		if ok {
@@ -594,7 +594,7 @@ func (tree *llrbTreeStruct) preDeleteByKeyAdjustLen(node *llrbNodeStruct, key Ke
 		}
 	case compareResult > 0: // key > node.Key
 		ok, err = tree.preDeleteByKeyAdjustLen(node.right, key)
-		if nil != err {
+		if err != nil {
 			return
 		}
 		if ok {
@@ -614,7 +614,7 @@ func (tree *llrbTreeStruct) delete(oldNexusNode *llrbNodeStruct, key Key) (newNe
 	newNexusNode = oldNexusNode
 
 	compareResult, compareErr := tree.Compare(key, newNexusNode.Key)
-	if nil != compareErr {
+	if compareErr != nil {
 		err = compareErr
 		return
 	}
@@ -625,7 +625,7 @@ func (tree *llrbTreeStruct) delete(oldNexusNode *llrbNodeStruct, key Key) (newNe
 		}
 
 		newNexusNode.left, err = tree.delete(newNexusNode.left, key)
-		if nil != err {
+		if err != nil {
 			return
 		}
 	} else { // compareResult >= 0
@@ -633,7 +633,7 @@ func (tree *llrbTreeStruct) delete(oldNexusNode *llrbNodeStruct, key Key) (newNe
 			newNexusNode = tree.rotateRight(newNexusNode)
 
 			compareResult, compareErr = tree.Compare(key, newNexusNode.Key)
-			if nil != compareErr {
+			if compareErr != nil {
 				err = compareErr
 				return
 			}
@@ -648,7 +648,7 @@ func (tree *llrbTreeStruct) delete(oldNexusNode *llrbNodeStruct, key Key) (newNe
 			newNexusNode = tree.moveRedRight(newNexusNode)
 
 			compareResult, compareErr = tree.Compare(key, newNexusNode.Key)
-			if nil != compareErr {
+			if compareErr != nil {
 				err = compareErr
 				return
 			}
@@ -657,7 +657,7 @@ func (tree *llrbTreeStruct) delete(oldNexusNode *llrbNodeStruct, key Key) (newNe
 			newNexusNode.right, newNexusNode.Key, newNexusNode.Value = tree.deleteMin(newNexusNode.right)
 		} else { // compareResult != 0
 			newNexusNode.right, err = tree.delete(newNexusNode.right, key)
-			if nil != err {
+			if err != nil {
 				return
 			}
 		}
@@ -672,7 +672,7 @@ func (tree *llrbTreeStruct) delete(oldNexusNode *llrbNodeStruct, key Key) (newNe
 func (tree *llrbTreeStruct) deleteMin(oldNexusNode *llrbNodeStruct) (newNexusNode *llrbNodeStruct, minKey Key, minValue Value) {
 	newNexusNode = oldNexusNode
 
-	if nil == newNexusNode.left {
+	if newNexusNode.left == nil {
 		minKey = newNexusNode.Key
 		minValue = newNexusNode.Value
 		newNexusNode = nil
@@ -696,7 +696,7 @@ func (tree *llrbTreeStruct) deleteMin(oldNexusNode *llrbNodeStruct) (newNexusNod
 // Helper functions
 
 func isRed(node *llrbNodeStruct) bool {
-	if nil == node {
+	if node == nil {
 		return false
 	}
 
@@ -705,7 +705,7 @@ func isRed(node *llrbNodeStruct) bool {
 }
 
 func isBlack(node *llrbNodeStruct) bool {
-	if nil == node {
+	if node == nil {
 		return true
 	}
 
@@ -729,7 +729,7 @@ func (*llrbTreeStruct) rotateLeft(oldParentNode *llrbNodeStruct) (newParentNode 
 	// Adjust len fields
 
 	nodesTransferred := 0
-	if nil != oldParentNode.right {
+	if oldParentNode.right != nil {
 		nodesTransferred = oldParentNode.right.len
 	}
 
@@ -756,7 +756,7 @@ func (*llrbTreeStruct) rotateRight(oldParentNode *llrbNodeStruct) (newParentNode
 	// Adjust len fields
 
 	nodesTransferred := 0
-	if nil != oldParentNode.left {
+	if oldParentNode.left != nil {
 		nodesTransferred = oldParentNode.left.len
 	}
 

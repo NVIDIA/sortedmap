@@ -44,10 +44,10 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	)
 
 	index, found, err = tree.BisectLeft(0)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if -1 != index {
+	if index != -1 {
 		t.Fatalf("BisectLeft(0).index of just initialized LLRB should have been -1... instead it was %v", index)
 	}
 	if found {
@@ -55,10 +55,10 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	index, found, err = tree.BisectRight(0)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 0 != index {
+	if index != 0 {
 		t.Fatalf("BisectRight(0).index of just initialized LLRB should have been 0... instead it was %v", index)
 	}
 	if found {
@@ -66,7 +66,7 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	_, _, ok, err = tree.GetByIndex(-1)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if ok {
@@ -74,7 +74,7 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	_, _, ok, err = tree.GetByIndex(0)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if ok {
@@ -82,7 +82,7 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	_, ok, err = tree.GetByKey(0)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if ok {
@@ -90,15 +90,15 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	numberOfItems, err = tree.Len()
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 0 != numberOfItems {
+	if numberOfItems != 0 {
 		t.Fatalf("Len() [Case 1] of just initialized LLRB should have been 0... instead it was %v", numberOfItems)
 	}
 
 	ok, err = tree.Put(5, "5")
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
@@ -106,10 +106,10 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	index, found, err = tree.BisectLeft(3)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if -1 != index {
+	if index != -1 {
 		t.Fatalf("BisectLeft(3).index [Case 1] should have been -1... instead it was %v", index)
 	}
 	if found {
@@ -117,10 +117,10 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	index, found, err = tree.BisectLeft(5)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 0 != index {
+	if index != 0 {
 		t.Fatalf("BisectLeft(5).index [Case 1] should have been 0... instead it was %v", index)
 	}
 	if !found {
@@ -128,10 +128,10 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	index, found, err = tree.BisectLeft(7)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 0 != index {
+	if index != 0 {
 		t.Fatalf("BisectLeft(7).index [Case 1] should have been 0... instead it was %v", index)
 	}
 	if found {
@@ -139,10 +139,10 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	index, found, err = tree.BisectRight(3)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 0 != index {
+	if index != 0 {
 		t.Fatalf("BisectRight(3).index [Case 1] should have been 0... instead it was %v", index)
 	}
 	if found {
@@ -150,10 +150,10 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	index, found, err = tree.BisectRight(5)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 0 != index {
+	if index != 0 {
 		t.Fatalf("BisectRight(5).index [Case 1] should have been 0... instead it was %v", index)
 	}
 	if !found {
@@ -161,10 +161,10 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	index, found, err = tree.BisectRight(7)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 1 != index {
+	if index != 1 {
 		t.Fatalf("BisectRight(7).index [Case 1] should have been 1... instead it was %v", index)
 	}
 	if found {
@@ -172,23 +172,23 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	keyAsKey, valueAsValue, ok, err = tree.GetByIndex(0)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
 		t.Fatalf("GetByIndex(0).ok [Case 2] should have been true")
 	}
 	keyAsInt = keyAsKey.(int)
-	if 5 != keyAsInt {
+	if keyAsInt != 5 {
 		t.Fatalf("GetByIndex(0).key [Case 2] should have been 5... instead it was %v", keyAsInt)
 	}
 	valueAsString = valueAsValue.(string)
-	if "5" != valueAsString {
+	if valueAsString != "5" {
 		t.Fatalf("GetByIndex(0).value [Case 2] should have been \"5\"... instead it was \"%v\"", valueAsString)
 	}
 
 	_, _, ok, err = tree.GetByIndex(1)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if ok {
@@ -196,7 +196,7 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	_, ok, err = tree.GetByKey(3)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if ok {
@@ -204,19 +204,19 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	valueAsValue, ok, err = tree.GetByKey(5)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
 		t.Fatalf("GetByKey(5).ok [Case 1] should have been true")
 	}
 	valueAsString = valueAsValue.(string)
-	if "5" != valueAsString {
+	if valueAsString != "5" {
 		t.Fatalf("GetByKey(5).value [Case 1] should have been \"5\"... instead it was \"%v\"", valueAsString)
 	}
 
 	_, ok, err = tree.GetByKey(7)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if ok {
@@ -224,15 +224,15 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	numberOfItems, err = tree.Len()
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 1 != numberOfItems {
+	if numberOfItems != 1 {
 		t.Fatalf("Len() [Case 2] should have been 1... instead it was %v", numberOfItems)
 	}
 
 	ok, err = tree.Put(3, "3")
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
@@ -240,7 +240,7 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	ok, err = tree.Put(7, "7")
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
@@ -248,10 +248,10 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	index, found, err = tree.BisectLeft(2)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if -1 != index {
+	if index != -1 {
 		t.Fatalf("BisectLeft(2).index should have been -1... instead it was %v", index)
 	}
 	if found {
@@ -259,10 +259,10 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	index, found, err = tree.BisectLeft(3)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 0 != index {
+	if index != 0 {
 		t.Fatalf("BisectLeft(3).index [Case 2] should have been 0... instead it was %v", index)
 	}
 	if !found {
@@ -270,10 +270,10 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	index, found, err = tree.BisectLeft(4)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 0 != index {
+	if index != 0 {
 		t.Fatalf("BisectLeft(4).index should have been 0... instead it was %v", index)
 	}
 	if found {
@@ -281,10 +281,10 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	index, found, err = tree.BisectLeft(5)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 1 != index {
+	if index != 1 {
 		t.Fatalf("BisectLeft(5).index [Case 2] should have been 1... instead it was %v", index)
 	}
 	if !found {
@@ -292,10 +292,10 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	index, found, err = tree.BisectLeft(6)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 1 != index {
+	if index != 1 {
 		t.Fatalf("BisectLeft(5).index should have been 1... instead it was %v", index)
 	}
 	if found {
@@ -303,10 +303,10 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	index, found, err = tree.BisectLeft(7)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 2 != index {
+	if index != 2 {
 		t.Fatalf("BisectLeft(7).index [Case 2] should have been 2... instead it was %v", index)
 	}
 	if !found {
@@ -314,10 +314,10 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	index, found, err = tree.BisectLeft(8)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 2 != index {
+	if index != 2 {
 		t.Fatalf("BisectLeft(8).index should have been 2... instead it was %v", index)
 	}
 	if found {
@@ -325,10 +325,10 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	index, found, err = tree.BisectRight(2)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 0 != index {
+	if index != 0 {
 		t.Fatalf("BisectRight(2).index should have been 0... instead it was %v", index)
 	}
 	if found {
@@ -336,10 +336,10 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	index, found, err = tree.BisectRight(3)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 0 != index {
+	if index != 0 {
 		t.Fatalf("BisectRight(3).index [Case 2] should have been 0... instead it was %v", index)
 	}
 	if !found {
@@ -347,10 +347,10 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	index, found, err = tree.BisectRight(4)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 1 != index {
+	if index != 1 {
 		t.Fatalf("BisectRight(4).index should have been 1... instead it was %v", index)
 	}
 	if found {
@@ -358,10 +358,10 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	index, found, err = tree.BisectRight(5)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 1 != index {
+	if index != 1 {
 		t.Fatalf("BisectRight(5).index [Case 2] should have been 1... instead it was %v", index)
 	}
 	if !found {
@@ -369,10 +369,10 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	index, found, err = tree.BisectRight(6)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 2 != index {
+	if index != 2 {
 		t.Fatalf("BisectRight(5).index should have been 2... instead it was %v", index)
 	}
 	if found {
@@ -380,10 +380,10 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	index, found, err = tree.BisectRight(7)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 2 != index {
+	if index != 2 {
 		t.Fatalf("BisectRight(7).index [Case 2] should have been 2... instead it was %v", index)
 	}
 	if !found {
@@ -391,10 +391,10 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	index, found, err = tree.BisectRight(8)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 3 != index {
+	if index != 3 {
 		t.Fatalf("BisectRight(8).index should have been 3... instead it was %v", index)
 	}
 	if found {
@@ -402,55 +402,55 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	keyAsKey, valueAsValue, ok, err = tree.GetByIndex(0)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
 		t.Fatalf("GetByIndex(0).ok [Case 3] should have been true")
 	}
 	keyAsInt = keyAsKey.(int)
-	if 3 != keyAsInt {
+	if keyAsInt != 3 {
 		t.Fatalf("GetByIndex(0).key [Case 3] should have been 3... instead it was %v", keyAsInt)
 	}
 	valueAsString = valueAsValue.(string)
-	if "3" != valueAsString {
+	if valueAsString != "3" {
 		t.Fatalf("GetByIndex(0).value [Case 3] should have been \"3\"... instead it was \"%v\"", valueAsString)
 	}
 
 	keyAsKey, valueAsValue, ok, err = tree.GetByIndex(1)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
 		t.Fatalf("GetByIndex(1).ok [Case 2] should have been true")
 	}
 	keyAsInt = keyAsKey.(int)
-	if 5 != keyAsInt {
+	if keyAsInt != 5 {
 		t.Fatalf("GetByIndex(1).key [Case 2] should have been 5... instead it was %v", keyAsInt)
 	}
 	valueAsString = valueAsValue.(string)
-	if "5" != valueAsString {
+	if valueAsString != "5" {
 		t.Fatalf("GetByIndex(1).value [Case 2] should have been \"5\"... instead it was \"%v\"", valueAsString)
 	}
 
 	keyAsKey, valueAsValue, ok, err = tree.GetByIndex(2)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
 		t.Fatalf("GetByIndex(2).ok [Case 1] should have been true")
 	}
 	keyAsInt = keyAsKey.(int)
-	if 7 != keyAsInt {
+	if keyAsInt != 7 {
 		t.Fatalf("GetByIndex(2).key [Case 1] should have been 7... instead it was %v", keyAsInt)
 	}
 	valueAsString = valueAsValue.(string)
-	if "7" != valueAsString {
+	if valueAsString != "7" {
 		t.Fatalf("GetByIndex(2).value [Case 1] should have been \"7\"... instead it was \"%v\"", valueAsString)
 	}
 
 	_, _, ok, err = tree.GetByIndex(3)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if ok {
@@ -458,7 +458,7 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	_, ok, err = tree.GetByKey(2)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if ok {
@@ -466,19 +466,19 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	valueAsValue, ok, err = tree.GetByKey(3)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
 		t.Fatalf("GetByKey(3).ok [Case 2] should have been true")
 	}
 	valueAsString = valueAsValue.(string)
-	if "3" != valueAsString {
+	if valueAsString != "3" {
 		t.Fatalf("GetByKey(3).value [Case 2] should have been \"3\"... instead it was \"%v\"", valueAsString)
 	}
 
 	_, ok, err = tree.GetByKey(4)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if ok {
@@ -486,19 +486,19 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	valueAsValue, ok, err = tree.GetByKey(5)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
 		t.Fatalf("GetByKey(5).ok [Case 2] should have been true")
 	}
 	valueAsString = valueAsValue.(string)
-	if "5" != valueAsString {
+	if valueAsString != "5" {
 		t.Fatalf("GetByKey(5).value [Case 2] should have been \"5\"... instead it was \"%v\"", valueAsString)
 	}
 
 	_, ok, err = tree.GetByKey(6)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if ok {
@@ -506,19 +506,19 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	valueAsValue, ok, err = tree.GetByKey(7)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
 		t.Fatalf("GetByKey(7).ok [Case 2] should have been true")
 	}
 	valueAsString = valueAsValue.(string)
-	if "7" != valueAsString {
+	if valueAsString != "7" {
 		t.Fatalf("GetByKey(7).value [Case 2] should have been \"7\"... instead it was \"%v\"", valueAsString)
 	}
 
 	_, ok, err = tree.GetByKey(8)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if ok {
@@ -526,15 +526,15 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	numberOfItems, err = tree.Len()
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 3 != numberOfItems {
+	if numberOfItems != 3 {
 		t.Fatalf("Len() [Case 3] should have been 3... instead it was %v", numberOfItems)
 	}
 
 	ok, err = tree.PatchByIndex(-1, "")
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if ok {
@@ -542,7 +542,7 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	ok, err = tree.PatchByIndex(3, "")
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if ok {
@@ -550,7 +550,7 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	ok, err = tree.PatchByKey(1, "")
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if ok {
@@ -558,7 +558,7 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	ok, err = tree.PatchByIndex(0, "T")
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
@@ -566,19 +566,19 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	valueAsValue, ok, err = tree.GetByKey(3)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
 		t.Fatalf("GetByKey(3).ok [Case 3] should have been true")
 	}
 	valueAsString = valueAsValue.(string)
-	if "T" != valueAsString {
+	if valueAsString != "T" {
 		t.Fatalf("GetByKey(3).value [Case 3] should have been \"3\"... instead it was \"%v\"", valueAsString)
 	}
 
 	ok, err = tree.PatchByKey(7, "S")
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
@@ -586,18 +586,18 @@ func metaTestAllButDeleteSimple(t *testing.T, tree SortedMap) {
 	}
 
 	keyAsKey, valueAsValue, ok, err = tree.GetByIndex(2)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
 		t.Fatalf("GetByIndex(2).ok [Case 2] should have been true")
 	}
 	keyAsInt = keyAsKey.(int)
-	if 7 != keyAsInt {
+	if keyAsInt != 7 {
 		t.Fatalf("GetByIndex(2).key [Case 2] should have been 7... instead it was %v", keyAsInt)
 	}
 	valueAsString = valueAsValue.(string)
-	if "S" != valueAsString {
+	if valueAsString != "S" {
 		t.Fatalf("GetByIndex(2).value [Case 2] should have been \"S\"... instead it was \"%v\"", valueAsString)
 	}
 }
@@ -610,7 +610,7 @@ func metaTestDeleteByIndexSimple(t *testing.T, tree SortedMap) {
 	)
 
 	ok, err = tree.Put(3, "3")
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
@@ -618,7 +618,7 @@ func metaTestDeleteByIndexSimple(t *testing.T, tree SortedMap) {
 	}
 
 	ok, err = tree.Put(5, "5")
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
@@ -626,7 +626,7 @@ func metaTestDeleteByIndexSimple(t *testing.T, tree SortedMap) {
 	}
 
 	ok, err = tree.Put(7, "7")
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
@@ -634,15 +634,15 @@ func metaTestDeleteByIndexSimple(t *testing.T, tree SortedMap) {
 	}
 
 	numberOfItems, err = tree.Len()
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 3 != numberOfItems {
+	if numberOfItems != 3 {
 		t.Fatalf("Len() [Case 1] should have been 3... instead it was %v", numberOfItems)
 	}
 
 	ok, err = tree.DeleteByIndex(-1)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if ok {
@@ -650,7 +650,7 @@ func metaTestDeleteByIndexSimple(t *testing.T, tree SortedMap) {
 	}
 
 	ok, err = tree.DeleteByIndex(3)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if ok {
@@ -658,7 +658,7 @@ func metaTestDeleteByIndexSimple(t *testing.T, tree SortedMap) {
 	}
 
 	ok, err = tree.DeleteByIndex(2)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
@@ -666,7 +666,7 @@ func metaTestDeleteByIndexSimple(t *testing.T, tree SortedMap) {
 	}
 
 	ok, err = tree.DeleteByIndex(0)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
@@ -674,7 +674,7 @@ func metaTestDeleteByIndexSimple(t *testing.T, tree SortedMap) {
 	}
 
 	ok, err = tree.DeleteByIndex(0)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
@@ -682,10 +682,10 @@ func metaTestDeleteByIndexSimple(t *testing.T, tree SortedMap) {
 	}
 
 	numberOfItems, err = tree.Len()
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 0 != numberOfItems {
+	if numberOfItems != 0 {
 		t.Fatalf("Len() [Case 2] should have been 0... instead it was %v", numberOfItems)
 	}
 }
@@ -698,7 +698,7 @@ func metaTestDeleteByKeySimple(t *testing.T, tree SortedMap) {
 	)
 
 	ok, err = tree.Put(3, "3")
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
@@ -706,7 +706,7 @@ func metaTestDeleteByKeySimple(t *testing.T, tree SortedMap) {
 	}
 
 	ok, err = tree.Put(5, "5")
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
@@ -714,7 +714,7 @@ func metaTestDeleteByKeySimple(t *testing.T, tree SortedMap) {
 	}
 
 	ok, err = tree.Put(7, "7")
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
@@ -722,15 +722,15 @@ func metaTestDeleteByKeySimple(t *testing.T, tree SortedMap) {
 	}
 
 	numberOfItems, err = tree.Len()
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 3 != numberOfItems {
+	if numberOfItems != 3 {
 		t.Fatalf("Len() [Case 1] should have been 3... instead it was %v", numberOfItems)
 	}
 
 	ok, err = tree.DeleteByKey(2)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if ok {
@@ -738,7 +738,7 @@ func metaTestDeleteByKeySimple(t *testing.T, tree SortedMap) {
 	}
 
 	ok, err = tree.DeleteByKey(3)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
@@ -746,7 +746,7 @@ func metaTestDeleteByKeySimple(t *testing.T, tree SortedMap) {
 	}
 
 	ok, err = tree.DeleteByKey(4)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if ok {
@@ -754,7 +754,7 @@ func metaTestDeleteByKeySimple(t *testing.T, tree SortedMap) {
 	}
 
 	ok, err = tree.DeleteByKey(5)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
@@ -762,7 +762,7 @@ func metaTestDeleteByKeySimple(t *testing.T, tree SortedMap) {
 	}
 
 	ok, err = tree.DeleteByKey(6)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if ok {
@@ -770,7 +770,7 @@ func metaTestDeleteByKeySimple(t *testing.T, tree SortedMap) {
 	}
 
 	ok, err = tree.DeleteByKey(7)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if !ok {
@@ -778,7 +778,7 @@ func metaTestDeleteByKeySimple(t *testing.T, tree SortedMap) {
 	}
 
 	ok, err = tree.DeleteByKey(8)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if ok {
@@ -786,10 +786,10 @@ func metaTestDeleteByKeySimple(t *testing.T, tree SortedMap) {
 	}
 
 	numberOfItems, err = tree.Len()
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 0 != numberOfItems {
+	if numberOfItems != 0 {
 		t.Fatalf("Len() [Case 2] should have been 0... instead it was %v", numberOfItems)
 	}
 }
@@ -805,7 +805,7 @@ func testKnuthShuffledIntSlice(n int) (intSlice []int, err error) {
 	}
 	for swapFrom = int64(n - 1); swapFrom > int64(0); swapFrom-- {
 		if pseudoRandom {
-			if nil == randSource {
+			if randSource == nil {
 				randSource = mathRand.New(mathRand.NewPCG(pseudoRandomSeed1, pseudoRandomSeed2))
 			}
 
@@ -814,7 +814,7 @@ func testKnuthShuffledIntSlice(n int) (intSlice []int, err error) {
 			swapFromPlusOneBigIntPtr := big.NewInt(swapFrom + 1)
 
 			swapToBigIntPtr, nonShadowingErr := cryptoRand.Int(cryptoRand.Reader, swapFromPlusOneBigIntPtr)
-			if nil != nonShadowingErr {
+			if nonShadowingErr != nil {
 				err = fmt.Errorf("cryptoRand.Int(cryptoRand.Reader, swapFromPlusOneBigIntPtr) returned error == \"%v\"", nonShadowingErr)
 				return
 			}
@@ -858,7 +858,7 @@ func testFetchIndicesToDeleteNormalized(indicesToDeleteNotNormalized []int) (ind
 	return
 }
 
-func testInsertGetDeleteByIndex(t *testing.T, tree SortedMap, keysToInsert []int, indicesToGet []int, indicesToDeleteNotNormalized []int) {
+func testInsertGetDeleteByIndex(t *testing.T, tree SortedMap, keysToInsert, indicesToGet, indicesToDeleteNotNormalized []int) {
 	var (
 		err                       error
 		indexToDelete             int
@@ -874,17 +874,17 @@ func testInsertGetDeleteByIndex(t *testing.T, tree SortedMap, keysToInsert []int
 	)
 
 	numberOfItems, err = tree.Len()
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 0 != numberOfItems {
+	if numberOfItems != 0 {
 		t.Fatalf("Len() [Case 1] should have been 0... instead it was %v", numberOfItems)
 	}
 
 	for _, keyToInsert = range keysToInsert {
 		valueAsString = strconv.Itoa(keyToInsert)
 		ok, err = tree.Put(keyToInsert, valueAsString)
-		if nil != err {
+		if err != nil {
 			t.Fatal(err)
 		}
 		if !ok {
@@ -893,7 +893,7 @@ func testInsertGetDeleteByIndex(t *testing.T, tree SortedMap, keysToInsert []int
 	}
 
 	numberOfItems, err = tree.Len()
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if len(keysToInsert) != numberOfItems {
@@ -902,7 +902,7 @@ func testInsertGetDeleteByIndex(t *testing.T, tree SortedMap, keysToInsert []int
 
 	for _, indexToGet = range indicesToGet {
 		keyAsKey, valueAsValue, ok, err = tree.GetByIndex(indexToGet)
-		if nil != err {
+		if err != nil {
 			t.Fatal(err)
 		}
 		if !ok {
@@ -922,7 +922,7 @@ func testInsertGetDeleteByIndex(t *testing.T, tree SortedMap, keysToInsert []int
 
 	for _, indexToDelete = range indicesToDeleteNormalized {
 		ok, err = tree.DeleteByIndex(indexToDelete)
-		if nil != err {
+		if err != nil {
 			t.Fatal(err)
 		}
 		if !ok {
@@ -931,10 +931,10 @@ func testInsertGetDeleteByIndex(t *testing.T, tree SortedMap, keysToInsert []int
 	}
 
 	numberOfItems, err = tree.Len()
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 0 != numberOfItems {
+	if numberOfItems != 0 {
 		t.Fatalf("Len() [Case 3] should have been %v... instead it was %v", 0, numberOfItems)
 	}
 }
@@ -1146,22 +1146,22 @@ func metaTestInsertGetDeleteByIndexHuge(t *testing.T, tree SortedMap) {
 	)
 
 	keysToInsert, err = testKnuthShuffledIntSlice(testHugeNumKeys)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	indicesToGet, err = testKnuthShuffledIntSlice(testHugeNumKeys)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	indicesToDeleteNotNormalized, err = testKnuthShuffledIntSlice(testHugeNumKeys)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 
 	testInsertGetDeleteByIndex(t, tree, keysToInsert, indicesToGet, indicesToDeleteNotNormalized)
 }
 
-func testInsertGetDeleteByKey(t *testing.T, tree SortedMap, keysToInsert []int, keysToGet []int, keysToDelete []int) {
+func testInsertGetDeleteByKey(t *testing.T, tree SortedMap, keysToInsert, keysToGet, keysToDelete []int) {
 	var (
 		err           error
 		keyToDelete   int
@@ -1174,17 +1174,17 @@ func testInsertGetDeleteByKey(t *testing.T, tree SortedMap, keysToInsert []int, 
 	)
 
 	numberOfItems, err = tree.Len()
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 0 != numberOfItems {
+	if numberOfItems != 0 {
 		t.Fatalf("Len() [Case 1] should have been 0... instead it was %v", numberOfItems)
 	}
 
 	for _, keyToInsert = range keysToInsert {
 		valueAsString = strconv.Itoa(keyToInsert)
 		ok, err = tree.Put(keyToInsert, valueAsString)
-		if nil != err {
+		if err != nil {
 			t.Fatal(err)
 		}
 		if !ok {
@@ -1193,7 +1193,7 @@ func testInsertGetDeleteByKey(t *testing.T, tree SortedMap, keysToInsert []int, 
 	}
 
 	numberOfItems, err = tree.Len()
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if len(keysToInsert) != numberOfItems {
@@ -1202,7 +1202,7 @@ func testInsertGetDeleteByKey(t *testing.T, tree SortedMap, keysToInsert []int, 
 
 	for _, keyToGet = range keysToGet {
 		valueAsValue, ok, err = tree.GetByKey(keyToGet)
-		if nil != err {
+		if err != nil {
 			t.Fatal(err)
 		}
 		if !ok {
@@ -1216,7 +1216,7 @@ func testInsertGetDeleteByKey(t *testing.T, tree SortedMap, keysToInsert []int, 
 
 	for _, keyToDelete = range keysToDelete {
 		ok, err = tree.DeleteByKey(keyToDelete)
-		if nil != err {
+		if err != nil {
 			t.Fatal(err)
 		}
 		if !ok {
@@ -1225,10 +1225,10 @@ func testInsertGetDeleteByKey(t *testing.T, tree SortedMap, keysToInsert []int, 
 	}
 
 	numberOfItems, err = tree.Len()
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
-	if 0 != numberOfItems {
+	if numberOfItems != 0 {
 		t.Fatalf("Len() [Case 3] should have been %v... instead it was %v", 0, numberOfItems)
 	}
 }
@@ -1440,15 +1440,15 @@ func metaTestInsertGetDeleteByKeyHuge(t *testing.T, tree SortedMap) {
 	)
 
 	keysToInsert, err = testKnuthShuffledIntSlice(testHugeNumKeys)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	keysToGet, err = testKnuthShuffledIntSlice(testHugeNumKeys)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	keysToDelete, err = testKnuthShuffledIntSlice(testHugeNumKeys)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 
@@ -1473,7 +1473,7 @@ func metaTestBisect(t *testing.T, tree SortedMap) {
 
 	// Insert testHugeNumKeys keys using ascending odd ints starting at int(1)
 	keyIndices, err = testKnuthShuffledIntSlice(testHugeNumKeys)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("Knuth Shuffle failed: %v", err)
 	}
 
@@ -1481,7 +1481,7 @@ func metaTestBisect(t *testing.T, tree SortedMap) {
 		key = (2 * keyIndex) + 1
 		value = strconv.Itoa(key)
 		ok, err = tree.Put(key, value)
-		if nil != err {
+		if err != nil {
 			t.Fatal(err)
 		}
 		if !ok {
@@ -1491,7 +1491,7 @@ func metaTestBisect(t *testing.T, tree SortedMap) {
 
 	// Verify tree now contains precisely these keys
 	treeLen, err = tree.Len()
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if testHugeNumKeys != treeLen {
@@ -1501,7 +1501,7 @@ func metaTestBisect(t *testing.T, tree SortedMap) {
 	for keyIndex = range testHugeNumKeys {
 		keyExpected = (2 * keyIndex) + 1
 		keyAsKey, _, ok, err = tree.GetByIndex(keyIndex)
-		if nil != err {
+		if err != nil {
 			t.Fatal(err)
 		}
 		if !ok {
@@ -1518,7 +1518,7 @@ func metaTestBisect(t *testing.T, tree SortedMap) {
 		bisectKey = (2 * keyIndex) + 1
 
 		bisectIndex, found, err = tree.BisectLeft(bisectKey)
-		if nil != err {
+		if err != nil {
 			t.Fatal(err)
 		}
 		if !found {
@@ -1529,7 +1529,7 @@ func metaTestBisect(t *testing.T, tree SortedMap) {
 		}
 
 		bisectIndex, found, err = tree.BisectRight(bisectKey)
-		if nil != err {
+		if err != nil {
 			t.Fatal(err)
 		}
 		if !found {
@@ -1542,7 +1542,7 @@ func metaTestBisect(t *testing.T, tree SortedMap) {
 
 	// Verify Bisect{Left|Right}(0) returns correct index & found == false
 	bisectIndex, found, err = tree.BisectLeft(0)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if found {
@@ -1553,7 +1553,7 @@ func metaTestBisect(t *testing.T, tree SortedMap) {
 	}
 
 	bisectIndex, found, err = tree.BisectRight(0)
-	if nil != err {
+	if err != nil {
 		t.Fatal(err)
 	}
 	if found {
@@ -1568,7 +1568,7 @@ func metaTestBisect(t *testing.T, tree SortedMap) {
 		bisectKey = (2 * keyIndex) + 1 + 1
 
 		bisectIndex, found, err = tree.BisectLeft(bisectKey)
-		if nil != err {
+		if err != nil {
 			t.Fatal(err)
 		}
 		if found {
@@ -1579,7 +1579,7 @@ func metaTestBisect(t *testing.T, tree SortedMap) {
 		}
 
 		bisectIndex, found, err = tree.BisectRight(bisectKey)
-		if nil != err {
+		if err != nil {
 			t.Fatal(err)
 		}
 		if found {
@@ -1602,7 +1602,7 @@ func metaBenchmarkPutStep(b *testing.B, tree SortedMap, keysToPut []int) {
 	for _, keyToPut = range keysToPut {
 		valueAsString = strconv.Itoa(keyToPut)
 		ok, err = tree.Put(keyToPut, valueAsString)
-		if nil != err {
+		if err != nil {
 			err = fmt.Errorf("Put() returned unexpected error: %v", err)
 			b.Fatal(err)
 		}
@@ -1622,7 +1622,7 @@ func metaBenchmarkGetByIndexStep(b *testing.B, tree SortedMap, indicesToGet []in
 
 	for _, indexToGet = range indicesToGet {
 		_, _, ok, err = tree.GetByIndex(indexToGet)
-		if nil != err {
+		if err != nil {
 			err = fmt.Errorf("GetByIndex() returned unexpected error: %v", err)
 			b.Fatal(err)
 		}
@@ -1644,7 +1644,7 @@ func metaBenchmarkPatchByIndexStep(b *testing.B, tree SortedMap, indicesToPatch 
 	for _, indexToPatch = range indicesToPatch {
 		valueAsString = strconv.Itoa(indexToPatch)
 		ok, err = tree.PatchByIndex(indexToPatch, valueAsString)
-		if nil != err {
+		if err != nil {
 			err = fmt.Errorf("PatchByIndex() returned unexpected error: %v", err)
 			b.Fatal(err)
 		}
@@ -1664,7 +1664,7 @@ func metaBenchmarkDeleteByIndexStep(b *testing.B, tree SortedMap, indicesToDelet
 
 	for _, indexToDelete = range indicesToDeleteByIndexNormalized {
 		ok, err = tree.DeleteByIndex(indexToDelete)
-		if nil != err {
+		if err != nil {
 			err = fmt.Errorf("DeleteByIndex() returned unexpected error: %v", err)
 			b.Fatal(err)
 		}
@@ -1684,7 +1684,7 @@ func metaBenchmarkGetByKeyStep(b *testing.B, tree SortedMap, keysToGet []int) {
 
 	for _, keyToGet = range keysToGet {
 		_, ok, err = tree.GetByKey(keyToGet)
-		if nil != err {
+		if err != nil {
 			err = fmt.Errorf("GetByKey() returned unexpected error: %v", err)
 			b.Fatal(err)
 		}
@@ -1704,7 +1704,7 @@ func metaBenchmarkBisectLeftStep(b *testing.B, tree SortedMap, keysToBisectLeft 
 
 	for _, keyToBisectLeft = range keysToBisectLeft {
 		_, found, err = tree.BisectLeft(keyToBisectLeft)
-		if nil != err {
+		if err != nil {
 			err = fmt.Errorf("BisectLeft() returned unexpected error: %v", err)
 			b.Fatal(err)
 		}
@@ -1724,7 +1724,7 @@ func metaBenchmarkBisectRightStep(b *testing.B, tree SortedMap, keysToBisectRigh
 
 	for _, keyToBisectRight = range keysToBisectRight {
 		_, found, err = tree.BisectRight(keyToBisectRight)
-		if nil != err {
+		if err != nil {
 			err = fmt.Errorf("BisectRight() returned unexpected error: %v", err)
 			b.Fatal(err)
 		}
@@ -1746,7 +1746,7 @@ func metaBenchmarkPatchByKeyStep(b *testing.B, tree SortedMap, keysToPatch []int
 	for _, keyToPatch = range keysToPatch {
 		valueAsString = strconv.Itoa(keyToPatch)
 		ok, err = tree.PatchByKey(keyToPatch, valueAsString)
-		if nil != err {
+		if err != nil {
 			err = fmt.Errorf("PatchByKey() returned unexpected error: %v", err)
 			b.Fatal(err)
 		}
@@ -1766,7 +1766,7 @@ func metaBenchmarkDeleteByKeyStep(b *testing.B, tree SortedMap, keysToDelete []i
 
 	for _, keyToDelete = range keysToDelete {
 		ok, err = tree.DeleteByKey(keyToDelete)
-		if nil != err {
+		if err != nil {
 			err = fmt.Errorf("DeleteByKey() returned unexpected error: %v", err)
 			b.Fatal(err)
 		}
@@ -1785,7 +1785,7 @@ func metaBenchmarkPut(b *testing.B, tree SortedMap, numKeys int) {
 	)
 
 	keysToPut, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
 		b.Fatal(err)
 	}
@@ -1813,12 +1813,12 @@ func metaBenchmarkGetByIndex(b *testing.B, tree SortedMap, numKeys int) {
 	)
 
 	keysToPutForByIndexAPIs, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
 		b.Fatal(err)
 	}
 	indicesToGet, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
 		b.Fatal(err)
 	}
@@ -1845,12 +1845,12 @@ func metaBenchmarkPatchByIndex(b *testing.B, tree SortedMap, numKeys int) {
 	)
 
 	keysToPutForByIndexAPIs, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
 		b.Fatal(err)
 	}
 	indicesToPatch, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
 		b.Fatal(err)
 	}
@@ -1878,12 +1878,12 @@ func metaBenchmarkDeleteByIndex(b *testing.B, tree SortedMap, numKeys int) {
 	)
 
 	keysToPutForByIndexAPIs, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
 		b.Fatal(err)
 	}
 	indicesToDeleteByIndexNotNormalized, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
 		b.Fatal(err)
 	}
@@ -1914,12 +1914,12 @@ func metaBenchmarkGetByKey(b *testing.B, tree SortedMap, numKeys int) {
 	)
 
 	keysToPutForByKeyAPIs, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
 		b.Fatal(err)
 	}
 	keysToGet, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
 		b.Fatal(err)
 	}
@@ -1946,12 +1946,12 @@ func metaBenchmarkBisectLeft(b *testing.B, tree SortedMap, numKeys int) {
 	)
 
 	keysToPutForByKeyAPIs, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
 		b.Fatal(err)
 	}
 	keysToBisectLeft, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
 		b.Fatal(err)
 	}
@@ -1978,12 +1978,12 @@ func metaBenchmarkBisectRight(b *testing.B, tree SortedMap, numKeys int) {
 	)
 
 	keysToPutForByKeyAPIs, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
 		b.Fatal(err)
 	}
 	keysToBisectRight, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
 		b.Fatal(err)
 	}
@@ -2010,12 +2010,12 @@ func metaBenchmarkPatchByKey(b *testing.B, tree SortedMap, numKeys int) {
 	)
 
 	keysToPutForByKeyAPIs, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
 		b.Fatal(err)
 	}
 	keysToPatch, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
 		b.Fatal(err)
 	}
@@ -2042,12 +2042,12 @@ func metaBenchmarkDeleteByKey(b *testing.B, tree SortedMap, numKeys int) {
 	)
 
 	keysToPutForByKeyAPIs, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
 		b.Fatal(err)
 	}
 	keysToDelete, err = testKnuthShuffledIntSlice(numKeys)
-	if nil != err {
+	if err != nil {
 		err = fmt.Errorf("Knuth Shuffle failed: %v", err)
 		b.Fatal(err)
 	}

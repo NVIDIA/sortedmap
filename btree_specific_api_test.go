@@ -29,7 +29,7 @@ type valueStruct struct {
 	s8  [8]byte
 }
 
-func (context *specificBPlusTreeTestContextStruct) GetNode(logSegmentNumber uint64, logOffset uint64, logLength uint64) (nodeByteSlice []byte, err error) {
+func (context *specificBPlusTreeTestContextStruct) GetNode(logSegmentNumber, logOffset, logLength uint64) (nodeByteSlice []byte, err error) {
 	logSegmentChunk, ok := context.logSegmentChunkMap[logSegmentNumber]
 
 	if !ok {
@@ -53,7 +53,7 @@ func (context *specificBPlusTreeTestContextStruct) GetNode(logSegmentNumber uint
 	return
 }
 
-func (context *specificBPlusTreeTestContextStruct) PutNode(nodeByteSlice []byte) (logSegmentNumber uint64, logOffset uint64, err error) {
+func (context *specificBPlusTreeTestContextStruct) PutNode(nodeByteSlice []byte) (logSegmentNumber, logOffset uint64, err error) {
 	context.lastLogSegmentNumberGenerated++
 	logSegmentNumber = context.lastLogSegmentNumberGenerated
 
@@ -71,7 +71,7 @@ func (context *specificBPlusTreeTestContextStruct) PutNode(nodeByteSlice []byte)
 	return
 }
 
-func (context *specificBPlusTreeTestContextStruct) DiscardNode(logSegmentNumber uint64, logOffset uint64, logLength uint64) (err error) {
+func (context *specificBPlusTreeTestContextStruct) DiscardNode(logSegmentNumber, logOffset, logLength uint64) (err error) {
 	logSegmentChunk, ok := context.logSegmentChunkMap[logSegmentNumber]
 	if !ok {
 		err = errors.New("logSegmentNumber not found")
@@ -230,7 +230,7 @@ func TestBPlusTreeSpecific(t *testing.T) {
 
 	valueAsValueStructToInsert = valueStruct{u32: 5, s8: uint32To8ReplicaByteArray(5)}
 	ok, err = btreeNew.Put(uint32(5), valueAsValueStructToInsert)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeNew.Put(uint32(5) should not have failed")
 	}
 	if !ok {
@@ -239,7 +239,7 @@ func TestBPlusTreeSpecific(t *testing.T) {
 
 	valueAsValueStructToInsert = valueStruct{u32: 3, s8: uint32To8ReplicaByteArray(3)}
 	ok, err = btreeNew.Put(uint32(3), valueAsValueStructToInsert)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeNew.Put(uint32(3) should not have failed")
 	}
 	if !ok {
@@ -248,7 +248,7 @@ func TestBPlusTreeSpecific(t *testing.T) {
 
 	valueAsValueStructToInsert = valueStruct{u32: 7, s8: uint32To8ReplicaByteArray(7)}
 	ok, err = btreeNew.Put(uint32(7), valueAsValueStructToInsert)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeNew.Put(uint32(7) should not have failed")
 	}
 	if !ok {
@@ -256,7 +256,7 @@ func TestBPlusTreeSpecific(t *testing.T) {
 	}
 
 	rootObjectNumberFromFlush, rootObjectOffsetFromFlush, rootObjectLengthFromFlush, err = btreeNew.Flush(false)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeNew.Flush(false) should not have failed")
 	}
 
@@ -272,7 +272,7 @@ func TestBPlusTreeSpecific(t *testing.T) {
 	}
 
 	valueAsValueReturned, ok, err = btreeNew.GetByKey(uint32(5))
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeNew.GetByKey(uint32(5)) should not have failed")
 	}
 	if !ok {
@@ -285,12 +285,12 @@ func TestBPlusTreeSpecific(t *testing.T) {
 	}
 
 	rootObjectNumberFromFlush, rootObjectOffsetFromFlush, rootObjectLengthFromFlush, err = btreeNew.Flush(true)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeNew.Flush(true) should not have failed")
 	}
 
 	valueAsValueReturned, ok, err = btreeNew.GetByKey(uint32(3))
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeNew.GetByKey(uint32(3)) should not have failed")
 	}
 	if !ok {
@@ -308,7 +308,7 @@ func TestBPlusTreeSpecific(t *testing.T) {
 		layoutReportExpected[logSegmentNumber] = logSegmentBytesExpected // Note: assumes no chunks are stale
 	}
 	layoutReportReturned, err = btreeNew.FetchLayoutReport()
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeNew.FetchLayoutReport() should not have failed")
 	}
 	if len(layoutReportExpected) != len(layoutReportReturned) {
@@ -324,12 +324,12 @@ func TestBPlusTreeSpecific(t *testing.T) {
 	btreeCacheNew.UpdateLimits(200, 300)
 
 	err = btreeNew.Purge(true)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeNew.Purge(true) should not have failed")
 	}
 
 	valueAsValueReturned, ok, err = btreeNew.GetByKey(uint32(7))
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeNew.GetByKey(uint32(7)) should not have failed")
 	}
 	if !ok {
@@ -346,20 +346,20 @@ func TestBPlusTreeSpecific(t *testing.T) {
 	btreeCacheOld = NewBPlusTreeCache(100, 200)
 
 	btreeOld, err = OldBPlusTree(rootObjectNumberFromFlush, rootObjectOffsetFromFlush, rootObjectLengthFromFlush, CompareUint32, persistentContext, btreeCacheOld)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("OldBPlusTree() should not have failed")
 	}
 
 	btreeLen, err = btreeOld.Len()
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeOld.Len() should not have failed")
 	}
-	if 3 != btreeLen {
+	if btreeLen != 3 {
 		t.Fatalf("btreeOld.Len() should have been 3")
 	}
 
 	valueAsValueReturned, ok, err = btreeOld.GetByKey(uint32(5))
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeOld.GetByKey(uint32(5)) should not have failed")
 	}
 	if !ok {
@@ -372,7 +372,7 @@ func TestBPlusTreeSpecific(t *testing.T) {
 	}
 
 	valueAsValueReturned, ok, err = btreeOld.GetByKey(uint32(3))
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeOld.GetByKey(uint32(3)) should not have failed")
 	}
 	if !ok {
@@ -385,7 +385,7 @@ func TestBPlusTreeSpecific(t *testing.T) {
 	}
 
 	valueAsValueReturned, ok, err = btreeOld.GetByKey(uint32(7))
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeOld.GetByKey(uint32(7)) should not have failed")
 	}
 	if !ok {
@@ -398,23 +398,23 @@ func TestBPlusTreeSpecific(t *testing.T) {
 	}
 
 	err = btreeOld.Touch()
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeOld.Touch() should not have failed")
 	}
 
 	err = btreeOld.Purge(false)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeOld.Purge(false) [case 1] should not have failed")
 	}
 
 	err = btreeOld.Purge(true)
-	if nil == err {
+	if err == nil {
 		t.Fatalf("btreeOld.Purge(true) [case 1] should have failed")
 	}
 
 	valueAsValueStructToInsert = valueStruct{u32: 2, s8: uint32To8ReplicaByteArray(2)}
 	ok, err = btreeOld.Put(uint32(2), valueAsValueStructToInsert)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeOld.Put(uint32(2) should not have failed")
 	}
 	if !ok {
@@ -423,7 +423,7 @@ func TestBPlusTreeSpecific(t *testing.T) {
 
 	valueAsValueStructToInsert = valueStruct{u32: 4, s8: uint32To8ReplicaByteArray(4)}
 	ok, err = btreeOld.Put(uint32(4), valueAsValueStructToInsert)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeOld.Put(uint32(4) should not have failed")
 	}
 	if !ok {
@@ -432,7 +432,7 @@ func TestBPlusTreeSpecific(t *testing.T) {
 
 	valueAsValueStructToInsert = valueStruct{u32: 6, s8: uint32To8ReplicaByteArray(6)}
 	ok, err = btreeOld.Put(uint32(6), valueAsValueStructToInsert)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeOld.Put(uint32(6) should not have failed")
 	}
 	if !ok {
@@ -441,7 +441,7 @@ func TestBPlusTreeSpecific(t *testing.T) {
 
 	valueAsValueStructToInsert = valueStruct{u32: 8, s8: uint32To8ReplicaByteArray(8)}
 	ok, err = btreeOld.Put(uint32(8), valueAsValueStructToInsert)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeOld.Put(uint32(8) should not have failed")
 	}
 	if !ok {
@@ -449,49 +449,49 @@ func TestBPlusTreeSpecific(t *testing.T) {
 	}
 
 	err = btreeOld.Purge(false)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeOld.Purge(false) [case 2] should not have failed")
 	}
 
 	err = btreeOld.Purge(true)
-	if nil == err {
+	if err == nil {
 		t.Fatalf("btreeOld.Purge(true) [case 2] should have failed")
 	}
 
 	nextItemIndexToTouch, err := btreeOld.TouchItem(0)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeOld.TouchItem(0) should not have failed")
 	}
-	if 2 != nextItemIndexToTouch {
+	if nextItemIndexToTouch != 2 {
 		t.Fatalf("btreeOld.TouchItem(0) should have returned 2")
 	}
 
 	nextItemIndexToTouch, err = btreeOld.TouchItem(2)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeOld.TouchItem(2) should not have failed")
 	}
-	if 4 != nextItemIndexToTouch {
+	if nextItemIndexToTouch != 4 {
 		t.Fatalf("btreeOld.TouchItem(2) should have returned 4")
 	}
 
 	nextItemIndexToTouch, err = btreeOld.TouchItem(4)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeOld.TouchItem(4) should not have failed")
 	}
-	if 7 != nextItemIndexToTouch {
+	if nextItemIndexToTouch != 7 {
 		t.Fatalf("btreeOld.TouchItem(4) should have returned 7")
 	}
 
 	nextItemIndexToTouch, err = btreeOld.TouchItem(7)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeOld.TouchItem(7) should not have failed")
 	}
-	if 0 != nextItemIndexToTouch {
+	if nextItemIndexToTouch != 0 {
 		t.Fatalf("btreeOld.TouchItem(7) should have returned 2")
 	}
 
 	err = btreeOld.Discard()
-	if nil != err {
+	if err != nil {
 		t.Fatalf("btreeOld.Discard() should not have failed")
 	}
 }

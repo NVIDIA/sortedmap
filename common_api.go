@@ -16,7 +16,7 @@ type Value interface{}
 
 type Compare func(key1 Key, key2 Key) (result int, err error) // returns <0 if key1 < key2, 0 if key1 == key2, >0 if key1 > key2
 
-func CompareInt(key1 Key, key2 Key) (result int, err error) {
+func CompareInt(key1, key2 Key) (result int, err error) {
 	key1Int, ok := key1.(int)
 	if !ok {
 		err = errors.New("CompareInt(non-int,) not supported")
@@ -34,7 +34,7 @@ func CompareInt(key1 Key, key2 Key) (result int, err error) {
 	return
 }
 
-func CompareUint16(key1 Key, key2 Key) (result int, err error) {
+func CompareUint16(key1, key2 Key) (result int, err error) {
 	key1Uint16, ok := key1.(uint16)
 	if !ok {
 		err = errors.New("CompareUint16(non-uint16,) not supported")
@@ -46,11 +46,12 @@ func CompareUint16(key1 Key, key2 Key) (result int, err error) {
 		return
 	}
 
-	if key1Uint16 < key2Uint16 {
+	switch {
+	case key1Uint16 < key2Uint16:
 		result = -1
-	} else if key1Uint16 == key2Uint16 {
+	case key1Uint16 == key2Uint16:
 		result = 0
-	} else { // key1Uint16 > key2Uint16
+	default: // key1Uint16 > key2Uint16
 		result = 1
 	}
 
@@ -59,7 +60,7 @@ func CompareUint16(key1 Key, key2 Key) (result int, err error) {
 	return
 }
 
-func CompareUint32(key1 Key, key2 Key) (result int, err error) {
+func CompareUint32(key1, key2 Key) (result int, err error) {
 	key1Uint32, ok := key1.(uint32)
 	if !ok {
 		err = errors.New("CompareUint32(non-uint32,) not supported")
@@ -71,11 +72,12 @@ func CompareUint32(key1 Key, key2 Key) (result int, err error) {
 		return
 	}
 
-	if key1Uint32 < key2Uint32 {
+	switch {
+	case key1Uint32 < key2Uint32:
 		result = -1
-	} else if key1Uint32 == key2Uint32 {
+	case key1Uint32 == key2Uint32:
 		result = 0
-	} else { // key1Uint32 > key2Uint32
+	default: // key1Uint32 > key2Uint32
 		result = 1
 	}
 
@@ -84,7 +86,7 @@ func CompareUint32(key1 Key, key2 Key) (result int, err error) {
 	return
 }
 
-func CompareUint64(key1 Key, key2 Key) (result int, err error) {
+func CompareUint64(key1, key2 Key) (result int, err error) {
 	key1Uint64, ok := key1.(uint64)
 	if !ok {
 		err = errors.New("CompareUint64(non-uint64,) not supported")
@@ -96,11 +98,12 @@ func CompareUint64(key1 Key, key2 Key) (result int, err error) {
 		return
 	}
 
-	if key1Uint64 < key2Uint64 {
+	switch {
+	case key1Uint64 < key2Uint64:
 		result = -1
-	} else if key1Uint64 == key2Uint64 {
+	case key1Uint64 == key2Uint64:
 		result = 0
-	} else { // key1Uint64 > key2Uint64
+	default: // key1Uint64 > key2Uint64
 		result = 1
 	}
 
@@ -109,7 +112,7 @@ func CompareUint64(key1 Key, key2 Key) (result int, err error) {
 	return
 }
 
-func CompareString(key1 Key, key2 Key) (result int, err error) {
+func CompareString(key1, key2 Key) (result int, err error) {
 	key1String, ok := key1.(string)
 	if !ok {
 		err = errors.New("CompareString(non-string,) not supported")
@@ -127,7 +130,7 @@ func CompareString(key1 Key, key2 Key) (result int, err error) {
 	return
 }
 
-func CompareByteSlice(key1 Key, key2 Key) (result int, err error) {
+func CompareByteSlice(key1, key2 Key) (result int, err error) {
 	key1Slice, ok := key1.([]byte)
 	if !ok {
 		err = errors.New("CompareByteSlice(non-[]byte,) not supported")
@@ -145,7 +148,7 @@ func CompareByteSlice(key1 Key, key2 Key) (result int, err error) {
 	return
 }
 
-func CompareTime(key1 Key, key2 Key) (result int, err error) {
+func CompareTime(key1, key2 Key) (result int, err error) {
 	key1Time, ok := key1.(time.Time)
 	if !ok {
 		err = errors.New("CompareTime(non-time.Time,) not supported")
@@ -157,11 +160,12 @@ func CompareTime(key1 Key, key2 Key) (result int, err error) {
 		return
 	}
 
-	if key1Time.Before(key2Time) {
+	switch {
+	case key1Time.Before(key2Time):
 		result = -1
-	} else if key1Time.After(key2Time) {
+	case key1Time.After(key2Time):
 		result = 1
-	} else { // key1Time == key2Time
+	default: // key1Time == key2Time
 		result = 0
 	}
 

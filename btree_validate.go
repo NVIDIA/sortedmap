@@ -20,47 +20,47 @@ func (tree *btreeTreeStruct) Validate() (err error) {
 func (node *btreeNodeStruct) validate() (err error) {
 	if !node.loaded {
 		err = node.tree.loadNode(node)
-		if nil != err {
+		if err != nil {
 			return
 		}
 	}
 
 	if node.leaf {
 		err = node.kvLLRB.Validate()
-		if nil != err {
+		if err != nil {
 			return
 		}
 
 		numKeysInLLRB, nonShadowingErr := node.kvLLRB.Len()
-		if nil != nonShadowingErr {
+		if nonShadowingErr != nil {
 			err = nonShadowingErr
 			return
 		}
 
 		if numKeysInLLRB != int(node.items) {
-			err = fmt.Errorf("Leaf node @%p items [%d] != node.kvLLRB.Len() [%d]", node, numKeysInLLRB, node.items)
+			err = fmt.Errorf("leaf node @%p items [%d] != node.kvLLRB.Len() [%d]", node, numKeysInLLRB, node.items)
 			return
 		}
 
 		if !node.root && (uint64(numKeysInLLRB) < node.tree.minKeysPerNode) {
-			err = fmt.Errorf("Non-Root Leaf node @%p kvLLRB.Len() [%d] < node.tree.minKeysPerNode [%d]", node, numKeysInLLRB, node.tree.minKeysPerNode)
+			err = fmt.Errorf("non-root Leaf node @%p kvLLRB.Len() [%d] < node.tree.minKeysPerNode [%d]", node, numKeysInLLRB, node.tree.minKeysPerNode)
 			return
 		}
 		if uint64(numKeysInLLRB) > node.tree.maxKeysPerNode {
-			err = fmt.Errorf("Leaf node @%p kvLLRB.Len() [%d] > node.tree.maxKeysPerNode [%d]", node, numKeysInLLRB, node.tree.maxKeysPerNode)
+			err = fmt.Errorf("leaf node @%p kvLLRB.Len() [%d] > node.tree.maxKeysPerNode [%d]", node, numKeysInLLRB, node.tree.maxKeysPerNode)
 			return
 		}
 	} else {
 		childItems := uint64(0)
 
-		if nil != node.nonLeafLeftChild {
+		if node.nonLeafLeftChild != nil {
 			if node.nonLeafLeftChild.parentNode != node {
-				err = fmt.Errorf("Node @%p had nonLeafLeftChild @%p with unexpected .parentNode %p", node, node.nonLeafLeftChild, node.nonLeafLeftChild.parentNode)
+				err = fmt.Errorf("node @%p had nonLeafLeftChild @%p with unexpected .parentNode %p", node, node.nonLeafLeftChild, node.nonLeafLeftChild.parentNode)
 				return
 			}
 
 			err = node.nonLeafLeftChild.validate()
-			if nil != err {
+			if err != nil {
 				return
 			}
 
@@ -68,12 +68,12 @@ func (node *btreeNodeStruct) validate() (err error) {
 		}
 
 		err = node.kvLLRB.Validate()
-		if nil != err {
+		if err != nil {
 			return
 		}
 
 		numChildrenInLLRB, nonShadowingErr := node.kvLLRB.Len()
-		if nil != nonShadowingErr {
+		if nonShadowingErr != nil {
 			err = nonShadowingErr
 			return
 		}
@@ -89,7 +89,7 @@ func (node *btreeNodeStruct) validate() (err error) {
 
 		for i := range numChildrenInLLRB {
 			_, childNodeAsValue, ok, nonShadowingErr := node.kvLLRB.GetByIndex(i)
-			if nil != nonShadowingErr {
+			if nonShadowingErr != nil {
 				err = nonShadowingErr
 				return
 			}
@@ -106,7 +106,7 @@ func (node *btreeNodeStruct) validate() (err error) {
 			}
 
 			err = childNode.validate()
-			if nil != err {
+			if err != nil {
 				return
 			}
 
@@ -118,12 +118,12 @@ func (node *btreeNodeStruct) validate() (err error) {
 			return
 		}
 
-		if nil == node.rootPrefixSumChild {
+		if node.rootPrefixSumChild == nil {
 			err = fmt.Errorf("Non-Leaf node @%p rootPrefixSumChild == nil", node)
 			return
 		}
 
-		if nil != node.rootPrefixSumChild.prefixSumParent {
+		if node.rootPrefixSumChild.prefixSumParent != nil {
 			err = fmt.Errorf("Non-Leaf node @%p rootPrefixSumChild.prefixSumParent != nil", node)
 			return
 		}
@@ -134,7 +134,7 @@ func (node *btreeNodeStruct) validate() (err error) {
 		}
 
 		err = node.rootPrefixSumChild.validatePrefixSum()
-		if nil != err {
+		if err != nil {
 			return
 		}
 	}
@@ -147,7 +147,7 @@ func (node *btreeNodeStruct) validate() (err error) {
 func (node *btreeNodeStruct) validatePrefixSum() (err error) {
 	expectedPrefixSumItems := node.items
 
-	if nil != node.prefixSumLeftChild {
+	if node.prefixSumLeftChild != nil {
 		expectedPrefixSumItems += node.prefixSumLeftChild.prefixSumItems
 
 		if node != node.prefixSumLeftChild.prefixSumParent {
@@ -156,12 +156,12 @@ func (node *btreeNodeStruct) validatePrefixSum() (err error) {
 		}
 
 		err = node.prefixSumLeftChild.validatePrefixSum()
-		if nil != err {
+		if err != nil {
 			return
 		}
 	}
 
-	if nil != node.prefixSumRightChild {
+	if node.prefixSumRightChild != nil {
 		expectedPrefixSumItems += node.prefixSumRightChild.prefixSumItems
 
 		if node != node.prefixSumRightChild.prefixSumParent {
@@ -170,7 +170,7 @@ func (node *btreeNodeStruct) validatePrefixSum() (err error) {
 		}
 
 		err = node.prefixSumLeftChild.validatePrefixSum()
-		if nil != err {
+		if err != nil {
 			return
 		}
 	}
