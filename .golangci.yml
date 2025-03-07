@@ -28,7 +28,7 @@ linters:
     - misspell
     - nilnesserr
     - nolintlint
-    # - perfsprint
+    - perfsprint
     - prealloc
     - protogetter
     - reassign

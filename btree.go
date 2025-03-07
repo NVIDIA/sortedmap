@@ -1190,7 +1190,7 @@ func (tree *btreeTreeStruct) insertHere(insertNode *btreeNodeStruct, key Key, va
 			return
 		}
 		if !ok {
-			err = fmt.Errorf("Logic error: insertHere() failed to fetch insertNode's splitKey:splitValue")
+			err = errors.New("logic error: insertHere() failed to fetch insertNode's splitKey:splitValue")
 			return
 		}
 
@@ -1199,7 +1199,7 @@ func (tree *btreeTreeStruct) insertHere(insertNode *btreeNodeStruct, key Key, va
 			return
 		}
 		if !ok {
-			err = fmt.Errorf("Logic error: insertHere() failed to delete insertNode's splitKey")
+			err = errors.New("logic error: insertHere() failed to delete insertNode's splitKey")
 			return
 		}
 
@@ -1364,7 +1364,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 				return
 			}
 			if !ok {
-				err = fmt.Errorf("Logic error: rebalanceHere() failed to fetch leftSiblingNode")
+				err = errors.New("logic error: rebalanceHere() failed to fetch leftSiblingNode")
 				return
 			}
 			leftSiblingNode = leftSiblingNodeAsValue.(*btreeNodeStruct)
@@ -1401,7 +1401,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 					return
 				}
 				if !ok {
-					err = fmt.Errorf("Logic error: rebalanceHere() failed to fetch leftSiblingNode's movedKeyFromSibling:movedValueFromSibling")
+					err = errors.New("logic error: rebalanceHere() failed to fetch leftSiblingNode's movedKeyFromSibling:movedValueFromSibling")
 					return
 				}
 				ok, err = leftSiblingNode.kvLLRB.DeleteByIndex(leftSiblingNodeKVIndex)
@@ -1409,7 +1409,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 					return
 				}
 				if !ok {
-					err = fmt.Errorf("Logic error: rebalanceHere() failed to delete leftSiblingNode's movedKeyFromSibling")
+					err = errors.New("logic error: rebalanceHere() failed to delete leftSiblingNode's movedKeyFromSibling")
 					return
 				}
 				ok, err = rebalanceNode.kvLLRB.Put(movedKeyFromSibling, movedValueFromSibling)
@@ -1417,7 +1417,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 					return
 				}
 				if !ok {
-					err = fmt.Errorf("Logic error: rebalanceHere() failed to put leftSiblingNode's movedKeyFromSibling:movedValueFromSibling")
+					err = errors.New("logic error: rebalanceHere() failed to put leftSiblingNode's movedKeyFromSibling:movedValueFromSibling")
 					return
 				}
 				ok, err = parentNode.kvLLRB.DeleteByIndex(parentNodeIndex)
@@ -1425,7 +1425,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 					return
 				}
 				if !ok {
-					err = fmt.Errorf("Logic error: rebalanceHere() failed to delete parentNode's oldSplitKey")
+					err = errors.New("logic error: rebalanceHere() failed to delete parentNode's oldSplitKey")
 					return
 				}
 				ok, err = parentNode.kvLLRB.Put(movedKeyFromSibling, rebalanceNode)
@@ -1433,7 +1433,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 					return
 				}
 				if !ok {
-					err = fmt.Errorf("Logic error: rebalanceHere() failed to delete parentNode's movedKeyFromSibling:rebalanceNode")
+					err = errors.New("logic error: rebalanceHere() failed to delete parentNode's movedKeyFromSibling:rebalanceNode")
 					return
 				}
 			} else {
@@ -1445,7 +1445,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 					return
 				}
 				if !ok {
-					err = fmt.Errorf("Logic error: rebalanceHere() failed to fetch leftSiblingNode's movedKeyFromSibling:movedValueFromSibling")
+					err = errors.New("logic error: rebalanceHere() failed to fetch leftSiblingNode's movedKeyFromSibling:movedValueFromSibling")
 					return
 				}
 				movedNodeFromSibling = movedValueFromSibling.(*btreeNodeStruct)
@@ -1454,7 +1454,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 					return
 				}
 				if !ok {
-					err = fmt.Errorf("Logic error: rebalanceHere() failed to delete leftSiblingNode's movedKeyFromSibling")
+					err = errors.New("logic error: rebalanceHere() failed to delete leftSiblingNode's movedKeyFromSibling")
 					return
 				}
 				movedKeyFromParent, _, ok, err = parentNode.kvLLRB.GetByIndex(parentNodeIndex)
@@ -1462,7 +1462,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 					return
 				}
 				if !ok {
-					err = fmt.Errorf("Logic error: rebalanceHere() failed to fetch parentNode's movedKeyFromParent")
+					err = errors.New("logic error: rebalanceHere() failed to fetch parentNode's movedKeyFromParent")
 					return
 				}
 				ok, err = parentNode.kvLLRB.DeleteByIndex(parentNodeIndex)
@@ -1470,7 +1470,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 					return
 				}
 				if !ok {
-					err = fmt.Errorf("Logic error: rebalanceHere() failed to delete parentNode's movedKeyFromParent")
+					err = errors.New("logic error: rebalanceHere() failed to delete parentNode's movedKeyFromParent")
 					return
 				}
 				ok, err = rebalanceNode.kvLLRB.Put(movedKeyFromParent, rebalanceNode.nonLeafLeftChild)
@@ -1478,7 +1478,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 					return
 				}
 				if !ok {
-					err = fmt.Errorf("Logic error: rebalanceHere() failed to put rebalanceNode's movedKeyFromParent:rebalanceNode.nonLeafLeftChild")
+					err = errors.New("logic error: rebalanceHere() failed to put rebalanceNode's movedKeyFromParent:rebalanceNode.nonLeafLeftChild")
 					return
 				}
 				movedNodeFromSibling.parentNode = rebalanceNode
@@ -1488,7 +1488,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 					return
 				}
 				if !ok {
-					err = fmt.Errorf("Logic error: rebalanceHere() failed to put parentNode's movedKeyFromSibling:rebalanceNode")
+					err = errors.New("logic error: rebalanceHere() failed to put parentNode's movedKeyFromSibling:rebalanceNode")
 					return
 				}
 
@@ -1518,7 +1518,7 @@ func (tree *btreeTreeStruct) rebalanceHere(rebalanceNode *btreeNodeStruct, paren
 			return
 		}
 		if !ok {
-			err = fmt.Errorf("Logic error: rebalanceHere() failed to fetch rightSiblingNode")
+			err = errors.New("logic error: rebalanceHere() failed to fetch rightSiblingNode")
 			return
 		}
 		rightSiblingNode = rightSiblingNodeAsValue.(*btreeNodeStruct)
@@ -1960,7 +1960,7 @@ func (tree *btreeTreeStruct) purgeNode(node *btreeNodeStruct, full bool) (err er
 				return
 			}
 			if !ok {
-				err = fmt.Errorf("Logic error: purgeNode() had indexing problem in kvLLRB")
+				err = errors.New("logic error: purgeNode() had indexing problem in kvLLRB")
 				return
 			}
 			childNode := childNodeAsValue.(*btreeNodeStruct)
@@ -2015,7 +2015,7 @@ func (tree *btreeTreeStruct) markNodeUsed(node *btreeNodeStruct) {
 		tree.nodeCache.Lock()
 		switch node.btreeNodeCacheTag {
 		case noLRU:
-			err := fmt.Errorf("Logic error in markNodeUsed() with node.btreeNodeCacheTag == noLRU (%v)", noLRU)
+			err := fmt.Errorf("logic error in markNodeUsed() with node.btreeNodeCacheTag == noLRU (%v)", noLRU)
 			panic(err)
 		case cleanLRU:
 			// Move node to the MRU end of tree.nodeCache's cleanLRU (if necessary)
@@ -2351,7 +2351,7 @@ func (tree *btreeTreeStruct) markNodeToBeDiscarded(node *btreeNodeStruct) {
 		tree.nodeCache.Lock()
 		switch node.btreeNodeCacheTag {
 		case noLRU:
-			err := fmt.Errorf("Logic error in markNodeToBeDiscarded() with node.btreeNodeCacheTag == noLRU (%v)", noLRU)
+			err := fmt.Errorf("logic error in markNodeToBeDiscarded() with node.btreeNodeCacheTag == noLRU (%v)", noLRU)
 			panic(err)
 		case cleanLRU:
 			// Remove node from tree.nodeCache's cleanLRU
@@ -2693,7 +2693,7 @@ func (tree *btreeTreeStruct) updatePrefixSumTreeLeafToRootRecursively(updatedChi
 
 func (tree *btreeTreeStruct) updatePrefixSumTreeLeafToRoot(leafNode *btreeNodeStruct) (err error) {
 	if !leafNode.leaf {
-		err = fmt.Errorf("Logic error: updatePrefixSumTreeToRoot called for non-leaf node")
+		err = errors.New("logic error: updatePrefixSumTreeToRoot called for non-leaf node")
 		return
 	}
 
@@ -3093,7 +3093,7 @@ func (tree *btreeTreeStruct) updateLayoutReport(layoutReport LayoutReport, node 
 				return
 			}
 			if !ok {
-				err = fmt.Errorf("Logic error: childNode lookup by index not found")
+				err = errors.New("logic error: childNode lookup by index not found")
 				return
 			}
 			childNode := childNodeAsValue.(*btreeNodeStruct)

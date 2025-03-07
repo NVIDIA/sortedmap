@@ -5,7 +5,8 @@ package sortedmap
 
 import (
 	"encoding/binary"
-	"fmt"
+	"errors"
+	"strconv"
 	"testing"
 )
 
@@ -24,17 +25,17 @@ type commonBPlusTreeTestContextStruct struct {
 }
 
 func (*commonBPlusTreeTestContextStruct) GetNode(_, _, _ uint64) (nodeByteSlice []byte, err error) {
-	err = fmt.Errorf("GetNode() not implemented")
+	err = errors.New("GetNode() not implemented")
 	return
 }
 
 func (*commonBPlusTreeTestContextStruct) PutNode(_ []byte) (objectNumber uint64, objectOffset uint64, err error) {
-	err = fmt.Errorf("PutNode() not implemented")
+	err = errors.New("PutNode() not implemented")
 	return
 }
 
 func (*commonBPlusTreeTestContextStruct) DiscardNode(_, _, _ uint64) (err error) {
-	err = fmt.Errorf("DiscardNode() not implemented")
+	err = errors.New("DiscardNode() not implemented")
 	return
 }
 
@@ -43,7 +44,7 @@ func (context *commonBPlusTreeTestContextStruct) DumpKey(key Key) (keyAsString s
 	if !ok {
 		context.t.Fatalf("DumpKey() argument not an int")
 	}
-	keyAsString = fmt.Sprintf("%v", keyAsInt)
+	keyAsString = strconv.Itoa(keyAsInt)
 	err = nil
 	return
 }
@@ -95,47 +96,47 @@ type commonBPlusTreeBenchmarkContextStruct struct {
 }
 
 func (*commonBPlusTreeBenchmarkContextStruct) GetNode(_, _, _ uint64) (nodeByteSlice []byte, err error) {
-	err = fmt.Errorf("GetNode() not implemented")
+	err = errors.New("GetNode() not implemented")
 	return
 }
 
 func (*commonBPlusTreeBenchmarkContextStruct) PutNode(_ []byte) (objectNumber uint64, objectOffset uint64, err error) {
-	err = fmt.Errorf("PutNode() not implemented")
+	err = errors.New("PutNode() not implemented")
 	return
 }
 
 func (*commonBPlusTreeBenchmarkContextStruct) DiscardNode(_, _, _ uint64) (err error) {
-	err = fmt.Errorf("GetNode() not implemented")
+	err = errors.New("GetNode() not implemented")
 	return
 }
 
 func (*commonBPlusTreeBenchmarkContextStruct) DumpKey(_ Key) (keyAsString string, err error) {
-	err = fmt.Errorf("DumpKey() not implemented")
+	err = errors.New("DumpKey() not implemented")
 	return
 }
 
 func (*commonBPlusTreeBenchmarkContextStruct) PackKey(_ Key) (packedKey []byte, err error) {
-	err = fmt.Errorf("PackKey() not implemented")
+	err = errors.New("PackKey() not implemented")
 	return
 }
 
 func (*commonBPlusTreeBenchmarkContextStruct) UnpackKey(_ []byte) (key Key, bytesConsumed uint64, err error) {
-	err = fmt.Errorf("UnpackKey() not implemented")
+	err = errors.New("UnpackKey() not implemented")
 	return
 }
 
 func (*commonBPlusTreeBenchmarkContextStruct) DumpValue(_ Value) (valueAsString string, err error) {
-	err = fmt.Errorf("DumpValue() not implemented")
+	err = errors.New("DumpValue() not implemented")
 	return
 }
 
 func (*commonBPlusTreeBenchmarkContextStruct) PackValue(_ Value) (packedValue []byte, err error) {
-	err = fmt.Errorf("PackValue() not implemented")
+	err = errors.New("PackValue() not implemented")
 	return
 }
 
 func (*commonBPlusTreeBenchmarkContextStruct) UnpackValue(_ []byte) (value Value, bytesConsumed uint64, err error) {
-	err = fmt.Errorf("UnpackValue() not implemented")
+	err = errors.New("UnpackValue() not implemented")
 	return
 }
 

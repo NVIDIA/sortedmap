@@ -5,6 +5,7 @@ package sortedmap
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"testing"
 )
@@ -32,17 +33,17 @@ func (context *specificBPlusTreeTestContextStruct) GetNode(logSegmentNumber uint
 	logSegmentChunk, ok := context.logSegmentChunkMap[logSegmentNumber]
 
 	if !ok {
-		err = fmt.Errorf("logSegmentNumber not found")
+		err = errors.New("logSegmentNumber not found")
 		return
 	}
 
 	if logSegmentChunk.startingOffset != logOffset {
-		err = fmt.Errorf("logOffset not found")
+		err = errors.New("logOffset not found")
 		return
 	}
 
 	if uint64(len(logSegmentChunk.chunkByteSlice)) != logLength {
-		err = fmt.Errorf("logLength not found")
+		err = errors.New("logLength not found")
 		return
 	}
 
@@ -73,17 +74,17 @@ func (context *specificBPlusTreeTestContextStruct) PutNode(nodeByteSlice []byte)
 func (context *specificBPlusTreeTestContextStruct) DiscardNode(logSegmentNumber uint64, logOffset uint64, logLength uint64) (err error) {
 	logSegmentChunk, ok := context.logSegmentChunkMap[logSegmentNumber]
 	if !ok {
-		err = fmt.Errorf("logSegmentNumber not found")
+		err = errors.New("logSegmentNumber not found")
 		return
 	}
 
 	if logSegmentChunk.startingOffset != logOffset {
-		err = fmt.Errorf("logOffset not found")
+		err = errors.New("logOffset not found")
 		return
 	}
 
 	if uint64(len(logSegmentChunk.chunkByteSlice)) != logLength {
-		err = fmt.Errorf("logLength not found")
+		err = errors.New("logLength not found")
 		return
 	}
 

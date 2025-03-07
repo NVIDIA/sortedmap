@@ -4,7 +4,8 @@
 package sortedmap
 
 import (
-	"fmt"
+	"errors"
+	"strconv"
 	"testing"
 )
 
@@ -22,7 +23,7 @@ func (context *commonLLRBTreeTestContextStruct) DumpKey(key Key) (keyAsString st
 	if !ok {
 		context.t.Fatalf("DumpKey() argument not an int")
 	}
-	keyAsString = fmt.Sprintf("%v", keyAsInt)
+	keyAsString = strconv.Itoa(keyAsInt)
 	err = nil
 	return
 }
@@ -42,12 +43,12 @@ type commonLLRBTreeBenchmarkContextStruct struct {
 }
 
 func (*commonLLRBTreeBenchmarkContextStruct) DumpKey(_ Key) (keyAsString string, err error) {
-	err = fmt.Errorf("DumpKey() not implemented")
+	err = errors.New("DumpKey() not implemented")
 	return
 }
 
 func (*commonLLRBTreeBenchmarkContextStruct) DumpValue(_ Value) (valueAsString string, err error) {
-	err = fmt.Errorf("DumpValue() not implemented")
+	err = errors.New("DumpValue() not implemented")
 	return
 }
 

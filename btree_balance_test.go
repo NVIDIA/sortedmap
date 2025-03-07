@@ -4,8 +4,10 @@
 package sortedmap
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"testing"
 )
 
@@ -149,7 +151,7 @@ func (*balanceBPlusTreeTestContextStruct) DumpKey(key Key) (keyAsString string, 
 		return
 	}
 
-	keyAsString = fmt.Sprintf("%d", keyAsInt)
+	keyAsString = strconv.Itoa(keyAsInt)
 
 	err = nil
 	return
@@ -162,36 +164,36 @@ func (*balanceBPlusTreeTestContextStruct) DumpValue(_ Value) (valueAsString stri
 }
 
 func (*balanceBPlusTreeTestContextStruct) GetNode(_, _, _ uint64) (nodeByteSlice []byte, err error) {
-	err = fmt.Errorf("GetNode() not supported")
+	err = errors.New("GetNode() not supported")
 	return
 }
 
 func (*balanceBPlusTreeTestContextStruct) PutNode(_ []byte) (objectNumber uint64, objectOffset uint64, err error) {
-	err = fmt.Errorf("PutNode() not supported")
+	err = errors.New("PutNode() not supported")
 	return
 }
 
 func (*balanceBPlusTreeTestContextStruct) DiscardNode(_, _, _ uint64) (err error) {
-	err = fmt.Errorf("DiscardNode() not supported")
+	err = errors.New("DiscardNode() not supported")
 	return
 }
 
 func (*balanceBPlusTreeTestContextStruct) PackKey(_ Key) (packedKey []byte, err error) {
-	err = fmt.Errorf("PackKey() not supported")
+	err = errors.New("PackKey() not supported")
 	return
 }
 
 func (*balanceBPlusTreeTestContextStruct) UnpackKey(_ []byte) (key Key, bytesConsumed uint64, err error) {
-	err = fmt.Errorf("UnpackKey() not supported")
+	err = errors.New("UnpackKey() not supported")
 	return
 }
 
 func (*balanceBPlusTreeTestContextStruct) PackValue(_ Value) (packedValue []byte, err error) {
-	err = fmt.Errorf("PackValue() not supported")
+	err = errors.New("PackValue() not supported")
 	return
 }
 
 func (*balanceBPlusTreeTestContextStruct) UnpackValue(_ []byte) (value Value, bytesConsumed uint64, err error) {
-	err = fmt.Errorf("UnpackValue() not supported")
+	err = errors.New("UnpackValue() not supported")
 	return
 }

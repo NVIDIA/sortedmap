@@ -3,7 +3,10 @@
 
 package sortedmap
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 func (tree *btreeTreeStruct) Validate() (err error) {
 	tree.Lock()
@@ -91,14 +94,14 @@ func (node *btreeNodeStruct) validate() (err error) {
 				return
 			}
 			if !ok {
-				err = fmt.Errorf("Logic error: validate() had indexing problem in kvLLRB")
+				err = errors.New("logic error: validate() had indexing problem in kvLLRB")
 				return
 			}
 
 			childNode := childNodeAsValue.(*btreeNodeStruct)
 
 			if childNode.parentNode != node {
-				err = fmt.Errorf("Node @%p had childNode @%p with unexpected .parentNode %p", node, childNode, childNode.parentNode)
+				err = fmt.Errorf("node @%p had childNode @%p with unexpected .parentNode %p", node, childNode, childNode.parentNode)
 				return
 			}
 

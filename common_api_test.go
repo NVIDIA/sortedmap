@@ -10,6 +10,7 @@ package sortedmap
 
 import (
 	cryptoRand "crypto/rand"
+	"errors"
 	"fmt"
 	"math/big"
 	mathRand "math/rand/v2"
@@ -1606,7 +1607,7 @@ func metaBenchmarkPutStep(b *testing.B, tree SortedMap, keysToPut []int) {
 			b.Fatal(err)
 		}
 		if !ok {
-			err = fmt.Errorf("Put().ok should have been true")
+			err = errors.New("Put().ok should have been true")
 			b.Fatal(err)
 		}
 	}
@@ -1626,7 +1627,7 @@ func metaBenchmarkGetByIndexStep(b *testing.B, tree SortedMap, indicesToGet []in
 			b.Fatal(err)
 		}
 		if !ok {
-			err = fmt.Errorf("GetByIndex().ok should have been true")
+			err = errors.New("GetByIndex().ok should have been true")
 			b.Fatal(err)
 		}
 	}
@@ -1648,7 +1649,7 @@ func metaBenchmarkPatchByIndexStep(b *testing.B, tree SortedMap, indicesToPatch 
 			b.Fatal(err)
 		}
 		if !ok {
-			err = fmt.Errorf("PatchByIndex().ok should have been true")
+			err = errors.New("PatchByIndex().ok should have been true")
 			b.Fatal(err)
 		}
 	}
@@ -1668,7 +1669,7 @@ func metaBenchmarkDeleteByIndexStep(b *testing.B, tree SortedMap, indicesToDelet
 			b.Fatal(err)
 		}
 		if !ok {
-			err = fmt.Errorf("DeleteByIndex().ok should have been true")
+			err = errors.New("DeleteByIndex().ok should have been true")
 			b.Fatal(err)
 		}
 	}
@@ -1688,7 +1689,7 @@ func metaBenchmarkGetByKeyStep(b *testing.B, tree SortedMap, keysToGet []int) {
 			b.Fatal(err)
 		}
 		if !ok {
-			err = fmt.Errorf("GetByKey().ok should have been true")
+			err = errors.New("GetByKey().ok should have been true")
 			b.Fatal(err)
 		}
 	}
@@ -1708,7 +1709,7 @@ func metaBenchmarkBisectLeftStep(b *testing.B, tree SortedMap, keysToBisectLeft 
 			b.Fatal(err)
 		}
 		if !found {
-			err = fmt.Errorf("BisectLeft().found should have been true")
+			err = errors.New("BisectLeft().found should have been true")
 			b.Fatal(err)
 		}
 	}
@@ -1728,7 +1729,7 @@ func metaBenchmarkBisectRightStep(b *testing.B, tree SortedMap, keysToBisectRigh
 			b.Fatal(err)
 		}
 		if !found {
-			err = fmt.Errorf("BisectRight().found should have been true")
+			err = errors.New("BisectRight().found should have been true")
 			b.Fatal(err)
 		}
 	}
@@ -1750,7 +1751,7 @@ func metaBenchmarkPatchByKeyStep(b *testing.B, tree SortedMap, keysToPatch []int
 			b.Fatal(err)
 		}
 		if !ok {
-			err = fmt.Errorf("PatchByKey().ok should have been true")
+			err = errors.New("PatchByKey().ok should have been true")
 			b.Fatal(err)
 		}
 	}
@@ -1770,7 +1771,7 @@ func metaBenchmarkDeleteByKeyStep(b *testing.B, tree SortedMap, keysToDelete []i
 			b.Fatal(err)
 		}
 		if !ok {
-			err = fmt.Errorf("DeleteByKey().ok should have been true")
+			err = errors.New("DeleteByKey().ok should have been true")
 			b.Fatal(err)
 		}
 	}
