@@ -1,0 +1,20 @@
+version: "1.0"
+project: "sortedmap"
+last_updated: "2026-08-03T18:47:00Z"
+
+repository_exposure_classification:
+  visibility: "Public"
+  basis: "The origin repository is the publicly accessible NVIDIA/sortedmap GitHub repository."
+  confirmed_by: "emcclanahan"
+  date: "2026-08-03"
+
+service_exposure_classification:
+  tier: "External / Regulated"
+  confidence: "high"
+  basis: "Externally distributed open-source Go library (NVIDIA/sortedmap) providing in-memory LLRB and pageable B+Tree sorted-map implementations with no network service of its own."
+  confirmed_by: "emcclanahan"
+  date: "2026-08-03"
+
+false_positives: []
+accepted_risks: []
+suppressed_cves: []
